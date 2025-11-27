@@ -1,0 +1,10 @@
+// HelloWorld.jack
+// Simple program to print "Hello, World!"
+
+class HelloWorld {
+    function void main() {
+        do Output.printString("Hello, World!");
+        do Output.println();
+        return;
+    }
+}

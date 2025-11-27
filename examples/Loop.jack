@@ -1,0 +1,23 @@
+// Loop.jack
+// Example demonstrating loops and conditionals
+
+class Loop {
+    function void main() {
+        var int i, sum;
+        
+        let i = 0;
+        let sum = 0;
+        
+        // Sum numbers from 1 to 10
+        while (i < 10) {
+            let i = i + 1;
+            let sum = sum + i;
+        }
+        
+        do Output.printString("Sum 1-10: ");
+        do Output.printInt(sum);
+        do Output.println();
+        
+        return;
+    }
+}

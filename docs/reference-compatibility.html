@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reference Compiler Compatibility Guide</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; background-color: #f5f5f5; }
+        .container { max-width: 900px; margin: 0 auto; padding: 40px 20px; background-color: white; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); }
+        .header { border-bottom: 3px solid #007acc; padding-bottom: 20px; margin-bottom: 30px; }
+        .header h1 { color: #007acc; margin-bottom: 10px; }
+        .breadcrumb { margin-bottom: 20px; }
+        .breadcrumb a { color: #007acc; text-decoration: none; }
+        .breadcrumb a:hover { text-decoration: underline; }
+        h1 { font-size: 2.5em; color: #222; margin: 40px 0 20px 0; }
+        h1:first-child { margin-top: 0; }
+        h2 { font-size: 2em; color: #333; margin: 35px 0 15px 0; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        h3 { font-size: 1.5em; color: #444; margin: 25px 0 12px 0; }
+        h4, h5, h6 { color: #555; margin: 20px 0 10px 0; }
+        p { margin-bottom: 15px; line-height: 1.8; }
+        code { background-color: #f4f4f4; padding: 2px 6px; border-radius: 3px; font-family: 'Courier New', monospace; font-size: 0.9em; color: #c7254e; }
+        pre { background-color: #272822; color: #f8f8f2; padding: 15px; border-radius: 5px; overflow-x: auto; margin: 20px 0; line-height: 1.4; font-size: 0.95em; }
+        pre code { background-color: transparent; color: #f8f8f2; padding: 0; }
+        ul { margin: 20px 0 20px 30px; }
+        li { margin-bottom: 8px; }
+        a { color: #007acc; text-decoration: none; border-bottom: 1px dotted #007acc; }
+        a:hover { background-color: #f0f7ff; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: #f0f0f0; font-weight: bold; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        .footer { margin-top: 50px; padding-top: 20px; border-top: 1px solid #eee; color: #999; font-size: 0.9em; text-align: center; }
+        strong { font-weight: 600; }
+        em { font-style: italic; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Reference Compiler Compatibility Guide</h1>
+            <div class="breadcrumb">
+                <a href="index.html">← Back to Documentation Index</a>
+            </div>
+        </div>
+        <div class="content">
+            <h1>Reference Compiler Compatibility Guide</h1>
+
+<h2>Status: In Progress</h2>
+
+<p>This document tracks adjustments to ensure our ANTLR4-based Jack compiler produces output compatible with the reference implementation in <code>~/WorkData/Dev/web-ide</code>.</p>
+
+<h2>Adjustments Made</h2>
+
+<h3>1. ✅ Grammar Updated</h3>
+<ul>
+<li>**File**: `grammar/Jack.g4`</li>
+<li>**Change**: Added `char` type support</li>
+<li>**Status**: COMPLETE</li>
+<li>**Details**:</li>
+</ul>
+<p>  - Added <code>CHAR</code> keyword to type rules</p>
+<p>  - Added <code>CHAR : 'char';</code> to lexer</p>
+<p>  - Now supports: <code>int</code>, <code>char</code>, <code>boolean</code>, <code>String</code>, and custom classes</p>
+
+<h3>2. 🔄 AST Structure Update (In Progress)</h3>
+<ul>
+<li>**File**: `src/compiler_visitor.py`</li>
+<li>**Change**: Update to match reference AST format</li>
+<li>**Status**: PENDING</li>
+<li>**Details**:</li>
+</ul>
+<p>  - Reference uses: <code>nodeType</code>, <code>termType</code>, <code>statementType</code> fields</p>
+<p>  - Must include <code>span</code> information for all nodes</p>
+<p>  - Expression structure: <code>{ nodeType: "expression", term: {...}, rest: [...] }</code></p>
+<p>  - Term types: <code>numericLiteral</code>, <code>stringLiteral</code>, <code>keywordLiteral</code>, <code>variable</code>, <code>arrayAccess</code>, <code>subroutineCall</code>, <code>groupedExpression</code>, <code>unaryExpression</code></p>
+
+<h3>3. 🔄 VM Code Generator Update (Pending)</h3>
+<ul>
+<li>**File**: `src/codegen.py`</li>
+<li>**Change**: Format VM output with proper indentation</li>
+<li>**Status**: PENDING</li>
+<li>**Details**:</li>
+</ul>
+<p>  - Indent all instructions with 4 spaces</p>
+<p>  - Proper function declaration format</p>
+<p>  - Correct stack operation order</p>
+
+<h2>Reference Implementation Structure</h2>
+
+<h3>Location</h3>
+<pre><code class="language-">
+/Users/kpillai/WorkData/Dev/web-ide/simulator/src/languages/
+├── grammars/jack.ohm      (OHM grammar)
+├── jack.ts                (Parser + AST generation)
+└── jack.test.ts           (Tests)
+</code></pre>
+
+<h3>Key AST Patterns</h3>
+
+<p>#### Class Node</p>
+<pre><code class="language-typescript">
+{
+  name: { value: string; span: Span };
+  varDecs: ClassVarDec[];
+  subroutines: Subroutine[];
+}
+</code></pre>
+
+<p>#### Subroutine Node</p>
+<pre><code class="language-typescript">
+{
+  type: "constructor" | "function" | "method";
+  name: { value: string; span: Span };
+  returnType: { value: ReturnType; span: Span };
+  parameters: Parameter[];
+  body: SubroutineBody;
+}
+</code></pre>
+
+<p>#### Expression Node (Reference Format)</p>
+<pre><code class="language-typescript">
+{
+  nodeType: "expression";
+  term: Term;
+  rest: {
+    op: Op;
+    term: Term;
+  }[];
+}
+</code></pre>
+
+<p>#### Term Node (Reference Format)</p>
+<pre><code class="language-typescript">
+// Numeric Literal
+{ termType: "numericLiteral"; value: number }
+
+// String Literal
+{ termType: "stringLiteral"; value: string }
+
+// Keyword Constant
+{ termType: "keywordLiteral"; value: KeywordConstant }
+
+// Variable
+{ termType: "variable"; name: string; span: Span }
+
+// Array Access
+{ termType: "arrayAccess"; name: Identifier; index: Expression; span: Span }
+
+// Subroutine Call
+{ termType: "subroutineCall"; name: Identifier; parameters: Expression[]; span: Span }
+
+// Grouped Expression
+{ termType: "groupedExpression"; expression: Expression }
+
+// Unary Expression
+{ termType: "unaryExpression"; op: UnaryOp; term: Term }
+</code></pre>
+
+<h2>Expected VM Output Format</h2>
+
+<p>Reference generates:</p>
+<pre><code class="language-">
+function ClassName.methodName numLocals
+    push constant 1
+    push constant 2
+    add
+    call Output.printInt 1
+    pop temp 0
+    push constant 0
+    return
+</code></pre>
+
+<p>Format requirements:</p>
+<p>1. <code>function</code> keyword followed by function name and local variable count</p>
+<p>2. All instructions indented with 4 spaces</p>
+<p>3. Proper stack operations in correct order</p>
+<p>4. Function calls with argument count</p>
+<p>5. Return statements at end</p>
+
+<h2>Example: Seven.jack</h2>
+
+<h3>Input</h3>
+<pre><code class="language-jack">
+class Main {
+    function void main() {
+        do Output.printInt(1 + (2 * 3));
+        return;
+    }
+}
+</code></pre>
+
+<h3>Expected AST Structure</h3>
+<p>The reference creates a nested AST where:</p>
+<ul>
+<li>Expression: `1 + (2 * 3)`</li>
+</ul>
+<p>  - term: <code>1</code> (numericLiteral)</p>
+<p>  - rest[0]:</p>
+<p>    - op: "+"</p>
+<p>    - term: <code>(2 * 3)</code> (groupedExpression containing:</p>
+<p>      - Expression:</p>
+<p>        - term: <code>2</code> (numericLiteral)</p>
+<p>        - rest[0]:</p>
+<p>          - op: "*"</p>
+<p>          - term: <code>3</code> (numericLiteral)</p>
+
+<h3>Expected VM Output</h3>
+<pre><code class="language-">
+function Main.main 0
+    push constant 1
+    push constant 2
+    push constant 3
+    call Math.multiply 2
+    add
+    call Output.printInt 1
+    pop temp 0
+    push constant 0
+    return
+</code></pre>
+
+<h2>Differences Between Our Implementation and Reference</h2>
+
+<h3>Grammar</h3>
+<ul>
+<li>**Our**: ANTLR4</li>
+<li>**Reference**: OHM</li>
+<li>**Impact**: Functional equivalence, different parsing mechanism</li>
+
+<h3>AST Structure</h3>
+<li>**Our**: Currently uses visitor pattern to generate direct code</li>
+<li>**Reference**: Generates explicit AST nodes with full structure</li>
+<li>**Impact**: NEEDS ADJUSTMENT - Must generate proper AST</li>
+
+<h3>VM Generation</h3>
+<li>**Our**: Direct code emission during visit</li>
+<li>**Reference**: Two-phase: Parse to AST, then generate code from AST</li>
+<li>**Impact**: NEEDS ADJUSTMENT - Must implement proper two-phase compilation</li>
+
+<h3>Span Information</h3>
+<li>**Our**: Not currently tracked</li>
+<li>**Reference**: All nodes include span (start, end, line)</li>
+<li>**Impact**: NEEDS ADJUSTMENT - Add span tracking</li>
+
+<h2>Implementation Priorities</h2>
+
+<h3>High Priority (AST Compatibility)</h3>
+</ul>
+<p>1. Update visitor to generate proper AST structure</p>
+<p>2. Add span information tracking</p>
+<p>3. Use correct termType/nodeType names</p>
+<p>4. Match expression structure exactly</p>
+
+<h3>Medium Priority (VM Output)</h3>
+<p>1. Format indentation (4 spaces)</p>
+<p>2. Verify instruction order</p>
+<p>3. Test with reference samples</p>
+
+<h3>Low Priority (Enhancements)</h3>
+<p>1. Performance optimizations</p>
+<p>2. Error message improvements</p>
+<p>3. Additional diagnostics</p>
+
+<h2>Testing Strategy</h2>
+
+<p>1. Parse Seven.jack example</p>
+<p>2. Compare generated AST with reference</p>
+<p>3. Compare generated VM with reference</p>
+<p>4. Test with more complex examples</p>
+<p>5. Run full project_11 test suite</p>
+
+<h2>Files to Update</h2>
+
+<pre><code class="language-">
+jack-compiler/src/
+├── compiler_visitor.py      ← Major rewrite needed
+├── codegen.py              ← VM formatting updates
+└── symbols.py              ← Already compatible
+</code></pre>
+
+<h2>References</h2>
+
+<ul>
+<li>Reference Grammar: `/Users/kpillai/WorkData/Dev/web-ide/simulator/src/languages/grammars/jack.ohm`</li>
+<li>Reference Implementation: `/Users/kpillai/WorkData/Dev/web-ide/simulator/src/languages/jack.ts`</li>
+<li>Test Samples: `/Users/kpillai/WorkData/Dev/web-ide/projects/build/samples/project_11/`</li>
+
+<h2>Next Steps</h2>
+
+</ul>
+<p>1. ✅ Add char type to grammar</p>
+<p>2. → Update visitor for AST generation</p>
+<p>3. → Update code generator for VM formatting</p>
+<p>4. → Test with reference samples</p>
+<p>5. → Verify full compatibility</p>
+
+<p>---</p>
+
+<p><strong>Last Updated</strong>: During compatibility analysis</p>
+<p><strong>Status</strong>: Grammar updated, AST/VM updates in progress</p>
+
+        </div>
+        <div class="footer">
+            <p>Jack Compiler Documentation | Generated 2025-11-27 19:27:15</p>
+        </div>
+    </div>
+</body>
+</html>

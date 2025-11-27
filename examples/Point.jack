@@ -1,0 +1,31 @@
+// Point.jack
+// Example class with fields and methods
+
+class Point {
+    field int x, y;
+    
+    constructor Point new(int px, int py) {
+        let x = px;
+        let y = py;
+        return this;
+    }
+    
+    method void setLocation(int px, int py) {
+        let x = px;
+        let y = py;
+        return;
+    }
+    
+    method int getX() {
+        return x;
+    }
+    
+    method int getY() {
+        return y;
+    }
+    
+    method void dispose() {
+        do Memory.deAlloc(this);
+        return;
+    }
+}

@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How It Works - Jack Compiler</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        nav {
+            background: #f8f9fa;
+            padding: 20px;
+            border-bottom: 2px solid #667eea;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        nav a {
+            text-decoration: none;
+            color: #667eea;
+            font-weight: 600;
+            padding: 10px 20px;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+        
+        nav a:hover {
+            background: #667eea;
+            color: white;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .section {
+            margin-bottom: 40px;
+        }
+        
+        h2 {
+            color: #667eea;
+            font-size: 2em;
+            margin-bottom: 20px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+        
+        h3 {
+            color: #764ba2;
+            font-size: 1.5em;
+            margin-top: 20px;
+            margin-bottom: 15px;
+        }
+        
+        h4 {
+            color: #667eea;
+            margin-top: 15px;
+            margin-bottom: 10px;
+        }
+        
+        p {
+            margin-bottom: 15px;
+        }
+        
+        .card {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        
+        .card.info {
+            border-left-color: #17a2b8;
+            background: #d1ecf1;
+        }
+        
+        .pipeline {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+        
+        .pipeline-step {
+            background: #667eea;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 5px;
+            text-align: center;
+            min-width: 120px;
+            font-weight: 600;
+        }
+        
+        .pipeline-arrow {
+            font-size: 1.5em;
+            color: #667eea;
+            font-weight: bold;
+        }
+        
+        code {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        
+        pre {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .diagram {
+            background: white;
+            border: 2px solid #667eea;
+            border-radius: 5px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+            overflow-x: auto;
+        }
+        
+        .tree {
+            text-align: left;
+            font-family: monospace;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        
+        footer {
+            background: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            border-top: 2px solid #667eea;
+            color: #666;
+        }
+        
+        ul, ol {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+        
+        li {
+            margin-bottom: 8px;
+        }
+        
+        .highlight {
+            background: #fff3cd;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>⚙️ How It Works</h1>
+            <p>Understanding the Jack Compiler Architecture & ANTLR4</p>
+        </header>
+        
+        <nav>
+            <a href="index.html">Home</a>
+            <a href="getting-started.html">Getting Started</a>
+            <a href="how-it-works.html">How It Works</a>
+            <a href="examples.html">Examples</a>
+            <a href="faq.html">FAQ</a>
+        </nav>
+        
+        <div class="content">
+            <div class="section">
+                <h2>The Big Picture: What is a Compiler?</h2>
+                
+                <p>
+                    A <span class="highlight">compiler</span> is a program that translates source code from one 
+                    language into another. Think of it like a translator that converts English into another language.
+                </p>
+                
+                <div class="card info">
+                    <p>
+                        <strong>Simple Example:</strong> You write code in Jack (which is easy to read), 
+                        but computers understand VM code better. The compiler translates Jack → VM code.
+                    </p>
+                </div>
+                
+                <p>
+                    The Jack Compiler specifically translates <strong>Jack source code</strong> (.jack files) 
+                    into <strong>Hack Virtual Machine code</strong> (.vm files).
+                </p>
+            </div>
+            
+            <div class="section">
+                <h2>The Compilation Pipeline</h2>
+                
+                <p>
+                    Our compiler processes your code through four main stages:
+                </p>
+                
+                <div class="diagram">
+                    <div class="pipeline">
+                        <div class="pipeline-step">Source Code</div>
+                        <div class="pipeline-arrow">→</div>
+                        <div class="pipeline-step">Lexer</div>
+                        <div class="pipeline-arrow">→</div>
+                        <div class="pipeline-step">Parser</div>
+                        <div class="pipeline-arrow">→</div>
+                        <div class="pipeline-step">Code Gen</div>
+                        <div class="pipeline-arrow">→</div>
+                        <div class="pipeline-step">VM Code</div>
+                    </div>
+                </div>
+                
+                <h3>Stage 1: Lexer (Tokenization)</h3>
+                <p>
+                    The <span class="highlight">lexer</span> reads your Jack source code character by character 
+                    and breaks it into meaningful pieces called <span class="highlight">tokens</span>.
+                </p>
+                
+                <div class="card">
+                    <p><strong>Example:</strong></p>
+                    <p>Input: <code>let x = 5;</code></p>
+                    <p>Output tokens:</p>
+                    <pre>[LET] [IDENTIFIER: x] [ASSIGN] [NUMBER: 5] [SEMICOLON]</pre>
+                </div>
+                
+                <p>
+                    This step removes unnecessary whitespace and comments, leaving only the meaningful symbols.
+                </p>
+                
+                <h3>Stage 2: Parser (Syntax Analysis)</h3>
+                <p>
+                    The <span class="highlight">parser</span> takes the tokens and checks if they follow 
+                    the grammar rules of Jack. This is where <span class="highlight">ANTLR4</span> comes in!
+                </p>
+                
+                <div class="card">
+                    <p><strong>What is ANTLR4?</strong></p>
+                    <p>
+                        ANTLR4 is a <strong>parser generator</strong> - a tool that automatically creates 
+                        a parser from a grammar. The grammar is a formal description of valid Jack syntax.
+                    </p>
+                </div>
+                
+                <p>The parser builds a <span class="highlight">parse tree</span> showing the structure:</p>
+                
+                <div class="tree">
+                    Program
+                    └── ClassDeclaration
+                        └── Subroutine
+                            ├── Name: "main"
+                            └── Statements
+                                └── LetStatement
+                                    ├── Variable: "x"
+                                    └── Expression: 5
+                </div>
+                
+                <h3>Stage 3: Visitor Pattern (Semantic Analysis)</h3>
+                <p>
+                    We use the <span class="highlight">Visitor Pattern</span> to traverse the parse tree 
+                    and build a <span class="highlight">symbol table</span>.
+                </p>
+                
+                <p><strong>What's a Symbol Table?</strong></p>
+                <p>
+                    A symbol table is like a dictionary that keeps track of all variables in your program:
+                </p>
+                <div class="tree">
+                    Variable x:
+                      - Type: int
+                      - Kind: local
+                      - Index: 0
+                    
+                    Variable sum:
+                      - Type: int
+                      - Kind: static
+                      - Index: 0
+                </div>
+                
+                <p>
+                    During this stage, we also check for errors like using undefined variables or type mismatches.
+                </p>
+                
+                <h3>Stage 4: Code Generator (Translation to VM)</h3>
+                <p>
+                    Finally, we generate <span class="highlight">Hack VM code</span>. For each construct 
+                    in the Jack program, we emit the equivalent VM instructions.
+                </p>
+                
+                <div class="card">
+                    <p><strong>Example:</strong></p>
+                    <p>Jack: <code>let x = 5;</code></p>
+                    <p>VM Code:</p>
+                    <pre>push constant 5
+pop local 0</pre>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>Understanding ANTLR4</h2>
+                
+                <h3>What Problem Does ANTLR4 Solve?</h3>
+                <p>
+                    Writing a parser from scratch is very complex. You need to handle:
+                </p>
+                <ul>
+                    <li>Operator precedence (multiplication before addition)</li>
+                    <li>Nested structures (expressions within expressions)</li>
+                    <li>Different statement types</li>
+                    <li>Error recovery</li>
+                </ul>
+                
+                <p>
+                    ANTLR4 automates all of this! You write a <span class="highlight">grammar</span> 
+                    (a formal description of the language), and ANTLR4 generates the parser.
+                </p>
+                
+                <h3>The Grammar: Teaching ANTLR4 About Jack</h3>
+                <p>
+                    Our grammar file (<code>grammar/Jack.g4</code>) is like a recipe that says:
+                </p>
+                
+                <div class="card">
+                    <p><strong>Example Grammar Rules:</strong></p>
+                    <pre>// A class is: class NAME { members }
+classDeclaration
+    : CLASS className LBRACE 
+      classVarDeclaration* 
+      subroutineDeclaration* 
+      RBRACE
+    ;
+
+// A statement can be: let, if, while, do, or return
+statement
+    : letStatement
+    | ifStatement
+    | whileStatement
+    | doStatement
+    | returnStatement
+    ;</pre>
+                </div>
+                
+                <p>
+                    This grammar tells ANTLR4 how Jack programs should be structured. 
+                    ANTLR4 then generates a parser that validates any Jack code against these rules.
+                </p>
+                
+                <h3>The Visitor Pattern</h3>
+                <p>
+                    Once ANTLR4 has created a parse tree, we need to process it. 
+                    We use the <span class="highlight">Visitor Pattern</span>, which is like a tour guide 
+                    visiting each node of the tree.
+                </p>
+                
+                <div class="card">
+                    <p><strong>How the Visitor Works:</strong></p>
+                    <ol>
+                        <li>Start at the root of the parse tree</li>
+                        <li>Visit each node (class, method, statement, etc.)</li>
+                        <li>For each node, perform appropriate actions (build symbol table, generate code)</li>
+                        <li>Recursively visit child nodes</li>
+                    </ol>
+                </div>
+                
+                <div class="tree">
+                    Visitor travels:
+                    Program
+                      ↓ visit_program()
+                    ClassDeclaration
+                      ↓ visit_class_declaration()
+                    Subroutines (visit each)
+                      ↓ visit_subroutine_declaration()
+                    Statements (visit each)
+                      ↓ visit_statement()
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>Key Design Patterns Used</h2>
+                
+                <h3>1. Visitor Pattern</h3>
+                <p>
+                    <strong>Purpose:</strong> Separate the structure (parse tree) from the operations (code generation).
+                </p>
+                <p>
+                    <strong>How it works:</strong> Instead of adding code generation logic to the parse tree nodes, 
+                    we have a separate <span class="highlight">Visitor</span> class that walks through the tree and performs operations.
+                </p>
+                <div class="card">
+                    <pre>def visit_let_statement(self, ctx):
+    # Handle let statement
+    var_name = ctx.varName().getText()
+    # Evaluate expression
+    # Generate code to assign value to variable</pre>
+                </div>
+                
+                <h3>2. Symbol Table Pattern</h3>
+                <p>
+                    <strong>Purpose:</strong> Keep track of all variables and their properties.
+                </p>
+                <p>
+                    <strong>How it works:</strong> Maintain a dictionary of all variables with their type, 
+                    kind (local/field/static), and index.
+                </p>
+                <div class="card">
+                    <pre># When we see "var int x;"
+symbol_table.define("x", "int", VarKind.LOCAL)
+
+# Later, when we use x:
+symbol = symbol_table.get_symbol("x")
+# Returns: {name: "x", type: "int", kind: LOCAL, index: 0}</pre>
+                </div>
+                
+                <h3>3. Code Generation Pattern</h3>
+                <p>
+                    <strong>Purpose:</strong> Generate VM code incrementally as we traverse the parse tree.
+                </p>
+                <p>
+                    <strong>How it works:</strong> Maintain a list of VM instructions and emit new instructions 
+                    for each construct encountered.
+                </p>
+                <div class="card">
+                    <pre># For: let x = 5;
+codegen.push_constant(5)      # push constant 5
+codegen.pop_variable("x")      # pop local 0</pre>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>Example: Compiling a Simple Statement</h2>
+                
+                <p>
+                    Let's trace through the compilation of: <code>let x = 5;</code>
+                </p>
+                
+                <h3>Step 1: Lexer (Tokenization)</h3>
+                <pre>Input: let x = 5;
+Output: [LET] [IDENTIFIER:x] [EQUAL] [NUMBER:5] [SEMICOLON]</pre>
+                
+                <h3>Step 2: Parser (Build Parse Tree)</h3>
+                <pre>LetStatement
+  └── varName: "x"
+  └── expression
+      └── term
+          └── integerConstant: 5</pre>
+                
+                <h3>Step 3: Visitor (Generate Code)</h3>
+                <pre>visit_let_statement():
+  - var_name = "x"
+  - expression = 5
+  - visit_expression() → generates: push constant 5
+  - pop_variable("x") → generates: pop local 0</pre>
+                
+                <h3>Step 4: Code Generator (Output)</h3>
+                <pre>push constant 5
+pop local 0</pre>
+            </div>
+            
+            <div class="section">
+                <h2>Handling Complex Constructs</h2>
+                
+                <h3>Expressions with Operators</h3>
+                <p>
+                    Jack expressions follow operator precedence (multiplication before addition).
+                </p>
+                <div class="card">
+                    <p>Jack: <code>1 + 2 * 3</code></p>
+                    <p>Parse tree (respecting precedence):</p>
+                    <pre>Expression
+      ├── term: 1
+      ├── op: +
+      └── term
+          ├── 2
+          ├── *
+          └── 3</pre>
+                    <p>VM Code (multiplication done first):</p>
+                    <pre>push constant 1
+push constant 2
+push constant 3
+call Math.multiply 2
+add</pre>
+                </div>
+                
+                <h3>Control Flow (if/while)</h3>
+                <p>
+                    For control flow, we generate labels and conditional jumps.
+                </p>
+                <div class="card">
+                    <p>Jack: <code>while (i < 10) { i = i + 1; }</code></p>
+                    <p>VM Code:</p>
+                    <pre>label WHILE$0
+push local 0          // push i
+push constant 10
+lt
+not
+if-goto ENDWHILE$1
+push local 0          // i
+push constant 1
+add
+pop local 0           // i = i + 1
+goto WHILE$0
+label ENDWHILE$1</pre>
+                </div>
+                
+                <h3>Method Calls</h3>
+                <p>
+                    When calling a method on an object, we need to push the object as the first argument.
+                </p>
+                <div class="card">
+                    <p>Jack: <code>i.push(5)</code> where i is of type Image</p>
+                    <p>VM Code:</p>
+                    <pre>push local 0          // push object i
+push constant 5        // push argument
+call Image.push 2      // call with 2 args (this + value)</pre>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>Memory Management in the Hack VM</h2>
+                
+                <p>
+                    The Hack VM uses different memory segments for different variable types:
+                </p>
+                
+                <div class="card">
+                    <table style="width: 100%; margin-top: 10px;">
+                        <tr>
+                            <th>Jack Variable Kind</th>
+                            <th>VM Segment</th>
+                            <th>Example</th>
+                        </tr>
+                        <tr>
+                            <td>local</td>
+                            <td>local</td>
+                            <td><code>var int x;</code> → <code>local 0</code></td>
+                        </tr>
+                        <tr>
+                            <td>argument</td>
+                            <td>argument</td>
+                            <td>function parameter → <code>argument 0</code></td>
+                        </tr>
+                        <tr>
+                            <td>field</td>
+                            <td>this</td>
+                            <td><code>field int x;</code> → <code>this 0</code></td>
+                        </tr>
+                        <tr>
+                            <td>static</td>
+                            <td>static</td>
+                            <td><code>static int count;</code> → <code>static 0</code></td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <p>
+                    Our compiler automatically assigns indices to variables and generates the correct 
+                    <code>push</code>/<code>pop</code> instructions with the appropriate memory segment.
+                </p>
+            </div>
+            
+            <div class="section">
+                <h2>Two-Pass vs Single-Pass Compilation</h2>
+                
+                <p>
+                    Our compiler uses <span class="highlight">single-pass compilation</span>, meaning it 
+                    processes the code once from beginning to end.
+                </p>
+                
+                <div class="card info">
+                    <p>
+                        <strong>Efficiency:</strong> Single-pass compilation is faster than two-pass, 
+                        which is important for large projects.
+                    </p>
+                </div>
+                
+                <p>
+                    As we traverse the parse tree with the Visitor, we simultaneously:
+                </p>
+                <ol>
+                    <li>Build the symbol table</li>
+                    <li>Generate VM code</li>
+                    <li>Check for errors</li>
+                </ol>
+            </div>
+            
+            <div class="section">
+                <h2>Error Handling</h2>
+                
+                <p>
+                    The compiler detects and reports three categories of errors:
+                </p>
+                
+                <h3>1. Lexical Errors</h3>
+                <p>Invalid characters or malformed tokens</p>
+                
+                <h3>2. Syntax Errors</h3>
+                <p>Grammar violations (detected by ANTLR4 parser)</p>
+                <div class="card">
+                    <p>Example: Missing semicolon</p>
+                    <pre>Error: Expected ';' but found 'let'</pre>
+                </div>
+                
+                <h3>3. Semantic Errors</h3>
+                <p>Logical issues (detected during code generation)</p>
+                <div class="card">
+                    <p>Example: Using undefined variable</p>
+                    <pre>Error: Undefined variable: unknownVar</pre>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Jack Compiler Documentation | How It Works</p>
+            <p style="margin-top: 10px; font-size: 0.9em;">© 2024 | Licensed for educational use</p>
+        </footer>
+    </div>
+</body>
+</html>

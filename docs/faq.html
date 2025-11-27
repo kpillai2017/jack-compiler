@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FAQ & Troubleshooting - Jack Compiler</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        nav {
+            background: #f8f9fa;
+            padding: 20px;
+            border-bottom: 2px solid #667eea;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        nav a {
+            text-decoration: none;
+            color: #667eea;
+            font-weight: 600;
+            padding: 10px 20px;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+        
+        nav a:hover {
+            background: #667eea;
+            color: white;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .section {
+            margin-bottom: 40px;
+        }
+        
+        h2 {
+            color: #667eea;
+            font-size: 2em;
+            margin-bottom: 20px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+        
+        .faq-item {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+        
+        .faq-question {
+            color: #667eea;
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-bottom: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .faq-question::before {
+            content: "▶";
+            transition: transform 0.3s;
+        }
+        
+        .faq-item.expanded .faq-question::before {
+            transform: rotate(90deg);
+        }
+        
+        .faq-answer {
+            display: none;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #ddd;
+        }
+        
+        .faq-item.expanded .faq-answer {
+            display: block;
+        }
+        
+        code {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        
+        pre {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .card {
+            background: white;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .card.success {
+            border-color: #28a745;
+            background: #d4edda;
+        }
+        
+        .card.warning {
+            border-color: #ffc107;
+            background: #fff3cd;
+        }
+        
+        .card.error {
+            border-color: #dc3545;
+            background: #f8d7da;
+        }
+        
+        footer {
+            background: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            border-top: 2px solid #667eea;
+            color: #666;
+        }
+        
+        ul {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+        
+        li {
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>❓ FAQ & Troubleshooting</h1>
+            <p>Answers to Common Questions</p>
+        </header>
+        
+        <nav>
+            <a href="index.html">Home</a>
+            <a href="getting-started.html">Getting Started</a>
+            <a href="how-it-works.html">How It Works</a>
+            <a href="examples.html">Examples</a>
+            <a href="faq.html">FAQ</a>
+        </nav>
+        
+        <div class="content">
+            <div class="section">
+                <h2>General Questions</h2>
+                
+                <div class="faq-item expanded">
+                    <div class="faq-question">What is the Jack Compiler?</div>
+                    <div class="faq-answer">
+                        <p>
+                            The Jack Compiler is a complete implementation of a compiler for the Jack language 
+                            (from the nand2tetris course). It translates Jack source code (.jack files) into 
+                            Hack Virtual Machine bytecode (.vm files). The compiler is built using ANTLR4, 
+                            a powerful parser generator.
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="faq-item expanded">
+                    <div class="faq-question">What is ANTLR4?</div>
+                    <div class="faq-answer">
+                        <p>
+                            ANTLR4 (Another Tool for Language Recognition) is a parser generator created by 
+                            Terence Parr. Instead of writing a parser by hand, you define a grammar (formal 
+                            description of language syntax), and ANTLR4 automatically generates the lexer and parser. 
+                            This is used by industry tools and makes compiler development much easier.
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">What is the nand2tetris course?</div>
+                    <div class="faq-answer">
+                        <p>
+                            nand2tetris (https://www.nand2tetris.org/) is an educational course that teaches 
+                            computer architecture and software development from the ground up. Students start 
+                            with NAND gates and build a complete computer, including an operating system and 
+                            compiler. The Jack language is used in the course for application development.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>Installation & Setup</h2>
+                
+                <div class="faq-item">
+                    <div class="faq-question">What are the system requirements?</div>
+                    <div class="faq-answer">
+                        <ul>
+                            <li><strong>Python 3.8+</strong> - The compiler is written in Python</li>
+                            <li><strong>Java 11+</strong> - For running the ANTLR4 tool</li>
+                            <li><strong>~50 MB disk space</strong> - For dependencies</li>
+                            <li>Any modern operating system (Linux, macOS, Windows)</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">How do I check if I have Java installed?</div>
+                    <div class="faq-answer">
+                        <p>Run this command in your terminal:</p>
+                        <pre>java -version</pre>
+                        <p>If Java is installed, you'll see version information. If not, install it from 
+                        oracle.com or use your package manager.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">What if setup.sh fails?</div>
+                    <div class="faq-answer">
+                        <p>Common issues and solutions:</p>
+                        <ul>
+                            <li><strong>Permission denied:</strong> Run <code>chmod +x setup.sh</code></li>
+                            <li><strong>Java not found:</strong> Install Java from oracle.com</li>
+                            <li><strong>Python not found:</strong> Use <code>python3</code> instead of <code>python</code></li>
+                            <li><strong>Network error:</strong> Check your internet connection and try again</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>Compilation & Usage</h2>
+                
+                <div class="faq-item">
+                    <div class="faq-question">How do I compile a Jack file?</div>
+                    <div class="faq-answer">
+                        <p>Use the compiler command:</p>
+                        <pre>python src/compiler.py program.jack -o program.vm</pre>
+                        <p>Replace <code>program.jack</code> with your filename and <code>program.vm</code> 
+                        with the desired output file.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">Can I compile multiple files at once?</div>
+                    <div class="faq-answer">
+                        <p>Yes! Use the batch compilation script:</p>
+                        <pre>./compile_all.sh src/</pre>
+                        <p>This recursively compiles all .jack files in the directory and subdirectories.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">What is the --dry-run option?</div>
+                    <div class="faq-answer">
+                        <p>The <code>--dry-run</code> option shows you which files would be compiled without 
+                        actually compiling them:</p>
+                        <pre>./compile_all.sh src/ --dry-run</pre>
+                        <p>Useful for verifying you're compiling the right files before running the actual compilation.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">What is the --verbose option?</div>
+                    <div class="faq-answer">
+                        <p>The <code>--verbose</code> option shows detailed progress for each file:</p>
+                        <pre>./compile_all.sh src/ --verbose</pre>
+                        <p>Helpful for debugging or seeing exactly which files are being compiled.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>Common Errors & Solutions</h2>
+                
+                <div class="faq-item">
+                    <div class="faq-question">Error: "Syntax errors in program.jack"</div>
+                    <div class="faq-answer">
+                        <div class="card error">
+                            <strong>Problem:</strong> Your Jack code has a syntax error
+                        </div>
+                        <p><strong>Solution:</strong></p>
+                        <ul>
+                            <li>Check for missing semicolons at the end of statements</li>
+                            <li>Verify all braces are properly matched</li>
+                            <li>Use the <code>--verbose</code> flag to see the exact error line</li>
+                            <li>Compare with the example programs in <code>examples/</code></li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">Error: "Undefined variable"</div>
+                    <div class="faq-answer">
+                        <div class="card error">
+                            <strong>Problem:</strong> You're using a variable that hasn't been declared
+                        </div>
+                        <p><strong>Solution:</strong></p>
+                        <ul>
+                            <li>Make sure the variable is declared with <code>var</code> or <code>field</code></li>
+                            <li>Check for typos in variable names (Jack is case-sensitive)</li>
+                            <li>Ensure the variable is declared before use</li>
+                        </ul>
+                        <p><strong>Example:</strong></p>
+                        <pre>var int x;  // ✓ Correct
+let x = 5;
+
+let y = 10; // ✗ Error: y not declared</pre>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">Error: "File not found"</div>
+                    <div class="faq-answer">
+                        <div class="card error">
+                            <strong>Problem:</strong> The compiler can't find your input file
+                        </div>
+                        <p><strong>Solution:</strong></p>
+                        <ul>
+                            <li>Verify the filename is spelled correctly</li>
+                            <li>Check the file exists in the current directory</li>
+                            <li>Use full paths if the file is in a subdirectory: <code>python src/compiler.py src/program.jack</code></li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">Why is the compiled code so much longer than my source?</div>
+                    <div class="faq-answer">
+                        <p>
+                            VM code is more verbose than Jack source code. For example, string literals 
+                            are expanded to many instructions (one per character). This is normal!
+                        </p>
+                        <p>Jack string: <code>"Hi"</code> (4 characters)</p>
+                        <p>VM code: ~20 instructions</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>Language & Compiler Features</h2>
+                
+                <div class="faq-item">
+                    <div class="faq-question">What Jack language features are supported?</div>
+                    <div class="faq-answer">
+                        <p>The compiler supports the full Jack language specification:</p>
+                        <ul>
+                            <li>Classes with fields and methods</li>
+                            <li>All data types: int, boolean, String, custom classes</li>
+                            <li>All statement types: let, if/else, while, do, return</li>
+                            <li>Expressions with proper operator precedence</li>
+                            <li>Arrays (single-dimensional)</li>
+                            <li>String literals and built-in functions</li>
+                            <li>Comments (single-line and block)</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">Can I use the Jack standard library?</div>
+                    <div class="faq-answer">
+                        <p>Yes! The compiler supports calls to standard library functions like:</p>
+                        <ul>
+                            <li><code>Output.printInt()</code>, <code>Output.printString()</code></li>
+                            <li><code>String.new()</code>, <code>String.appendChar()</code></li>
+                            <li><code>Array.new()</code></li>
+                            <li><code>Memory.alloc()</code>, <code>Memory.deAlloc()</code></li>
+                            <li><code>Math.multiply()</code>, <code>Math.divide()</code>, etc.</li>
+                            <li>And many more!</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">Is recursion supported?</div>
+                    <div class="faq-answer">
+                        <p>Yes! The compiler fully supports recursive function calls. Each function call 
+                        maintains its own stack frame, so recursion works naturally.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">What about object-oriented features?</div>
+                    <div class="faq-answer">
+                        <p>The compiler supports:</p>
+                        <ul>
+                            <li>Class definition with fields and methods</li>
+                            <li>Constructors with memory allocation</li>
+                            <li>Instance methods with implicit <code>this</code> pointer</li>
+                            <li>Static methods (functions)</li>
+                            <li>Method calls on objects</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>Output & Compatibility</h2>
+                
+                <div class="faq-item">
+                    <div class="faq-question">Is the output compatible with nand2tetris tools?</div>
+                    <div class="faq-answer">
+                        <div class="card success">
+                            <strong>Yes!</strong> The generated VM code is 100% compatible with the 
+                            nand2tetris VM simulator and other tools.
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">Can I use the generated VM code with the web-ide?</div>
+                    <div class="faq-answer">
+                        <div class="card success">
+                            <strong>Yes!</strong> The output is fully compatible with the nand2tetris web-ide 
+                            VM simulator. You can run the generated .vm files directly.
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">What should I do with the .vm output?</div>
+                    <div class="faq-answer">
+                        <p>The generated .vm files can be:</p>
+                        <ul>
+                            <li>Loaded into the nand2tetris web-ide simulator</li>
+                            <li>Further compiled to Hack assembly using the VM Translator</li>
+                            <li>Used with any nand2tetris-compatible tools</li>
+                            <li>Combined with other VM files for larger projects</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>Learning & Understanding</h2>
+                
+                <div class="faq-item">
+                    <div class="faq-question">Where can I learn more about compilers?</div>
+                    <div class="faq-answer">
+                        <p><strong>Resources:</strong></p>
+                        <ul>
+                            <li><a href="https://www.nand2tetris.org/" target="_blank">nand2tetris course</a> - 
+                            Comprehensive course building computers from scratch</li>
+                            <li><a href="https://www.antlr.org/" target="_blank">ANTLR4 documentation</a> - 
+                            Learn about parser generators</li>
+                            <li>"Compilers: Principles, Techniques, and Tools" (Dragon Book) - 
+                            Classic compiler textbook</li>
+                            <li>Check the <a href="how-it-works.html">How It Works</a> guide in this documentation</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">How does the compiler handle operator precedence?</div>
+                    <div class="faq-answer">
+                        <p>
+                            The ANTLR4 grammar is designed so that the parse tree naturally respects 
+                            operator precedence. Multiplication and division are parsed before addition and subtraction.
+                        </p>
+                        <p><strong>Example:</strong> <code>1 + 2 * 3</code> generates code that multiplies 2*3 first, 
+                        then adds 1.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">How are strings implemented?</div>
+                    <div class="faq-answer">
+                        <p>
+                            Jack strings are implemented as String objects (from the standard library). 
+                            The compiler generates code that:
+                        </p>
+                        <ol>
+                            <li>Calls <code>String.new(length)</code> to create a new string</li>
+                            <li>For each character, calls <code>String.appendChar(code)</code></li>
+                            <li>Results in a String object on the stack</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>Still Have Questions?</h2>
+                
+                <div class="card">
+                    <p>
+                        <strong>For more detailed information:</strong>
+                    </p>
+                    <ul>
+                        <li>Check the <a href="how-it-works.html">How It Works</a> guide for deep technical details</li>
+                        <li>Review the <a href="examples.html">Examples</a> page for real code samples</li>
+                        <li>See the <a href="getting-started.html">Getting Started</a> guide for installation help</li>
+                        <li>Consult the nand2tetris course materials and Jack specification</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Jack Compiler Documentation | FAQ & Troubleshooting</p>
+            <p style="margin-top: 10px; font-size: 0.9em;">© 2024 | Licensed for educational use</p>
+        </footer>
+    </div>
+    
+    <script>
+        // Make FAQ items expandable
+        document.querySelectorAll('.faq-item').forEach(item => {
+            item.addEventListener('click', function() {
+                this.classList.toggle('expanded');
+            });
+        });
+    </script>
+</body>
+</html>

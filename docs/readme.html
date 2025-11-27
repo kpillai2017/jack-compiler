@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jack Compiler for nand2tetris</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; background-color: #f5f5f5; }
+        .container { max-width: 900px; margin: 0 auto; padding: 40px 20px; background-color: white; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); }
+        .header { border-bottom: 3px solid #007acc; padding-bottom: 20px; margin-bottom: 30px; }
+        .header h1 { color: #007acc; margin-bottom: 10px; }
+        .breadcrumb { margin-bottom: 20px; }
+        .breadcrumb a { color: #007acc; text-decoration: none; }
+        .breadcrumb a:hover { text-decoration: underline; }
+        h1 { font-size: 2.5em; color: #222; margin: 40px 0 20px 0; }
+        h1:first-child { margin-top: 0; }
+        h2 { font-size: 2em; color: #333; margin: 35px 0 15px 0; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        h3 { font-size: 1.5em; color: #444; margin: 25px 0 12px 0; }
+        h4, h5, h6 { color: #555; margin: 20px 0 10px 0; }
+        p { margin-bottom: 15px; line-height: 1.8; }
+        code { background-color: #f4f4f4; padding: 2px 6px; border-radius: 3px; font-family: 'Courier New', monospace; font-size: 0.9em; color: #c7254e; }
+        pre { background-color: #272822; color: #f8f8f2; padding: 15px; border-radius: 5px; overflow-x: auto; margin: 20px 0; line-height: 1.4; font-size: 0.95em; }
+        pre code { background-color: transparent; color: #f8f8f2; padding: 0; }
+        ul { margin: 20px 0 20px 30px; }
+        li { margin-bottom: 8px; }
+        a { color: #007acc; text-decoration: none; border-bottom: 1px dotted #007acc; }
+        a:hover { background-color: #f0f7ff; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: #f0f0f0; font-weight: bold; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        .footer { margin-top: 50px; padding-top: 20px; border-top: 1px solid #eee; color: #999; font-size: 0.9em; text-align: center; }
+        strong { font-weight: 600; }
+        em { font-style: italic; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Jack Compiler for nand2tetris</h1>
+            <div class="breadcrumb">
+                <a href="index.html">← Back to Documentation Index</a>
+            </div>
+        </div>
+        <div class="content">
+            <h1>Jack Compiler for nand2tetris</h1>
+
+<p>A complete, production-ready Jack compiler implementation using ANTLR4 that translates Jack source code to Hack Virtual Machine (VM) code.</p>
+
+<h2>Overview</h2>
+
+<p>This compiler implements the full Jack language specification from the nand2tetris course. It is built with Terence Parr's ANTLR4 parser generator and includes:</p>
+
+<ul>
+<li>**Lexical Analysis**: Tokenization with full comment and string literal support</li>
+<li>**Syntax Analysis**: Complete ANTLR4 grammar with visitor pattern implementation</li>
+<li>**Semantic Analysis**: Symbol table management with class and subroutine scopes, type tracking</li>
+<li>**Code Generation**: Translation to Hack VM bytecode format</li>
+<li>**Comprehensive Testing**: Unit tests for symbol tables and code generation</li>
+
+<h2>Features</h2>
+
+</ul>
+<p>✅ <strong>Language Support</strong></p>
+<ul>
+<li>Variables: static, field, local, and parameter variables</li>
+<li>Data Types: int, boolean, String, and custom class types</li>
+<li>Operators: arithmetic, relational, logical, and unary operators</li>
+<li>Control Flow: if/else statements, while loops, function calls</li>
+<li>Subroutines: functions, methods, and constructors with proper scoping</li>
+<li>Arrays: single-dimensional array operations</li>
+<li>String & Integer Literals: with proper character encoding</li>
+<li>Comments: single-line (//) and block (/* */) comments</li>
+
+</ul>
+<p>✅ <strong>Code Quality</strong></p>
+<ul>
+<li>Clean separation of concerns (lexer, parser, symbol table, code generation)</li>
+<li>ANTLR4 visitor pattern for AST traversal</li>
+<li>Proper symbol table scoping (class and subroutine levels)</li>
+<li>Comprehensive error handling</li>
+
+</ul>
+<p>✅ <strong>Usability</strong></p>
+<ul>
+<li>Simple command-line interface</li>
+<li>Single file and batch directory compilation</li>
+<li>Example programs demonstrating all language features</li>
+<li>Detailed documentation and usage guide</li>
+
+<h2>Project Structure</h2>
+
+<pre><code class="language-">
+jack-compiler/
+├── grammar/
+│   └── Jack.g4                  # Complete ANTLR4 grammar for Jack language
+├── src/
+│   ├── __init__.py
+│   ├── compiler.py              # Main compiler driver (command-line interface)
+│   ├── compiler_visitor.py      # Parse tree visitor for code generation
+│   ├── symbols.py               # Symbol table implementation
+│   ├── codegen.py               # VM code generator
+│   └── antlr_generated/         # ANTLR4-generated lexer and parser
+├── examples/
+│   ├── HelloWorld.jack          # Simple string output example
+│   ├── Math.jack                # Arithmetic operations
+│   ├── Loop.jack                # While loop with accumulation
+│   ├── Point.jack               # Object-oriented with methods/fields
+│   └── Array.jack               # Array operations
+├── tests/
+│   └── test_compiler.py         # Unit tests for components
+├── setup.sh                      # Automated setup script
+├── requirements.txt              # Python dependencies
+├── setup.py                      # Python package configuration
+├── README.md                     # This file
+├── USAGE.md                      # Detailed usage guide
+└── grammar/Jack.g4              # ANTLR4 grammar
+</code></pre>
+
+<h2>Quick Start</h2>
+
+<h3>1. Setup (Automated)</h3>
+
+<pre><code class="language-bash">
+cd jack-compiler
+bash setup.sh
+</code></pre>
+
+</ul>
+<p>This script:</p>
+<ul>
+<li>Checks for Java installation</li>
+<li>Downloads ANTLR4 (if needed)</li>
+<li>Generates the parser and lexer</li>
+<li>Installs Python dependencies</li>
+
+<h3>2. Compile a Jack Program</h3>
+
+<pre><code class="language-bash">
+# Single file
+python src/compiler.py program.jack -o program.vm
+
+# Directory of Jack files
+python src/compiler.py src/ -o bin/
+</code></pre>
+
+<h3>3. Test the Installation</h3>
+
+<pre><code class="language-bash">
+# Run unit tests
+python tests/test_compiler.py
+
+# Compile examples
+python src/compiler.py examples/HelloWorld.jack -o examples/HelloWorld.vm
+</code></pre>
+
+<h2>Installation Details</h2>
+
+<h3>Prerequisites</h3>
+<li>**Python**: 3.8 or higher</li>
+<li>**Java**: JDK 11 or later (for ANTLR4 tool)</li>
+<li>**pip**: Python package manager</li>
+<li>**ANTLR4**: v4.13.0 (included in repository as `antlr-4.13.0-complete.jar`)</li>
+
+<h3>Manual Setup</h3>
+
+<pre><code class="language-bash">
+# 1. Install dependencies
+pip install -r requirements.txt
+
+# 2. Download ANTLR4 (if not present)
+wget https://www.antlr.org/download/antlr-4.13.0-complete.jar
+
+# 3. Generate parser and lexer
+java -jar antlr-4.13.0-complete.jar \
+    -Dlanguage=Python3 \
+    -visitor \
+    -o src/antlr_generated \
+    grammar/Jack.g4
+</code></pre>
+
+<h2>Example Programs</h2>
+
+<h3>Example 1: Hello World</h3>
+<pre><code class="language-jack">
+class HelloWorld {
+    function void main() {
+        do Output.printString("Hello, World!");
+        do Output.println();
+        return;
+    }
+}
+</code></pre>
+
+<h3>Example 2: Arithmetic & Variables</h3>
+<pre><code class="language-jack">
+class Math {
+    function void main() {
+        var int x, y, sum;
+        let x = 10;
+        let y = 20;
+        let sum = x + y;
+        do Output.printInt(sum);
+        return;
+    }
+}
+</code></pre>
+
+<h3>Example 3: Loops</h3>
+<pre><code class="language-jack">
+class Loop {
+    function void main() {
+        var int i, sum;
+        let i = 0;
+        let sum = 0;
+        while (i &lt; 10) {
+            let i = i + 1;
+            let sum = sum + i;
+        }
+        do Output.printInt(sum);
+        return;
+    }
+}
+</code></pre>
+
+<h3>Example 4: Object-Oriented Programming</h3>
+<pre><code class="language-jack">
+class Point {
+    field int x, y;
+    
+    constructor Point new(int px, int py) {
+        let x = px;
+        let y = py;
+        return this;
+    }
+    
+    method int getX() {
+        return x;
+    }
+    
+    method void dispose() {
+        do Memory.deAlloc(this);
+        return;
+    }
+}
+</code></pre>
+
+</ul>
+<p>See <code>USAGE.md</code> for more detailed examples and advanced usage.</p>
+
+<h2>Architecture</h2>
+
+<h3>Compilation Pipeline</h3>
+
+<pre><code class="language-">
+Jack Source Code
+       ↓
+[Lexer] (ANTLR4 generated)
+       ↓
+Token Stream
+       ↓
+[Parser] (ANTLR4 generated)
+       ↓
+Parse Tree
+       ↓
+[Visitor] Traverses tree, manages symbol table
+       ↓
+[Code Generator] Emits VM instructions
+       ↓
+Hack VM Code
+</code></pre>
+
+<h3>Symbol Table Design</h3>
+
+<p>Two-level scoping:</p>
+<ul>
+<li>**Class Scope**: Static and field variables (persistent across all subroutines)</li>
+<li>**Subroutine Scope**: Local variables and parameters (reset for each subroutine)</li>
+
+</ul>
+<p>Variables are tracked with:</p>
+<ul>
+<li>Name, type, kind (static/field/local/arg), and index</li>
+<li>Proper handling of implicit 'this' pointer for methods</li>
+
+<h3>Code Generation Strategy</h3>
+
+<li>Stack-based VM architecture</li>
+<li>Direct instruction emission for each language construct</li>
+<li>Label generation for control flow (if/while)</li>
+<li>Proper handling of method calls with implicit 'this'</li>
+<li>String literal generation through character appending</li>
+
+<h2>Testing</h2>
+
+</ul>
+<p>Run the comprehensive test suite:</p>
+
+<pre><code class="language-bash">
+python tests/test_compiler.py
+</code></pre>
+
+<p>Tests cover:</p>
+<ul>
+<li>Symbol table operations (define, lookup, scoping)</li>
+<li>Code generation (arithmetic, jumps, function calls)</li>
+<li>Type tracking and variable indexing</li>
+<li>Label generation</li>
+
+<h2>Command-Line Usage</h2>
+
+<pre><code class="language-bash">
+python src/compiler.py [-h] [-o OUTPUT] input
+
+Arguments:
+  input                 Input Jack file or directory
+  -o, --output OUTPUT   Output VM file or directory (default: same as input)
+  -h, --help            Show help message
+</code></pre>
+
+<h2>Supported Jack Language Constructs</h2>
+
+<h3>Statements</h3>
+<li>`let` - Variable assignment (including array elements)</li>
+<li>`if/else` - Conditional execution</li>
+<li>`while` - Loop execution</li>
+<li>`do` - Subroutine call statements</li>
+<li>`return` - Function return</li>
+
+<h3>Expressions</h3>
+<li>Arithmetic: `+` `-` `*` `/`</li>
+<li>Relational: `<` `>` `=`</li>
+<li>Logical: `&` `|` `~`</li>
+<li>Unary: `-` `~`</li>
+
+<h3>Declarations</h3>
+<li>Class-level: `static`, `field`</li>
+<li>Subroutine-level: `var`</li>
+<li>Parameters: implicit for methods</li>
+
+<h3>Types</h3>
+<li>Primitive: `int`, `boolean`, `String`</li>
+<li>User-defined: class names</li>
+
+<h3>Subroutine Types</h3>
+<li>`function` - Static method (no 'this')</li>
+<li>`method` - Instance method (implicit 'this')</li>
+<li>`constructor` - Constructor (returns 'this')</li>
+
+<h2>VM Output Format</h2>
+
+</ul>
+<p>Generated code follows the Hack VM specification:</p>
+<ul>
+<li>Memory segments: local, argument, static, this, that, constant, pointer, temp</li>
+<li>Arithmetic: add, sub, neg, mul, div</li>
+<li>Comparison: eq, lt, gt</li>
+<li>Logical: and, or, not</li>
+<li>Control flow: label, goto, if-goto</li>
+<li>Functions: function, call, return</li>
+
+<h2>Performance Characteristics</h2>
+
+<li>**Single Pass Compilation**: Parse tree traversal in one pass</li>
+<li>**Memory Efficient**: Symbol table uses minimal memory</li>
+<li>**Fast Generation**: Direct instruction emission</li>
+<li>**Scalability**: Successfully compiles complex programs with multiple classes and methods</li>
+
+<h2>Integration with Nand2Tetris</h2>
+
+</ul>
+<p>1. Compile Jack to VM:</p>
+<pre><code class="language-bash">
+   python src/compiler.py program.jack -o program.vm
+</code></pre>
+
+<p>2. Compile VM to Hack ASM (using nand2tetris tools):</p>
+<pre><code class="language-bash">
+   java -jar VMTranslator.jar program.vm
+</code></pre>
+
+<p>3. Load in Hack Emulator:</p>
+<p>   - Open the generated <code>.asm</code> file</p>
+<p>   - Run simulation</p>
+
+<h2>References</h2>
+
+<ul>
+<li>**nand2tetris Course**: https://www.nand2tetris.org/</li>
+<li>**Jack Language Spec**: http://nand2tetris.org/chapters/chapter09.pdf</li>
+<li>**Hack VM Spec**: http://nand2tetris.org/chapters/chapter07.pdf</li>
+<li>**ANTLR4 Documentation**: https://www.antlr.org/</li>
+<li>**Terence Parr's ANTLR**: Language implementation with ANTLR4</li>
+
+<h2>License</h2>
+
+</ul>
+<p>This implementation is provided for educational purposes as part of the nand2tetris curriculum.</p>
+
+<h2>Contributing</h2>
+
+<p>Improvements and enhancements are welcome. This project demonstrates best practices in:</p>
+<ul>
+<li>Compiler design with ANTLR4</li>
+<li>Visitor pattern for AST traversal</li>
+<li>Symbol table management</li>
+<li>Code generation for stack-based VMs</li>
+
+</ul>
+        </div>
+        <div class="footer">
+            <p>Jack Compiler Documentation | Generated 2025-11-27 19:27:15</p>
+        </div>
+    </div>
+</body>
+</html>

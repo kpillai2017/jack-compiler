@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jack Compiler Usage Guide</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; background-color: #f5f5f5; }
+        .container { max-width: 900px; margin: 0 auto; padding: 40px 20px; background-color: white; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); }
+        .header { border-bottom: 3px solid #007acc; padding-bottom: 20px; margin-bottom: 30px; }
+        .header h1 { color: #007acc; margin-bottom: 10px; }
+        .breadcrumb { margin-bottom: 20px; }
+        .breadcrumb a { color: #007acc; text-decoration: none; }
+        .breadcrumb a:hover { text-decoration: underline; }
+        h1 { font-size: 2.5em; color: #222; margin: 40px 0 20px 0; }
+        h1:first-child { margin-top: 0; }
+        h2 { font-size: 2em; color: #333; margin: 35px 0 15px 0; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        h3 { font-size: 1.5em; color: #444; margin: 25px 0 12px 0; }
+        h4, h5, h6 { color: #555; margin: 20px 0 10px 0; }
+        p { margin-bottom: 15px; line-height: 1.8; }
+        code { background-color: #f4f4f4; padding: 2px 6px; border-radius: 3px; font-family: 'Courier New', monospace; font-size: 0.9em; color: #c7254e; }
+        pre { background-color: #272822; color: #f8f8f2; padding: 15px; border-radius: 5px; overflow-x: auto; margin: 20px 0; line-height: 1.4; font-size: 0.95em; }
+        pre code { background-color: transparent; color: #f8f8f2; padding: 0; }
+        ul { margin: 20px 0 20px 30px; }
+        li { margin-bottom: 8px; }
+        a { color: #007acc; text-decoration: none; border-bottom: 1px dotted #007acc; }
+        a:hover { background-color: #f0f7ff; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: #f0f0f0; font-weight: bold; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        .footer { margin-top: 50px; padding-top: 20px; border-top: 1px solid #eee; color: #999; font-size: 0.9em; text-align: center; }
+        strong { font-weight: 600; }
+        em { font-style: italic; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Jack Compiler Usage Guide</h1>
+            <div class="breadcrumb">
+                <a href="index.html">← Back to Documentation Index</a>
+            </div>
+        </div>
+        <div class="content">
+            <h1>Jack Compiler Usage Guide</h1>
+
+<h2>Quick Start</h2>
+
+<h3>1. Installation</h3>
+
+<pre><code class="language-bash">
+# Navigate to the jack-compiler directory
+cd jack-compiler
+
+# Run setup script (downloads ANTLR4 and generates parser)
+bash setup.sh
+
+# Or manually install dependencies
+pip install -r requirements.txt
+</code></pre>
+
+<h3>2. Compile a Single File</h3>
+
+<pre><code class="language-bash">
+python src/compiler.py program.jack -o program.vm
+</code></pre>
+
+<h3>3. Compile a Directory</h3>
+
+<pre><code class="language-bash">
+python src/compiler.py src_dir/ -o bin_dir/
+</code></pre>
+
+<h3>4. In-place Compilation</h3>
+
+<pre><code class="language-bash">
+python src/compiler.py src_dir/
+</code></pre>
+
+<p>This will generate <code>.vm</code> files in the same directory as the <code>.jack</code> files.</p>
+
+<h2>Command Line Options</h2>
+
+<pre><code class="language-">
+usage: compiler.py [-h] [-o OUTPUT] input
+
+Jack compiler for nand2tetris Hack computer
+
+positional arguments:
+  input                 Input Jack file or directory
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -o OUTPUT, --output OUTPUT
+                        Output VM file or directory (default: same as input)
+</code></pre>
+
+<h2>Examples</h2>
+
+<h3>Example 1: Simple Function</h3>
+
+<p><strong>Input (main.jack):</strong></p>
+<pre><code class="language-jack">
+class Main {
+    function void main() {
+        var int x;
+        let x = 5;
+        do Output.printInt(x);
+        return;
+    }
+}
+</code></pre>
+
+<p><strong>Output (main.vm):</strong></p>
+<pre><code class="language-vm">
+function Main.main 1
+push constant 5
+pop local 0
+push local 0
+call Output.printInt 1
+pop temp 0
+push constant 0
+return
+</code></pre>
+
+<h3>Example 2: Variable Declaration and Arithmetic</h3>
+
+<p><strong>Input (calc.jack):</strong></p>
+<pre><code class="language-jack">
+class Calc {
+    function void main() {
+        var int a, b, sum;
+        let a = 10;
+        let b = 20;
+        let sum = a + b;
+        do Output.printInt(sum);
+        return;
+    }
+}
+</code></pre>
+
+<p><strong>Output (calc.vm):</strong></p>
+<pre><code class="language-vm">
+function Calc.main 3
+push constant 10
+pop local 0
+push constant 20
+pop local 1
+push local 0
+push local 1
+add
+pop local 2
+push local 2
+call Output.printInt 1
+pop temp 0
+push constant 0
+return
+</code></pre>
+
+<h3>Example 3: Control Flow - While Loop</h3>
+
+<p><strong>Input (loop.jack):</strong></p>
+<pre><code class="language-jack">
+class Loop {
+    function void main() {
+        var int i;
+        let i = 0;
+        while (i &lt; 10) {
+            do Output.printInt(i);
+            let i = i + 1;
+        }
+        return;
+    }
+}
+</code></pre>
+
+<p><strong>Output (loop.vm):</strong></p>
+<pre><code class="language-vm">
+function Loop.main 1
+push constant 0
+pop local 0
+label WHILE$0
+push local 0
+push constant 10
+lt
+not
+if-goto ENDWHILE$1
+push local 0
+call Output.printInt 1
+pop temp 0
+push local 0
+push constant 1
+add
+pop local 0
+goto WHILE$0
+label ENDWHILE$1
+push constant 0
+return
+</code></pre>
+
+<h3>Example 4: Control Flow - If Statement</h3>
+
+<p><strong>Input (conditional.jack):</strong></p>
+<pre><code class="language-jack">
+class Conditional {
+    function void main() {
+        var int x;
+        let x = 5;
+        if (x &gt; 0) {
+            do Output.printString("positive");
+        } else {
+            do Output.printString("non-positive");
+        }
+        return;
+    }
+}
+</code></pre>
+
+<h3>Example 5: Class with Methods and Fields</h3>
+
+<p><strong>Input (point.jack):</strong></p>
+<pre><code class="language-jack">
+class Point {
+    field int x, y;
+    
+    constructor Point new(int px, int py) {
+        let x = px;
+        let y = py;
+        return this;
+    }
+    
+    method void setX(int val) {
+        let x = val;
+        return;
+    }
+    
+    method int getX() {
+        return x;
+    }
+}
+</code></pre>
+
+<h3>Example 6: Arrays</h3>
+
+<p><strong>Input (array.jack):</strong></p>
+<pre><code class="language-jack">
+class Array {
+    function void main() {
+        var Array arr;
+        var int i;
+        
+        let arr = Array.new(10);
+        let arr[0] = 42;
+        let i = arr[0];
+        
+        do Output.printInt(i);
+        return;
+    }
+}
+</code></pre>
+
+<h3>Example 7: String Literals</h3>
+
+<p><strong>Input (strings.jack):</strong></p>
+<pre><code class="language-jack">
+class Strings {
+    function void main() {
+        var String msg;
+        let msg = "Hello, World!";
+        do Output.printString(msg);
+        do Output.println();
+        return;
+    }
+}
+</code></pre>
+
+<h2>Supported Jack Language Features</h2>
+
+<h3>Data Types</h3>
+<ul>
+<li>`int` - 16-bit integer</li>
+<li>`boolean` - true or false</li>
+<li>`String` - string literals</li>
+<li>Custom class types (user-defined classes)</li>
+
+<h3>Variable Kinds</h3>
+<li>`static` - class-level static variables</li>
+<li>`field` - instance variables</li>
+<li>`var` - local variables (in methods/functions)</li>
+<li>Implicit parameters for methods</li>
+
+<h3>Operators</h3>
+<li>Arithmetic: `+`, `-`, `*`, `/`</li>
+<li>Comparison: `<`, `>`, `=`</li>
+<li>Logical: `&`, `|`, `~`</li>
+<li>Unary: `-`, `~`</li>
+
+<h3>Statements</h3>
+<li>`let` - variable assignment and array element assignment</li>
+<li>`if/else` - conditional execution</li>
+<li>`while` - loops</li>
+<li>`do` - subroutine calls (statements)</li>
+<li>`return` - function return</li>
+
+<h3>Subroutines</h3>
+<li>`function` - static method (no implicit this)</li>
+<li>`method` - instance method (implicit this as first parameter)</li>
+<li>`constructor` - constructor method (returns new instance)</li>
+
+<h3>Other Features</h3>
+<li>Single-dimensional arrays with `[]` notation</li>
+<li>String literals with escape sequences (basic support)</li>
+<li>Comments: `//` and `/* */`</li>
+<li>Field and local variable declarations</li>
+
+<h2>Compilation Process</h2>
+
+</ul>
+<p>1. <strong>Lexical Analysis</strong>: ANTLR4 tokenizes the input</p>
+<p>2. <strong>Syntax Analysis</strong>: ANTLR4 parses tokens according to the grammar</p>
+<p>3. <strong>Semantic Analysis</strong>: Symbol table tracks variable definitions and scopes</p>
+<p>4. <strong>Code Generation</strong>: Converts parse tree to VM instructions</p>
+
+<h2>Symbol Table Management</h2>
+
+<p>The compiler maintains two symbol tables:</p>
+<ul>
+<li>**Class scope**: Static and field variables</li>
+<li>**Subroutine scope**: Local variables and parameters</li>
+
+</ul>
+<p>When a new subroutine is encountered, the subroutine-level scope is reset while class-level scope persists.</p>
+
+<h2>VM Code Output Format</h2>
+
+<p>The generated VM code follows the Hack Virtual Machine specification:</p>
+<ul>
+<li>`push [segment] [index]` - Push value onto stack</li>
+<li>`pop [segment] [index]` - Pop stack into memory</li>
+<li>`add`, `sub`, `neg`, `mul`, `div` - Arithmetic</li>
+<li>`eq`, `lt`, `gt` - Comparisons</li>
+<li>`and`, `or`, `not` - Logical operations</li>
+<li>`label [name]` - Label definition</li>
+<li>`goto [label]` - Unconditional jump</li>
+<li>`if-goto [label]` - Conditional jump</li>
+<li>`call [function] [num_args]` - Subroutine call</li>
+<li>`return` - Function return</li>
+<li>`function [name] [num_locals]` - Function definition</li>
+
+<h2>Troubleshooting</h2>
+
+<h3>"ANTLR-generated files not found"</h3>
+</ul>
+<p>Solution: Run <code>bash setup.sh</code> to generate parser and lexer</p>
+
+<h3>Syntax Errors</h3>
+<p>The compiler will report syntax errors from the ANTLR parser. Check your Jack code for:</p>
+<ul>
+<li>Missing semicolons</li>
+<li>Unmatched braces</li>
+<li>Invalid keywords</li>
+<li>Type mismatches</li>
+
+<h3>Undefined Variable Errors</h3>
+</ul>
+<p>Ensure variables are declared before use in the appropriate scope:</p>
+<ul>
+<li>Use `var` for local variables</li>
+<li>Use `field` for instance variables</li>
+<li>Use `static` for class variables</li>
+
+<h3>File Not Found</h3>
+</ul>
+<p>Ensure the input file path is correct and the file exists</p>
+
+<h2>Testing</h2>
+
+<p>Run the included test suite:</p>
+
+<pre><code class="language-bash">
+python tests/test_compiler.py
+</code></pre>
+
+<p>This tests:</p>
+<ul>
+<li>Symbol table operations</li>
+<li>Code generation</li>
+<li>Variable scoping</li>
+<li>Type tracking</li>
+
+<h2>Integration with Hack Emulator</h2>
+
+</ul>
+<p>1. Compile your Jack program to VM code:</p>
+<pre><code class="language-bash">
+   python src/compiler.py myprogram.jack -o myprogram.vm
+</code></pre>
+
+<p>2. Use the Hack VM translator to convert VM code to machine code:</p>
+<pre><code class="language-bash">
+   java -jar VMTranslator.jar myprogram.vm
+</code></pre>
+
+<p>3. Load the resulting <code>.asm</code> file into the Hack Emulator and run</p>
+
+<h2>Advanced Usage</h2>
+
+<h3>Processing Multiple Files</h3>
+
+<pre><code class="language-bash">
+# Compile all Jack files in a directory
+python src/compiler.py src/ -o compiled/
+
+# This will preserve the directory structure
+</code></pre>
+
+<h3>Using as a Library</h3>
+
+<pre><code class="language-python">
+from src.compiler import JackCompiler
+
+compiler = JackCompiler()
+compiler.compile_file("input.jack", "output.vm")
+</code></pre>
+
+<h2>References</h2>
+
+<ul>
+<li>nand2tetris Course: https://www.nand2tetris.org/</li>
+<li>Jack Language Specification: http://nand2tetris.org/chapters/chapter09.pdf</li>
+<li>Hack Virtual Machine: http://nand2tetris.org/chapters/chapter07.pdf</li>
+<li>ANTLR4 Documentation: https://www.antlr.org/</li>
+
+<h2>License</h2>
+
+</ul>
+<p>This implementation is provided as-is for educational purposes in the nand2tetris course.</p>
+
+        </div>
+        <div class="footer">
+            <p>Jack Compiler Documentation | Generated 2025-11-27 19:27:15</p>
+        </div>
+    </div>
+</body>
+</html>

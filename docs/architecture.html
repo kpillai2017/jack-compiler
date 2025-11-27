@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jack Compiler Architecture</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; background-color: #f5f5f5; }
+        .container { max-width: 900px; margin: 0 auto; padding: 40px 20px; background-color: white; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); }
+        .header { border-bottom: 3px solid #007acc; padding-bottom: 20px; margin-bottom: 30px; }
+        .header h1 { color: #007acc; margin-bottom: 10px; }
+        .breadcrumb { margin-bottom: 20px; }
+        .breadcrumb a { color: #007acc; text-decoration: none; }
+        .breadcrumb a:hover { text-decoration: underline; }
+        h1 { font-size: 2.5em; color: #222; margin: 40px 0 20px 0; }
+        h1:first-child { margin-top: 0; }
+        h2 { font-size: 2em; color: #333; margin: 35px 0 15px 0; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        h3 { font-size: 1.5em; color: #444; margin: 25px 0 12px 0; }
+        h4, h5, h6 { color: #555; margin: 20px 0 10px 0; }
+        p { margin-bottom: 15px; line-height: 1.8; }
+        code { background-color: #f4f4f4; padding: 2px 6px; border-radius: 3px; font-family: 'Courier New', monospace; font-size: 0.9em; color: #c7254e; }
+        pre { background-color: #272822; color: #f8f8f2; padding: 15px; border-radius: 5px; overflow-x: auto; margin: 20px 0; line-height: 1.4; font-size: 0.95em; }
+        pre code { background-color: transparent; color: #f8f8f2; padding: 0; }
+        ul { margin: 20px 0 20px 30px; }
+        li { margin-bottom: 8px; }
+        a { color: #007acc; text-decoration: none; border-bottom: 1px dotted #007acc; }
+        a:hover { background-color: #f0f7ff; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: #f0f0f0; font-weight: bold; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        .footer { margin-top: 50px; padding-top: 20px; border-top: 1px solid #eee; color: #999; font-size: 0.9em; text-align: center; }
+        strong { font-weight: 600; }
+        em { font-style: italic; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Jack Compiler Architecture</h1>
+            <div class="breadcrumb">
+                <a href="index.html">← Back to Documentation Index</a>
+            </div>
+        </div>
+        <div class="content">
+            <h1>Jack Compiler Architecture</h1>
+
+<h2>Overview</h2>
+
+<p>This document describes the architecture and design of the Jack compiler, which translates Jack source code to Hack Virtual Machine bytecode.</p>
+
+<h2>System Architecture</h2>
+
+<h3>High-Level Pipeline</h3>
+
+<pre><code class="language-">
+┌─────────────────┐
+│  Jack Source    │
+│     Code        │
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────────────────────────────┐
+│         Lexical Analysis (ANTLR4)       │
+│  - Tokenization                         │
+│  - Keyword/operator recognition         │
+│  - Comment stripping                    │
+└────────┬────────────────────────────────┘
+         │
+         ▼
+┌─────────────────────────────────────────┐
+│         Syntax Analysis (ANTLR4)        │
+│  - Grammar-based parsing                │
+│  - Parse tree construction              │
+│  - Error detection                      │
+└────────┬────────────────────────────────┘
+         │
+         ▼
+┌─────────────────────────────────────────┐
+│        Semantic Analysis &amp; Code Gen     │
+│  - Symbol table management              │
+│  - Type checking                        │
+│  - Code generation                      │
+└────────┬────────────────────────────────┘
+         │
+         ▼
+┌─────────────────────────────────────────┐
+│      Hack Virtual Machine Code          │
+│  (.vm bytecode)                         │
+└─────────────────────────────────────────┘
+</code></pre>
+
+<h2>Component Architecture</h2>
+
+<h3>1. Grammar & Parser Generation (ANTLR4 v4.13.0)</h3>
+
+<p><strong>File</strong>: <code>grammar/Jack.g4</code></p>
+
+<p>The ANTLR4 v4.13.0 grammar defines the complete syntax of the Jack language:</p>
+
+<pre><code class="language-">
+Program
+  ├── ClassDeclaration
+  │   ├── ClassVarDeclaration (static/field)
+  │   └── SubroutineDeclaration
+  │       ├── Function
+  │       ├── Method
+  │       └── Constructor
+  │
+  └── Statements
+      ├── LetStatement (assignment)
+      ├── IfStatement (conditional)
+      ├── WhileStatement (loops)
+      ├── DoStatement (calls)
+      └── ReturnStatement
+</code></pre>
+
+<p><strong>ANTLR4 Generates</strong>:</p>
+<ul>
+<li>`JackLexer.py` - Tokenizer implementation</li>
+<li>`JackParser.py` - Parse tree builder</li>
+<li>`JackVisitor.py` - Base visitor class</li>
+
+<h3>2. Symbol Table Management</h3>
+
+</ul>
+<p><strong>File</strong>: <code>src/symbols.py</code></p>
+
+<p>Implements a two-level symbol table:</p>
+
+<pre><code class="language-python">
+SymbolTable
+├── Class Scope
+│   ├── Static Variables (index 0+)
+│   └── Field Variables (index 0+)
+│
+└── Subroutine Scope (reset per function)
+    ├── Parameters/Arguments (index 0+)
+    └── Local Variables (index 0+)
+</code></pre>
+
+<p><strong>Data Structure</strong>:</p>
+<pre><code class="language-python">
+SymbolInfo:
+  - name: str
+  - type: str
+  - kind: VarKind (STATIC, FIELD, ARG, LOCAL)
+  - index: int
+</code></pre>
+
+<p><strong>Operations</strong>:</p>
+<ul>
+<li>`define(name, type, kind)` - Add symbol</li>
+<li>`kind_of(name)` - Get variable kind</li>
+<li>`type_of(name)` - Get variable type</li>
+<li>`index_of(name)` - Get variable index</li>
+<li>`start_subroutine()` - Reset subroutine scope</li>
+
+<h3>3. Code Generator</h3>
+
+</ul>
+<p><strong>File</strong>: <code>src/codegen.py</code></p>
+
+<p>Emits Hack VM instructions during code generation:</p>
+
+<pre><code class="language-python">
+CodeGenerator
+├── Arithmetic Operations
+│   ├── emit_add()
+│   ├── emit_subtract()
+│   ├── emit_multiply()
+│   └── emit_divide()
+│
+├── Comparison Operations
+│   ├── emit_lt()
+│   ├── emit_gt()
+│   └── emit_eq()
+│
+├── Logical Operations
+│   ├── emit_and()
+│   ├── emit_or()
+│   └── emit_not()
+│
+├── Memory Operations
+│   ├── push_variable()
+│   ├── pop_variable()
+│   ├── emit_array_access()
+│   └── emit_string_constant()
+│
+├── Control Flow
+│   ├── emit_label()
+│   ├── emit_goto()
+│   └── emit_if_goto()
+│
+└── Function Management
+    ├── emit_function()
+    ├── emit_call()
+    └── emit_return()
+</code></pre>
+
+<h3>4. Compiler Visitor</h3>
+
+<p><strong>File</strong>: <code>src/compiler_visitor.py</code></p>
+
+<p>Implements the ANTLR visitor pattern to traverse the parse tree:</p>
+
+<pre><code class="language-python">
+JackCompilerVisitor
+├── visit_class_declaration()
+├── visit_subroutine_declaration()
+├── visit_statements()
+├── visit_let_statement()
+├── visit_if_statement()
+├── visit_while_statement()
+├── visit_do_statement()
+├── visit_return_statement()
+├── visit_expression()
+├── visit_term()
+├── visit_subroutine_call()
+└── visit_operator()
+</code></pre>
+
+<p><strong>Workflow</strong>:</p>
+<p>1. Visit class declaration - initialize class-level symbol table</p>
+<p>2. For each subroutine:</p>
+<p>   - Reset subroutine-level symbol table</p>
+<p>   - Emit function declaration</p>
+<p>   - Compile statements</p>
+<p>3. For each statement:</p>
+<p>   - Update symbol table as needed</p>
+<p>   - Generate appropriate VM code</p>
+
+<h3>5. Main Compiler Driver</h3>
+
+<p><strong>File</strong>: <code>src/compiler.py</code></p>
+
+<p>Command-line interface and file handling:</p>
+
+<pre><code class="language-python">
+JackCompiler
+├── compile_file(input_path, output_path)
+│   ├── Create input stream
+│   ├── Tokenize (Lexer)
+│   ├── Parse (Parser)
+│   ├── Generate code (Visitor)
+│   └── Write output
+│
+└── compile_directory(input_dir, output_dir)
+    └── Process all .jack files
+</code></pre>
+
+<h2>Data Flow Example</h2>
+
+<h3>Input Program:</h3>
+<pre><code class="language-jack">
+class Main {
+    function void main() {
+        var int x;
+        let x = 5;
+        do Output.printInt(x);
+        return;
+    }
+}
+</code></pre>
+
+<h3>Processing Steps:</h3>
+
+<p><strong>1. Lexical Analysis</strong></p>
+<pre><code class="language-">
+Tokens: CLASS, IDENTIFIER(Main), LBRACE, FUNCTION, VOID, ...
+</code></pre>
+
+<p><strong>2. Parsing</strong></p>
+<pre><code class="language-">
+ClassDeclaration
+└── SubroutineDeclaration (function Main.main)
+    └── Statements
+        ├── VarDeclaration (x: int)
+        ├── LetStatement (let x = 5)
+        ├── DoStatement (do Output.printInt(x))
+        └── ReturnStatement
+</code></pre>
+
+<p><strong>3. Symbol Table after processing declarations</strong></p>
+<pre><code class="language-">
+Subroutine Scope:
+  x: int, LOCAL, index=0
+</code></pre>
+
+<p><strong>4. Code Generation</strong></p>
+<pre><code class="language-">
+function Main.main 1          // 1 local variable
+push constant 5               // Compile: let x = 5
+pop local 0
+push local 0                  // Compile: printInt(x)
+call Output.printInt 1
+pop temp 0                    // Discard return value
+push constant 0               // Compile: return
+return
+</code></pre>
+
+<h2>Memory Model</h2>
+
+<p>The Hack VM uses these memory segments:</p>
+
+<pre><code class="language-">
+┌──────────────────────────────────────────┐
+│  Memory Segments in Hack VM              │
+├──────────────────────────────────────────┤
+│  local   - Subroutine local variables    │
+│  argument- Function parameters           │
+│  static  - Class-level static variables  │
+│  field   - Object instance fields        │
+│  this    - Current object (via pointer 0)│
+│  that    - Auxiliary pointer (via pointer 1) │
+│  temp    - Temporary storage             │
+│  constant- Constant values               │
+└──────────────────────────────────────────┘
+</code></pre>
+
+<p><strong>Variable Kind to Memory Segment Mapping</strong>:</p>
+<pre><code class="language-">
+VarKind.STATIC  → memory segment "static"
+VarKind.FIELD   → memory segment "this"
+VarKind.LOCAL   → memory segment "local"
+VarKind.ARG     → memory segment "argument"
+</code></pre>
+
+<h2>Control Flow Implementation</h2>
+
+<h3>If-Else Statement</h3>
+
+<pre><code class="language-jack">
+if (x &gt; 0) {
+    // block 1
+} else {
+    // block 2
+}
+</code></pre>
+
+<p><strong>Generated VM Code</strong>:</p>
+<pre><code class="language-vm">
+push x              // Evaluate condition
+push 0
+gt
+not                 // Negate for false case
+if-goto ELSE$0      // Jump if false
+                    // Block 1 code
+goto ENDIF$0        // Jump over else
+label ELSE$0        // Else block
+                    // Block 2 code
+label ENDIF$0       // End
+</code></pre>
+
+<h3>While Loop</h3>
+
+<pre><code class="language-jack">
+while (i &lt; 10) {
+    // loop body
+}
+</code></pre>
+
+<p><strong>Generated VM Code</strong>:</p>
+<pre><code class="language-vm">
+label WHILE$0       // Loop start
+push i              // Evaluate condition
+push 10
+lt
+not                 // Negate for exit condition
+if-goto ENDWHILE$0  // Exit if false
+                    // Loop body code
+goto WHILE$0        // Jump to condition
+label ENDWHILE$0    // After loop
+</code></pre>
+
+<h2>Method and Constructor Handling</h2>
+
+<h3>Method Calls</h3>
+
+<p>Methods include an implicit <code>this</code> pointer as the first argument:</p>
+
+<pre><code class="language-jack">
+point.setX(5);  // Equivalent to: Point.setX(point, 5)
+</code></pre>
+
+<p><strong>Compilation</strong>:</p>
+<p>1. Push receiver object (point) onto stack</p>
+<p>2. Push arguments (5)</p>
+<p>3. Call Point.setX with 2 arguments</p>
+<p>4. Handle return value</p>
+
+<h3>Constructor Calls</h3>
+
+<p>Constructors allocate memory and initialize the object:</p>
+
+<pre><code class="language-jack">
+let p = Point.new(1, 2);
+</code></pre>
+
+<p><strong>Generated Code</strong>:</p>
+<pre><code class="language-vm">
+push constant 2         // Allocate 2 fields
+call Memory.alloc 1     // VM call
+pop pointer 0           // Set this = new object
+push argument 0         // Set field values
+pop this 0
+push argument 1
+pop this 1
+push pointer 0          // Return this
+return
+</code></pre>
+
+<h2>String Literal Handling</h2>
+
+<p>Jack string literals are compiled to a sequence of VM calls:</p>
+
+<pre><code class="language-jack">
+let s = "Hi";
+</code></pre>
+
+<p><strong>Generated VM Code</strong>:</p>
+<pre><code class="language-vm">
+push constant 2         // String length
+call String.new 1       // Create string object
+push constant 72        // ASCII code for 'H'
+call String.appendChar 2// Append character
+push constant 105       // ASCII code for 'i'
+call String.appendChar 2// Append character
+</code></pre>
+
+<h2>Array Implementation</h2>
+
+<p>Arrays are allocated as Jack objects and accessed via memory indirection:</p>
+
+<pre><code class="language-jack">
+let arr[2] = 5;
+</code></pre>
+
+<p><strong>Generated Code</strong>:</p>
+<pre><code class="language-vm">
+push arr                // Base address
+push constant 2         // Index
+push constant 5         // Value
+pop temp 0              // Save value
+add                     // Compute address
+pop pointer 1           // Set that = address
+push temp 0             // Restore value
+pop that 0              // Store in array
+</code></pre>
+
+<h2>Error Handling</h2>
+
+<p>The compiler handles errors at multiple levels:</p>
+
+<p>1. <strong>Lexical Errors</strong>: Invalid characters (handled by ANTLR4)</p>
+<p>2. <strong>Syntax Errors</strong>: Invalid grammar (detected by ANTLR4 parser)</p>
+<p>3. <strong>Semantic Errors</strong>: Undefined variables, type mismatches (detected during visiting)</p>
+<p>4. <strong>I/O Errors</strong>: File not found, write permission denied</p>
+
+<h2>Performance Considerations</h2>
+
+<h3>Time Complexity</h3>
+<ul>
+<li>**Lexical Analysis**: O(n) - single pass through input</li>
+<li>**Parsing**: O(n) - single pass through tokens</li>
+<li>**Code Generation**: O(n) - single pass through parse tree</li>
+
+</ul>
+<p>Overall: <strong>O(n)</strong> where n is the input size</p>
+
+<h3>Space Complexity</h3>
+<ul>
+<li>**Symbol Table**: O(s) where s = number of unique symbols</li>
+<li>**Parse Tree**: O(d) where d = maximum nesting depth</li>
+<li>**Generated Code**: O(n) - proportional to input</li>
+
+<h2>Design Patterns Used</h2>
+
+</ul>
+<p>1. <strong>Visitor Pattern</strong>: AST traversal and code generation</p>
+<p>2. <strong>Symbol Table Pattern</strong>: Scoped variable management</p>
+<p>3. <strong>Builder Pattern</strong>: Incremental code generation</p>
+<p>4. <strong>Factory Pattern</strong>: Code instruction creation</p>
+
+<h2>Extension Points</h2>
+
+<p>The compiler can be extended with:</p>
+
+<p>1. <strong>Additional operators</strong>: Add to grammar and visitor</p>
+<p>2. <strong>New built-in types</strong>: Modify symbol table type checking</p>
+<p>3. <strong>Optimizations</strong>: Post-processing on generated VM code</p>
+<p>4. <strong>Better error messages</strong>: Enhanced error listener in parser</p>
+
+<h2>References</h2>
+
+<ul>
+<li>ANTLR4 Documentation: https://www.antlr.org/</li>
+<li>Visitor Pattern: Gang of Four Design Patterns</li>
+<li>Compiler Design: "Compilers: Principles, Techniques, and Tools" (Dragon Book)</li>
+<li>Hack Virtual Machine: nand2tetris course materials</li>
+
+</ul>
+        </div>
+        <div class="footer">
+            <p>Jack Compiler Documentation | Generated 2025-11-27 19:27:15</p>
+        </div>
+    </div>
+</body>
+</html>

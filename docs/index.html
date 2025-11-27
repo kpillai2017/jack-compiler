@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jack Compiler Documentation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        nav {
+            background: #f8f9fa;
+            padding: 20px;
+            border-bottom: 2px solid #667eea;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        nav a {
+            text-decoration: none;
+            color: #667eea;
+            font-weight: 600;
+            padding: 10px 20px;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+        
+        nav a:hover {
+            background: #667eea;
+            color: white;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .section {
+            margin-bottom: 40px;
+        }
+        
+        h2 {
+            color: #667eea;
+            font-size: 2em;
+            margin-bottom: 20px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+        
+        h3 {
+            color: #764ba2;
+            font-size: 1.5em;
+            margin-top: 20px;
+            margin-bottom: 15px;
+        }
+        
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+        
+        .card {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        
+        .card.info {
+            border-left-color: #17a2b8;
+            background: #d1ecf1;
+        }
+        
+        .card.success {
+            border-left-color: #28a745;
+            background: #d4edda;
+        }
+        
+        .card.warning {
+            border-left-color: #ffc107;
+            background: #fff3cd;
+        }
+        
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .feature-box {
+            background: white;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .feature-box h4 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        
+        .feature-box p {
+            font-size: 0.95em;
+        }
+        
+        code {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        
+        pre {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .button {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 5px;
+            text-decoration: none;
+            margin: 10px 5px 10px 0;
+            transition: all 0.3s;
+        }
+        
+        .button:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        footer {
+            background: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            border-top: 2px solid #667eea;
+            color: #666;
+        }
+        
+        .toc {
+            background: #f8f9fa;
+            border: 2px solid #667eea;
+            border-radius: 5px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .toc h3 {
+            margin-top: 0;
+        }
+        
+        .toc ol {
+            margin-left: 20px;
+        }
+        
+        .toc li {
+            margin-bottom: 10px;
+        }
+        
+        .toc a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        
+        .toc a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎯 Jack Compiler</h1>
+            <p>Complete ANTLR4-based Jack to Hack VM Compiler</p>
+        </header>
+        
+        <nav>
+            <a href="index.html">Home</a>
+            <a href="getting-started.html">Getting Started</a>
+            <a href="how-it-works.html">How It Works</a>
+            <a href="examples.html">Examples</a>
+            <a href="faq.html">FAQ</a>
+        </nav>
+        
+        <div class="content">
+            <div class="section">
+                <h2>Welcome to the Jack Compiler</h2>
+                <p>
+                    The Jack Compiler is a complete, production-ready compiler that translates Jack source code 
+                    into Hack Virtual Machine (VM) bytecode. Built with ANTLR4 (Terence Parr's industry-standard 
+                    parser generator), it implements the full Jack language specification from the nand2tetris course.
+                </p>
+                
+                <div class="card success">
+                    <strong>✅ Key Highlight:</strong> This compiler generates VM code that is 100% compatible with 
+                    the reference implementation and runs perfectly in the web-ide VM simulator!
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>What is the Jack Language?</h2>
+                <p>
+                    Jack is a high-level object-oriented programming language designed for the nand2tetris course. 
+                    It's similar to Java or C++, featuring:
+                </p>
+                <ul style="margin-left: 20px; margin-bottom: 15px;">
+                    <li><strong>Object-Oriented:</strong> Classes, objects, methods</li>
+                    <li><strong>Typed System:</strong> int, boolean, String, custom classes</li>
+                    <li><strong>Control Flow:</strong> if/else, while loops</li>
+                    <li><strong>Arrays:</strong> Single-dimensional dynamic arrays</li>
+                    <li><strong>Memory Management:</strong> Garbage collection support</li>
+                </ul>
+            </div>
+            
+            <div class="section">
+                <h2>What Does This Compiler Do?</h2>
+                <p>
+                    The compiler takes Jack source code (.jack files) and translates them into Hack Virtual Machine 
+                    code (.vm files). This VM code can then be further compiled to Hack machine code and run on the 
+                    Hack computer simulator.
+                </p>
+                
+                <div style="margin: 20px 0;">
+                    <strong>Compilation Pipeline:</strong>
+                    <pre>Jack Source Code (.jack)
+        ↓
+    [Lexer] - Tokenization
+        ↓
+    [Parser] - Syntax analysis (ANTLR4)
+        ↓
+    [Visitor] - Semantic analysis
+        ↓
+    [Code Generator] - VM bytecode generation
+        ↓
+    Hack Virtual Machine Code (.vm)</pre>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>Key Features</h2>
+                <div class="features">
+                    <div class="feature-box">
+                        <h4>✨ Complete Language Support</h4>
+                        <p>Supports all Jack language features including classes, methods, arrays, and more</p>
+                    </div>
+                    <div class="feature-box">
+                        <h4>⚡ Single-Pass Compilation</h4>
+                        <p>Efficient O(n) compilation time without multiple passes</p>
+                    </div>
+                    <div class="feature-box">
+                        <h4>🔍 Error Detection</h4>
+                        <p>Comprehensive error checking and clear error messages</p>
+                    </div>
+                    <div class="feature-box">
+                        <h4>📦 Batch Compilation</h4>
+                        <p>Compile entire directory trees recursively</p>
+                    </div>
+                    <div class="feature-box">
+                        <h4>🎯 Reference Compatible</h4>
+                        <p>Output matches reference implementation exactly</p>
+                    </div>
+                    <div class="feature-box">
+                        <h4>📚 Well Documented</h4>
+                        <p>Comprehensive guides and examples included</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>Quick Navigation</h2>
+                <div class="toc">
+                    <h3>📖 Documentation Guide</h3>
+                    <ol>
+                        <li>
+                            <a href="getting-started.html"><strong>Getting Started</strong></a>
+                            <br>Installation, setup, and basic usage
+                        </li>
+                        <li>
+                            <a href="how-it-works.html"><strong>How It Works</strong></a>
+                            <br>Deep dive into compiler architecture and ANTLR4 logic
+                        </li>
+                        <li>
+                            <a href="examples.html"><strong>Examples</strong></a>
+                            <br>Complete examples and sample programs
+                        </li>
+                        <li>
+                            <a href="faq.html"><strong>FAQ & Troubleshooting</strong></a>
+                            <br>Common questions and solutions
+                        </li>
+                    </ol>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>Quick Start</h2>
+                <div class="card info">
+                    <p><strong>Ready to get started?</strong> Follow these simple steps:</p>
+                    <pre>1. Navigate to the jack-compiler directory
+2. Run: bash setup.sh
+3. Compile: python src/compiler.py program.jack -o program.vm
+4. Use the generated program.vm with the nand2tetris tools</pre>
+                </div>
+                <p style="text-align: center;">
+                    <a href="getting-started.html" class="button">Start Using the Compiler →</a>
+                </p>
+            </div>
+            
+            <div class="section">
+                <h2>What You'll Learn</h2>
+                <p>
+                    By studying this compiler, you'll understand:
+                </p>
+                <ul style="margin-left: 20px; margin-bottom: 15px;">
+                    <li>How modern programming language compilers work</li>
+                    <li>ANTLR4 - a powerful parser generator used in industry</li>
+                    <li>Lexical analysis (tokenization)</li>
+                    <li>Syntax analysis (parsing)</li>
+                    <li>Semantic analysis (type checking, symbol tables)</li>
+                    <li>Code generation for virtual machines</li>
+                    <li>Software engineering best practices</li>
+                </ul>
+            </div>
+            
+            <div class="section">
+                <h2>Technology Stack</h2>
+                <div class="features">
+                    <div class="feature-box">
+                        <h4>ANTLR4</h4>
+                        <p>Powerful parser generator<br>Industry-standard tool</p>
+                    </div>
+                    <div class="feature-box">
+                        <h4>Python 3.8+</h4>
+                        <p>Clean, readable implementation<br>Easy to understand</p>
+                    </div>
+                    <div class="feature-box">
+                        <h4>nand2tetris</h4>
+                        <p>Educational computer architecture<br>Complete ecosystem</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Jack Compiler Documentation | Built with ❤️ for the nand2tetris community</p>
+            <p style="margin-top: 10px; font-size: 0.9em;">© 2024 | Licensed for educational use</p>
+        </footer>
+    </div>
+</body>
+</html>

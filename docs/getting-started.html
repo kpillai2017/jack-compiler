@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Getting Started - Jack Compiler</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        nav {
+            background: #f8f9fa;
+            padding: 20px;
+            border-bottom: 2px solid #667eea;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        nav a {
+            text-decoration: none;
+            color: #667eea;
+            font-weight: 600;
+            padding: 10px 20px;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+        
+        nav a:hover {
+            background: #667eea;
+            color: white;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .section {
+            margin-bottom: 40px;
+        }
+        
+        h2 {
+            color: #667eea;
+            font-size: 2em;
+            margin-bottom: 20px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+        
+        h3 {
+            color: #764ba2;
+            font-size: 1.5em;
+            margin-top: 20px;
+            margin-bottom: 15px;
+        }
+        
+        p {
+            margin-bottom: 15px;
+        }
+        
+        .card {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        
+        .card.success {
+            border-left-color: #28a745;
+            background: #d4edda;
+        }
+        
+        .card.warning {
+            border-left-color: #ffc107;
+            background: #fff3cd;
+        }
+        
+        .step {
+            background: white;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+        
+        .step h4 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+        
+        .step-number {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        
+        code {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        
+        pre {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .button {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 5px;
+            text-decoration: none;
+            margin: 10px 5px 10px 0;
+            transition: all 0.3s;
+        }
+        
+        .button:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        footer {
+            background: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            border-top: 2px solid #667eea;
+            color: #666;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        table th, table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        
+        table th {
+            background: #667eea;
+            color: white;
+        }
+        
+        table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚀 Getting Started</h1>
+            <p>Install and Use the Jack Compiler in Minutes</p>
+        </header>
+        
+        <nav>
+            <a href="index.html">Home</a>
+            <a href="getting-started.html">Getting Started</a>
+            <a href="how-it-works.html">How It Works</a>
+            <a href="examples.html">Examples</a>
+            <a href="faq.html">FAQ</a>
+        </nav>
+        
+        <div class="content">
+            <div class="section">
+                <h2>Installation</h2>
+                
+                <h3>Prerequisites</h3>
+                <p>Before you start, make sure you have:</p>
+                <ul style="margin-left: 20px; margin-bottom: 15px;">
+                    <li><strong>Python 3.8 or higher</strong> - Download from <code>python.org</code></li>
+                    <li><strong>Java 11 or later</strong> - For running the ANTLR4 tool</li>
+                    <li><strong>Git</strong> - To clone the repository (optional)</li>
+                </ul>
+                
+                <div class="card">
+                    <strong>Checking Your System:</strong>
+                    <pre>python3 --version  # Should show Python 3.8+
+java -version      # Should show Java 11+</pre>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>Quick Setup (Recommended)</h2>
+                
+                <div class="step">
+                    <h4><span class="step-number">1</span>Navigate to the compiler directory</h4>
+                    <pre>cd jack-compiler</pre>
+                </div>
+                
+                <div class="step">
+                    <h4><span class="step-number">2</span>Run the automated setup script</h4>
+                    <pre>bash setup.sh</pre>
+                    <p>This script automatically:</p>
+                    <ul style="margin-left: 20px; margin-top: 10px;">
+                        <li>Checks for Java installation</li>
+                        <li>Downloads ANTLR4 (if needed)</li>
+                        <li>Generates the parser from the grammar</li>
+                        <li>Installs Python dependencies</li>
+                    </ul>
+                </div>
+                
+                <div class="card success">
+                    <strong>✅ That's it!</strong> The compiler is now ready to use.
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>Your First Compilation</h2>
+                
+                <div class="step">
+                    <h4><span class="step-number">1</span>Create a simple Jack program</h4>
+                    <pre>cat > hello.jack << 'EOF'
+class Main {
+    function void main() {
+        do Output.printString("Hello, World!");
+        do Output.println();
+        return;
+    }
+}
+EOF</pre>
+                </div>
+                
+                <div class="step">
+                    <h4><span class="step-number">2</span>Compile it to VM code</h4>
+                    <pre>python src/compiler.py hello.jack -o hello.vm</pre>
+                </div>
+                
+                <div class="step">
+                    <h4><span class="step-number">3</span>Check the generated VM code</h4>
+                    <pre>cat hello.vm</pre>
+                    <p>You should see the Hack VM code with proper indentation and labels.</p>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>Command-Line Usage</h2>
+                
+                <h3>Basic Syntax</h3>
+                <pre>python src/compiler.py &lt;input.jack&gt; -o &lt;output.vm&gt;</pre>
+                
+                <h3>Examples</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Task</th>
+                            <th>Command</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Compile single file</td>
+                            <td><code>python src/compiler.py program.jack -o program.vm</code></td>
+                        </tr>
+                        <tr>
+                            <td>Compile with default output name</td>
+                            <td><code>python src/compiler.py program.jack</code></td>
+                        </tr>
+                        <tr>
+                            <td>Get help</td>
+                            <td><code>python src/compiler.py --help</code></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="section">
+                <h2>Batch Compilation</h2>
+                
+                <p>
+                    For projects with multiple files, use the batch compilation script to compile 
+                    entire directories recursively:
+                </p>
+                
+                <h3>Basic Usage</h3>
+                <pre>./compile_all.sh src/</pre>
+                
+                <h3>Useful Options</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Option</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>--dry-run</code></td>
+                            <td>Preview files without compiling</td>
+                        </tr>
+                        <tr>
+                            <td><code>--clean</code></td>
+                            <td>Remove old .vm files before compiling</td>
+                        </tr>
+                        <tr>
+                            <td><code>--verbose</code></td>
+                            <td>Show detailed compilation progress</td>
+                        </tr>
+                        <tr>
+                            <td><code>--help</code></td>
+                            <td>Display help information</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <h3>Examples</h3>
+                <pre># Compile all Jack files in src/ and subdirectories
+./compile_all.sh src/
+
+# Preview without compiling
+./compile_all.sh src/ --dry-run
+
+# Clean and rebuild
+./compile_all.sh src/ --clean
+
+# Detailed output
+./compile_all.sh src/ --verbose</pre>
+            </div>
+            
+            <div class="section">
+                <h2>Testing the Installation</h2>
+                
+                <div class="step">
+                    <h4>Run the test suite</h4>
+                    <pre>python tests/test_compiler.py</pre>
+                    <p>You should see "✓ All tests passed!" if everything is working correctly.</p>
+                </div>
+                
+                <div class="step">
+                    <h4>Compile the examples</h4>
+                    <pre>./compile_all.sh examples/</pre>
+                    <p>This compiles all example programs (HelloWorld, Math, Loop, Point, Array).</p>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>Next Steps</h2>
+                
+                <div class="card info">
+                    <p><strong>Ready to learn more?</strong> Check out these resources:</p>
+                    <ol style="margin-left: 20px; margin-top: 10px;">
+                        <li><strong><a href="how-it-works.html">How It Works</a></strong> - Deep dive into compiler architecture</li>
+                        <li><strong><a href="examples.html">Examples</a></strong> - Sample Jack programs and their compilation</li>
+                        <li><strong><a href="faq.html">FAQ</a></strong> - Common questions and troubleshooting</li>
+                    </ol>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>Troubleshooting</h2>
+                
+                <h3>Python not found</h3>
+                <div class="card warning">
+                    <p><strong>Solution:</strong> Make sure Python 3.8+ is installed and in your PATH. 
+                    Try <code>python3 --version</code> instead of <code>python --version</code>.</p>
+                </div>
+                
+                <h3>Java not found</h3>
+                <div class="card warning">
+                    <p><strong>Solution:</strong> Install Java from oracle.com or use your package manager 
+                    (e.g., <code>brew install openjdk</code> on macOS).</p>
+                </div>
+                
+                <h3>Permission denied on setup.sh</h3>
+                <div class="card warning">
+                    <p><strong>Solution:</strong> Run <code>chmod +x setup.sh</code> first, then <code>bash setup.sh</code>.</p>
+                </div>
+                
+                <p>For more help, see the <a href="faq.html">FAQ section</a>.</p>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Jack Compiler Documentation | Getting Started Guide</p>
+            <p style="margin-top: 10px; font-size: 0.9em;">© 2024 | Licensed for educational use</p>
+        </footer>
+    </div>
+</body>
+</html>

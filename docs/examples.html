@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Examples - Jack Compiler</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        nav {
+            background: #f8f9fa;
+            padding: 20px;
+            border-bottom: 2px solid #667eea;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        nav a {
+            text-decoration: none;
+            color: #667eea;
+            font-weight: 600;
+            padding: 10px 20px;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+        
+        nav a:hover {
+            background: #667eea;
+            color: white;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .section {
+            margin-bottom: 40px;
+        }
+        
+        h2 {
+            color: #667eea;
+            font-size: 2em;
+            margin-bottom: 20px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+        
+        h3 {
+            color: #764ba2;
+            font-size: 1.3em;
+            margin-top: 20px;
+            margin-bottom: 15px;
+        }
+        
+        .example {
+            background: white;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .example-title {
+            color: #667eea;
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-bottom: 15px;
+        }
+        
+        .code-block {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 15px 0;
+        }
+        
+        .code-column {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        
+        .code-header {
+            background: #667eea;
+            color: white;
+            padding: 10px;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+        
+        code {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        
+        pre {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            margin: 0;
+        }
+        
+        .card {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        
+        footer {
+            background: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            border-top: 2px solid #667eea;
+            color: #666;
+        }
+        
+        @media (max-width: 900px) {
+            .code-block {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📝 Examples</h1>
+            <p>See the Jack Compiler in Action</p>
+        </header>
+        
+        <nav>
+            <a href="index.html">Home</a>
+            <a href="getting-started.html">Getting Started</a>
+            <a href="how-it-works.html">How It Works</a>
+            <a href="examples.html">Examples</a>
+            <a href="faq.html">FAQ</a>
+        </nav>
+        
+        <div class="content">
+            <div class="section">
+                <h2>Example 1: Hello World</h2>
+                
+                <div class="example">
+                    <div class="example-title">📌 Simple String Output</div>
+                    
+                    <p>The simplest Jack program: print a message and exit.</p>
+                    
+                    <div class="code-block">
+                        <div class="code-column">
+                            <div class="code-header">Input (HelloWorld.jack)</div>
+                            <pre>class Main {
+    function void main() {
+        do Output.printString(
+            "Hello, World!");
+        do Output.println();
+        return;
+    }
+}</pre>
+                        </div>
+                        <div class="code-column">
+                            <div class="code-header">Output (HelloWorld.vm)</div>
+                            <pre>function Main.main 0
+    push constant 13
+    call String.new 1
+    push constant 72
+    call String.appendChar 2
+    push constant 101
+    call String.appendChar 2
+    push constant 108
+    call String.appendChar 2
+    push constant 108
+    call String.appendChar 2
+    push constant 111
+    call String.appendChar 2
+    push constant 44
+    call String.appendChar 2
+    push constant 32
+    call String.appendChar 2
+    push constant 87
+    call String.appendChar 2
+    push constant 111
+    call String.appendChar 2
+    push constant 114
+    call String.appendChar 2
+    push constant 108
+    call String.appendChar 2
+    push constant 100
+    call String.appendChar 2
+    push constant 33
+    call String.appendChar 2
+    call Output.printString 1
+    pop temp 0
+    call Output.println 0
+    pop temp 0
+    push constant 0
+    return</pre>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <strong>Key Points:</strong>
+                        <ul style="margin-left: 20px; margin-top: 10px;">
+                            <li>String literals are built character by character</li>
+                            <li>Each character is represented by its ASCII code</li>
+                            <li>Function calls use <code>call</code> instruction with argument count</li>
+                            <li>Return values are discarded with <code>pop temp 0</code></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>Example 2: Variables and Arithmetic</h2>
+                
+                <div class="example">
+                    <div class="example-title">📌 Variable Declaration and Math</div>
+                    
+                    <p>Demonstrates variable assignment and arithmetic operations.</p>
+                    
+                    <div class="code-block">
+                        <div class="code-column">
+                            <div class="code-header">Input (Math.jack)</div>
+                            <pre>class Math {
+    function void main() {
+        var int x, y, sum;
+        
+        let x = 10;
+        let y = 20;
+        let sum = x + y;
+        
+        do Output.printInt(sum);
+        return;
+    }
+}</pre>
+                        </div>
+                        <div class="code-column">
+                            <div class="code-header">Output (Math.vm)</div>
+                            <pre>function Math.main 3
+    push constant 10
+    pop local 0
+    push constant 20
+    pop local 1
+    push local 0
+    push local 1
+    add
+    pop local 2
+    push local 2
+    call Output.printInt 1
+    pop temp 0
+    push constant 0
+    return</pre>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <strong>Key Points:</strong>
+                        <ul style="margin-left: 20px; margin-top: 10px;">
+                            <li>Function declares 3 local variables (<code>function Math.main 3</code>)</li>
+                            <li>Variable assignment: push value, then pop to variable location</li>
+                            <li>Arithmetic: push both operands, then emit operator</li>
+                            <li>Local variables are stored in the "local" memory segment</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>Example 3: Loops</h2>
+                
+                <div class="example">
+                    <div class="example-title">📌 While Loop with Accumulation</div>
+                    
+                    <p>Shows how loops are compiled to labels and conditional jumps.</p>
+                    
+                    <div class="code-block">
+                        <div class="code-column">
+                            <div class="code-header">Input (Loop.jack)</div>
+                            <pre>class Loop {
+    function void main() {
+        var int i, sum;
+        
+        let i = 0;
+        let sum = 0;
+        
+        while (i < 10) {
+            let i = i + 1;
+            let sum = sum + i;
+        }
+        
+        do Output.printInt(sum);
+        return;
+    }
+}</pre>
+                        </div>
+                        <div class="code-column">
+                            <div class="code-header">Output (Loop.vm)</div>
+                            <pre>function Loop.main 2
+    push constant 0
+    pop local 0
+    push constant 0
+    pop local 1
+    label Loop_0
+    push local 0
+    push constant 10
+    lt
+    not
+    if-goto Loop_1
+    push local 0
+    push constant 1
+    add
+    pop local 0
+    push local 1
+    push local 0
+    add
+    pop local 1
+    goto Loop_0
+    label Loop_1
+    push local 1
+    call Output.printInt 1
+    pop temp 0
+    push constant 0
+    return</pre>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <strong>Key Points:</strong>
+                        <ul style="margin-left: 20px; margin-top: 10px;">
+                            <li><code>label Loop_0</code>: Loop start marker</li>
+                            <li>Condition is negated, then <code>if-goto</code> jumps if false</li>
+                            <li><code>goto Loop_0</code>: Jump back to start</li>
+                            <li><code>label Loop_1</code>: After loop</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>Example 4: Object-Oriented Programming</h2>
+                
+                <div class="example">
+                    <div class="example-title">📌 Class with Fields and Methods</div>
+                    
+                    <p>Demonstrates classes, constructors, methods, and object references.</p>
+                    
+                    <div class="code-block">
+                        <div class="code-column">
+                            <div class="code-header">Input (Point.jack)</div>
+                            <pre>class Point {
+    field int x, y;
+    
+    constructor Point new(
+        int px, int py) {
+        let x = px;
+        let y = py;
+        return this;
+    }
+    
+    method void setX(int val) {
+        let x = val;
+        return;
+    }
+    
+    method int getX() {
+        return x;
+    }
+}</pre>
+                        </div>
+                        <div class="code-column">
+                            <div class="code-header">Output (Point.vm)</div>
+                            <pre>function Point.new 0
+    push constant 2
+    call Memory.alloc 1
+    pop pointer 0
+    push argument 0
+    pop this 0
+    push argument 1
+    pop this 1
+    push pointer 0
+    return
+
+function Point.setX 0
+    push argument 0
+    pop pointer 0
+    push argument 1
+    pop this 0
+    push constant 0
+    return
+
+function Point.getX 0
+    push argument 0
+    pop pointer 0
+    push this 0
+    return</pre>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <strong>Key Points:</strong>
+                        <ul style="margin-left: 20px; margin-top: 10px;">
+                            <li>Constructor allocates memory: <code>push constant 2</code> (2 fields)</li>
+                            <li>Field variables use <code>this</code> segment</li>
+                            <li>Methods receive implicit <code>this</code> as first argument</li>
+                            <li><code>pop pointer 0</code> sets the <code>this</code> pointer</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>Example 5: Arrays</h2>
+                
+                <div class="example">
+                    <div class="example-title">📌 Array Operations</div>
+                    
+                    <p>Shows array allocation, indexing, and iteration.</p>
+                    
+                    <div class="code-block">
+                        <div class="code-column">
+                            <div class="code-header">Input (Array.jack)</div>
+                            <pre>class Array {
+    function void main() {
+        var Array arr;
+        var int i;
+        
+        let arr = Array.new(3);
+        let arr[0] = 10;
+        let arr[1] = 20;
+        let arr[2] = 30;
+        
+        let i = 0;
+        while (i < 3) {
+            do Output.printInt(
+                arr[i]);
+            let i = i + 1;
+        }
+        return;
+    }
+}</pre>
+                        </div>
+                        <div class="code-column">
+                            <div class="code-header">Output (Array.vm)</div>
+                            <pre>function Array.main 2
+    push constant 3
+    call Array.new 1
+    pop local 0
+    push constant 0
+    push local 0
+    add
+    push constant 10
+    pop temp 0
+    pop pointer 1
+    push temp 0
+    pop that 0
+    push constant 1
+    push local 0
+    add
+    push constant 20
+    pop temp 0
+    pop pointer 1
+    push temp 0
+    pop that 0
+    push constant 2
+    push local 0
+    add
+    push constant 30
+    pop temp 0
+    pop pointer 1
+    push temp 0
+    pop that 0
+    label Array_0
+    push local 1
+    push constant 3
+    lt
+    not
+    if-goto Array_1
+    push local 1
+    push local 0
+    add
+    pop pointer 1
+    push that 0
+    call Output.printInt 1
+    pop temp 0
+    push local 1
+    push constant 1
+    add
+    pop local 1
+    goto Array_0
+    label Array_1
+    push constant 0
+    return</pre>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <strong>Key Points:</strong>
+                        <ul style="margin-left: 20px; margin-top: 10px;">
+                            <li>Array assignment: push index, push base, add, then store</li>
+                            <li>Array access: push base, push index, add, then pop pointer 1</li>
+                            <li><code>that</code> segment is used for dereferencing array elements</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>Compilation Command Reference</h2>
+                
+                <div class="card">
+                    <p><strong>Single File Compilation:</strong></p>
+                    <pre>python src/compiler.py program.jack -o program.vm</pre>
+                    
+                    <p style="margin-top: 15px;"><strong>Batch Compilation:</strong></p>
+                    <pre>./compile_all.sh examples/ --verbose</pre>
+                    
+                    <p style="margin-top: 15px;"><strong>Dry Run (Preview):</strong></p>
+                    <pre>./compile_all.sh examples/ --dry-run</pre>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Jack Compiler Documentation | Examples</p>
+            <p style="margin-top: 10px; font-size: 0.9em;">© 2024 | Licensed for educational use</p>
+        </footer>
+    </div>
+</body>
+</html>

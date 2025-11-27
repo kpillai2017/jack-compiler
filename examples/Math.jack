@@ -1,0 +1,18 @@
+// Math.jack
+// Example demonstrating arithmetic operations and control flow
+
+class Math {
+    function void main() {
+        var int x, y, sum;
+        
+        let x = 10;
+        let y = 20;
+        let sum = x + y;
+        
+        do Output.printString("Sum: ");
+        do Output.printInt(sum);
+        do Output.println();
+        
+        return;
+    }
+}

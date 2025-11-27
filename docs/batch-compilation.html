@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Batch Compilation Guide</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; background-color: #f5f5f5; }
+        .container { max-width: 900px; margin: 0 auto; padding: 40px 20px; background-color: white; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); }
+        .header { border-bottom: 3px solid #007acc; padding-bottom: 20px; margin-bottom: 30px; }
+        .header h1 { color: #007acc; margin-bottom: 10px; }
+        .breadcrumb { margin-bottom: 20px; }
+        .breadcrumb a { color: #007acc; text-decoration: none; }
+        .breadcrumb a:hover { text-decoration: underline; }
+        h1 { font-size: 2.5em; color: #222; margin: 40px 0 20px 0; }
+        h1:first-child { margin-top: 0; }
+        h2 { font-size: 2em; color: #333; margin: 35px 0 15px 0; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        h3 { font-size: 1.5em; color: #444; margin: 25px 0 12px 0; }
+        h4, h5, h6 { color: #555; margin: 20px 0 10px 0; }
+        p { margin-bottom: 15px; line-height: 1.8; }
+        code { background-color: #f4f4f4; padding: 2px 6px; border-radius: 3px; font-family: 'Courier New', monospace; font-size: 0.9em; color: #c7254e; }
+        pre { background-color: #272822; color: #f8f8f2; padding: 15px; border-radius: 5px; overflow-x: auto; margin: 20px 0; line-height: 1.4; font-size: 0.95em; }
+        pre code { background-color: transparent; color: #f8f8f2; padding: 0; }
+        ul { margin: 20px 0 20px 30px; }
+        li { margin-bottom: 8px; }
+        a { color: #007acc; text-decoration: none; border-bottom: 1px dotted #007acc; }
+        a:hover { background-color: #f0f7ff; }
+        .footer { margin-top: 50px; padding-top: 20px; border-top: 1px solid #eee; color: #999; font-size: 0.9em; text-align: center; }
+        strong { font-weight: 600; }
+        em { font-style: italic; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Batch Compilation Guide</h1>
+            <div class="breadcrumb">
+                <a href="index.html">← Back to Documentation Index</a>
+            </div>
+        </div>
+        <div class="content">
+            <h1>Batch Compilation Guide</h1>
+
+<h2>Overview</h2>
+
+<p>The <code>compile_all.sh</code> script provides a convenient way to recursively compile all Jack files in a directory tree, including files in subdirectories. It automates batch compilation while preserving the directory structure.</p>
+
+<h2>Features</h2>
+
+<p>✅ <strong>Recursive Compilation</strong></p>
+<ul>
+<li>Automatically finds all `.jack` files in the directory and all subdirectories</li>
+<li>No manual file listing needed</li>
+
+</ul>
+<p>✅ <strong>Directory Preservation</strong></p>
+<ul>
+<li>Generates `.vm` files in the same location as corresponding `.jack` files</li>
+<li>Maintains original directory structure</li>
+
+</ul>
+<p>✅ <strong>Progress Tracking</strong></p>
+<ul>
+<li>Shows real-time progress during compilation</li>
+<li>Displays compilation statistics at the end</li>
+<li>Reports errors with file locations</li>
+
+</ul>
+<p>✅ <strong>Flexible Options</strong></p>
+<ul>
+<li>Dry-run mode to preview without compiling</li>
+<li>Verbose mode for detailed output</li>
+<li>Clean mode to remove old `.vm` files first</li>
+
+</ul>
+<p>✅ <strong>Error Handling</strong></p>
+<ul>
+<li>Graceful error reporting</li>
+<li>Continues compilation even if one file fails</li>
+<li>Summary of failed files at the end</li>
+
+<h2>Installation</h2>
+
+</ul>
+<p>The script is included in the <code>jack-compiler</code> directory. Make sure it's executable:</p>
+
+<pre><code class="language-bash">
+chmod +x jack-compiler/compile_all.sh
+</code></pre>
+
+<h2>Usage</h2>
+
+<h3>Basic Syntax</h3>
+
+<pre><code class="language-bash">
+./compile_all.sh [source_directory] [options]
+</code></pre>
+
+<h3>Examples</h3>
+
+<p>#### 1. Compile Current Directory (Recursive)</p>
+
+<pre><code class="language-bash">
+cd jack-compiler
+./compile_all.sh .
+</code></pre>
+
+<p>This recursively finds all <code>.jack</code> files in the current directory and subdirectories, and compiles them.</p>
+
+<p>#### 2. Compile Specific Directory</p>
+
+<pre><code class="language-bash">
+./compile_all.sh src/
+</code></pre>
+
+<p>Compiles all <code>.jack</code> files in <code>src/</code> and all its subdirectories.</p>
+
+<p>#### 3. Preview Without Compiling (Dry Run)</p>
+
+<pre><code class="language-bash">
+./compile_all.sh . --dry-run
+</code></pre>
+
+<p>Shows all files that would be compiled without actually compiling them. Useful for verifying the script will process the correct files.</p>
+
+<p>#### 4. Clean Old VM Files First</p>
+
+<pre><code class="language-bash">
+./compile_all.sh . --clean
+</code></pre>
+
+<p>Removes all existing <code>.vm</code> files in the directory tree before compiling. Useful when rebuilding a project from scratch.</p>
+
+<p>#### 5. Verbose Output</p>
+
+<pre><code class="language-bash">
+./compile_all.sh . --verbose
+</code></pre>
+
+<p>Shows detailed output for each compilation step, including file names and status.</p>
+
+<p>#### 6. Combined Options</p>
+
+<pre><code class="language-bash">
+./compile_all.sh src/ --clean --verbose
+</code></pre>
+
+<p>Removes old <code>.vm</code> files, then compiles all Jack files in <code>src/</code> with detailed output.</p>
+
+<h2>Options Reference</h2>
+
+<p>| Option | Short | Description |</p>
+<p>|--------|-------|-------------|</p>
+<p>| <code>--help</code> | <code>-h</code> | Show help message and exit |</p>
+<p>| <code>--dry-run</code> | | Preview files without compiling |</p>
+<p>| <code>--clean</code> | | Remove all <code>.vm</code> files before compiling |</p>
+<p>| <code>--verbose</code> | <code>-v</code> | Show detailed output for each file |</p>
+<p>| <code>--output</code> | <code>-o</code> | Specify output directory (not recommended) |</p>
+
+<h2>Directory Structure Examples</h2>
+
+<h3>Example 1: Simple Project Structure</h3>
+
+<pre><code class="language-">
+project/
+├── Main.jack
+├── Point.jack
+└── utils/
+    ├── Math.jack
+    └── Util.jack
+</code></pre>
+
+<p><strong>Command:</strong></p>
+<pre><code class="language-bash">
+./compile_all.sh project/
+</code></pre>
+
+<p><strong>Result:</strong></p>
+<pre><code class="language-">
+project/
+├── Main.jack
+├── Main.vm              ← Generated
+├── Point.jack
+├── Point.vm             ← Generated
+└── utils/
+    ├── Math.jack
+    ├── Math.vm          ← Generated
+    ├── Util.jack
+    └── Util.vm          ← Generated
+</code></pre>
+
+<h3>Example 2: Complex Nested Structure</h3>
+
+<pre><code class="language-">
+src/
+├── Main.jack
+├── system/
+│   ├── Sys.jack
+│   ├── Memory.jack
+│   └── OS/
+│       ├── Screen.jack
+│       ├── Keyboard.jack
+│       └── Output.jack
+└── game/
+    ├── Game.jack
+    ├── Player.jack
+    └── objects/
+        ├── Enemy.jack
+        └── Item.jack
+</code></pre>
+
+<p><strong>Command:</strong></p>
+<pre><code class="language-bash">
+./compile_all.sh src/
+</code></pre>
+
+<p><strong>Result:</strong> All directories get corresponding <code>.vm</code> files in the same locations.</p>
+
+<h2>Output Examples</h2>
+
+<h3>Standard Output</h3>
+
+<pre><code class="language-">
+ℹ Jack Compiler - Recursive Batch Compilation
+
+ℹ Source Directory: /home/user/projects/jack-compiler
+
+ℹ Found 5 Jack file(s) in 3 directory/directories
+
+ℹ Compiling: .....
+
+╔════════════════════════════════════════════════════════════════╗
+║                   COMPILATION SUMMARY                          ║
+╠════════════════════════════════════════════════════════════════╣
+║  Total Files Found:                                           5║
+║  Successfully Compiled:                                       5║
+║  Time Elapsed:                                               2s║
+╚════════════════════════════════════════════════════════════════╝
+
+✓ All files compiled successfully!
+</code></pre>
+
+<h3>Dry Run Output</h3>
+
+<pre><code class="language-">
+ℹ Jack Compiler - Recursive Batch Compilation
+
+ℹ Source Directory: /home/user/projects/jack-compiler
+
+⚠ DRY RUN MODE - no files will be compiled
+
+ℹ Found 5 Jack file(s) in 3 directory/directories
+
+ℹ Compiling: 
+ℹ Would compile: examples/HelloWorld.jack → examples/HelloWorld.vm
+ℹ Would compile: examples/Math.jack → examples/Math.vm
+ℹ Would compile: examples/Loop.jack → examples/Loop.vm
+ℹ Would compile: examples/Point.jack → examples/Point.vm
+ℹ Would compile: examples/Array.jack → examples/Array.vm
+
+╔════════════════════════════════════════════════════════════════╗
+║                   COMPILATION SUMMARY                          ║
+╠════════════════════════════════════════════════════════════════╣
+║  Mode:                     DRY RUN (no files actually compiled)║
+║  Total Files Found:                                           5║
+║  Successfully Compiled:                                       5║
+║  Time Elapsed:                                               0s║
+╚════════════════════════════════════════════════════════════════╝
+</code></pre>
+
+<h3>Verbose Output</h3>
+
+<pre><code class="language-">
+ℹ Jack Compiler - Recursive Batch Compilation
+
+ℹ Source Directory: /home/user/projects/jack-compiler
+
+ℹ Found 5 Jack file(s) in 3 directory/directories
+
+ℹ Starting compilation...
+
+ℹ Compiling: examples/HelloWorld.jack
+✓ Compiled: examples/HelloWorld.jack → examples/HelloWorld.vm
+ℹ Compiling: examples/Math.jack
+✓ Compiled: examples/Math.jack → examples/Math.vm
+ℹ Compiling: examples/Loop.jack
+✓ Compiled: examples/Loop.jack → examples/Loop.vm
+ℹ Compiling: examples/Point.jack
+✓ Compiled: examples/Point.jack → examples/Point.vm
+ℹ Compiling: examples/Array.jack
+✓ Compiled: examples/Array.jack → examples/Array.vm
+
+╔════════════════════════════════════════════════════════════════╗
+║                   COMPILATION SUMMARY                          ║
+╠════════════════════════════════════════════════════════════════╣
+║  Total Files Found:                                           5║
+║  Successfully Compiled:                                       5║
+║  Time Elapsed:                                               2s║
+╚════════════════════════════════════════════════════════════════╝
+
+✓ All files compiled successfully!
+</code></pre>
+
+<h3>Error Output</h3>
+
+<pre><code class="language-">
+ℹ Jack Compiler - Recursive Batch Compilation
+
+ℹ Source Directory: /home/user/projects/src
+
+ℹ Found 3 Jack file(s) in 2 directory/directories
+
+ℹ Compiling: .✗.
+
+✗ Failed to compile: src/broken.jack
+
+╔════════════════════════════════════════════════════════════════╗
+║                   COMPILATION SUMMARY                          ║
+╠════════════════════════════════════════════════════════════════╣
+║  Total Files Found:                                           3║
+║  Successfully Compiled:                                       2║
+║  Failed:                                                      1║
+║  Time Elapsed:                                               1s║
+╚════════════════════════════════════════════════════════════════╝
+
+✗ The following files failed to compile:
+  - src/broken.jack
+</code></pre>
+
+<h2>Common Workflows</h2>
+
+<h3>Workflow 1: Initial Project Setup</h3>
+
+<pre><code class="language-bash">
+# 1. Navigate to project directory
+cd my_project
+
+# 2. Preview what will be compiled
+/path/to/jack-compiler/compile_all.sh . --dry-run
+
+# 3. Compile all files
+/path/to/jack-compiler/compile_all.sh .
+
+# 4. Check for errors
+# (review output above)
+</code></pre>
+
+<h3>Workflow 2: Rebuild After Changes</h3>
+
+<pre><code class="language-bash">
+# 1. Clean old VM files
+./compile_all.sh . --clean
+
+# 2. Recompile everything
+./compile_all.sh .
+</code></pre>
+
+<h3>Workflow 3: Troubleshooting Compilation Errors</h3>
+
+<pre><code class="language-bash">
+# 1. Run with verbose output to see which file fails
+./compile_all.sh . --verbose
+
+# 2. Fix the problematic Jack file
+
+# 3. Recompile
+./compile_all.sh .
+</code></pre>
+
+<h3>Workflow 4: Integration with Build System</h3>
+
+<pre><code class="language-bash">
+#!/bin/bash
+# build.sh - Simple build script
+
+echo "Building Jack project..."
+
+# Clean
+./compile_all.sh src/ --clean
+
+# Check for errors
+if [ $? -ne 0 ]; then
+    echo "Build failed!"
+    exit 1
+fi
+
+echo "Build successful!"
+
+# Run tests (if you have any)
+# python tests/test_compiler.py
+</code></pre>
+
+<h2>Tips & Tricks</h2>
+
+<h3>1. Check Compilation Without Running It</h3>
+
+<p>Use dry-run to verify the script will process the correct files:</p>
+
+<pre><code class="language-bash">
+./compile_all.sh . --dry-run
+</code></pre>
+
+<h3>2. Count Your Jack Files</h3>
+
+<pre><code class="language-bash">
+find . -name "*.jack" | wc -l
+</code></pre>
+
+<h3>3. List All Jack Files</h3>
+
+<pre><code class="language-bash">
+find . -name "*.jack" | sort
+</code></pre>
+
+<h3>4. Remove All VM Files</h3>
+
+<pre><code class="language-bash">
+find . -name "*.vm" -delete
+</code></pre>
+
+<h3>5. Compare Jack and VM File Counts</h3>
+
+<pre><code class="language-bash">
+# Should match if compilation succeeded
+find . -name "*.jack" | wc -l
+find . -name "*.vm" | wc -l
+</code></pre>
+
+<h3>6. Get Detailed Compilation Report</h3>
+
+<pre><code class="language-bash">
+./compile_all.sh . --verbose &gt; compilation_report.txt 2&gt;&amp;1
+</code></pre>
+
+<h2>Troubleshooting</h2>
+
+<h3>Issue: "Script not found" or "Permission denied"</h3>
+
+<p><strong>Solution:</strong> Make sure the script is executable:</p>
+<pre><code class="language-bash">
+chmod +x compile_all.sh
+</code></pre>
+
+<h3>Issue: "Python 3 is not installed"</h3>
+
+<p><strong>Solution:</strong> Install Python 3:</p>
+<pre><code class="language-bash">
+# macOS
+brew install python3
+
+# Ubuntu/Debian
+sudo apt-get install python3
+
+# Windows (from python.org or Microsoft Store)
+</code></pre>
+
+<h3>Issue: "Compiler script not found"</h3>
+
+<p><strong>Solution:</strong> Run the script from the jack-compiler directory:</p>
+<pre><code class="language-bash">
+cd jack-compiler
+./compile_all.sh .
+</code></pre>
+
+<h3>Issue: Some files failed to compile</h3>
+
+<p><strong>Solution:</strong> Run with verbose mode to see details:</p>
+<pre><code class="language-bash">
+./compile_all.sh . --verbose
+</code></pre>
+
+<p>Then check the Jack syntax in the failing files using QUICK_REFERENCE.md.</p>
+
+<h3>Issue: Script takes a long time</h3>
+
+<p><strong>Solution:</strong> This is normal for large projects. Use dry-run to verify without compiling:</p>
+<pre><code class="language-bash">
+./compile_all.sh . --dry-run
+</code></pre>
+
+<h2>Advanced Usage</h2>
+
+<h3>Compile Specific Subdirectory</h3>
+
+<pre><code class="language-bash">
+./compile_all.sh src/system/
+</code></pre>
+
+<h3>Exclude Certain Directories</h3>
+
+<p>If you want to skip some directories, either:</p>
+<p>1. Move them outside the source tree</p>
+<p>2. Rename <code>.jack</code> files to a different extension temporarily</p>
+
+<h3>Use with Version Control</h3>
+
+<p>Add compiled <code>.vm</code> files to <code>.gitignore</code> if you prefer:</p>
+
+<pre><code class="language-bash">
+# .gitignore
+*.vm
+</code></pre>
+
+<p>Then regenerate them with:</p>
+<pre><code class="language-bash">
+./compile_all.sh . --clean
+</code></pre>
+
+<h3>Monitor Compilation in Real-Time</h3>
+
+<p>Use verbose mode and pipe to a log file:</p>
+
+<pre><code class="language-bash">
+./compile_all.sh . --verbose | tee compilation.log
+</code></pre>
+
+<h2>Script Architecture</h2>
+
+<p>The script performs these steps:</p>
+
+<p>1. <strong>Parse Arguments</strong> - Process command-line options</p>
+<p>2. <strong>Verify Environment</strong> - Check compiler and Python availability</p>
+<p>3. <strong>Find Files</strong> - Recursively find all <code>.jack</code> files</p>
+<p>4. <strong>Display Statistics</strong> - Show files found and directories affected</p>
+<p>5. <strong>Clean (Optional)</strong> - Remove old <code>.vm</code> files if <code>--clean</code> is used</p>
+<p>6. <strong>Compile</strong> - Process each Jack file sequentially</p>
+<p>7. <strong>Report Results</strong> - Display summary and any errors</p>
+
+<h2>Performance</h2>
+
+<p>Compilation time depends on:</p>
+<ul>
+<li>Number of Jack files</li>
+<li>Complexity of each file</li>
+<li>Disk I/O speed</li>
+<li>System performance</li>
+
+</ul>
+<p>Typical rates:</p>
+<ul>
+<li>Simple files: ~0.1s each</li>
+<li>Complex files: ~0.5s each</li>
+<li>Projects: ~100-1000 files per minute</li>
+
+<h2>Integration Examples</h2>
+
+<h3>With Make</h3>
+
+<pre><code class="language-makefile">
+.PHONY: compile clean
+
+compile:
+	./compile_all.sh src/
+
+clean:
+	find src -name "*.vm" -delete
+
+rebuild: clean compile
+</code></pre>
+
+</ul>
+<p>Usage:</p>
+<pre><code class="language-bash">
+make compile
+make rebuild
+</code></pre>
+
+<h3>With GitHub Actions</h3>
+
+<pre><code class="language-yaml">
+name: Compile Jack
+
+on: [push]
+
+jobs:
+  compile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+      - name: Compile Jack files
+        run: |
+          chmod +x compile_all.sh
+          ./compile_all.sh src/
+</code></pre>
+
+<h2>FAQ</h2>
+
+<p><strong>Q: Can I compile to a different directory?</strong></p>
+<p>A: Not recommended. The script generates <code>.vm</code> files in the same directories as <code>.jack</code> files to preserve the project structure.</p>
+
+<p><strong>Q: What if I have both <code>.jack</code> and <code>.vm</code> files with the same name?</strong></p>
+<p>A: The <code>.vm</code> files will be overwritten by the compilation.</p>
+
+<p><strong>Q: Can I run multiple compilations in parallel?</strong></p>
+<p>A: The current script runs sequentially. For parallel compilation, modify the script to use GNU Parallel or xargs.</p>
+
+<p><strong>Q: How do I stop the compilation if it fails?</strong></p>
+<p>A: The script continues through all files but reports failures at the end. To stop on first error, modify the script to remove <code>error_files+=</code> line.</p>
+
+<p><strong>Q: Can I use this script on Windows?</strong></p>
+<p>A: Yes, using WSL (Windows Subsystem for Linux) or Git Bash.</p>
+
+<h2>See Also</h2>
+
+<ul>
+<li>[USAGE.md](USAGE.md) - General compilation guide</li>
+<li>[QUICK_REFERENCE.md](QUICK_REFERENCE.md) - Jack language reference</li>
+<li>[README.md](README.md) - Project overview</li>
+
+</ul>
+        </div>
+        <div class="footer">
+            <p>Jack Compiler Documentation | Generated 2025-11-27 20:29:41</p>
+        </div>
+    </div>
+</body>
+</html>
