@@ -21,13 +21,49 @@ from antlr4 import (
     InputStream,
 )
 
+# ANSI color codes for terminal output
+class Colors:
+    """ANSI color codes for terminal output."""
+    RESET = '\033[0m'
+    BOLD = '\033[1m'
+    GREEN = '\033[92m'
+    RED = '\033[91m'
+    YELLOW = '\033[93m'
+    BLUE = '\033[94m'
+    CYAN = '\033[96m'
+    
+    @staticmethod
+    def green(text):
+        return f"{Colors.GREEN}{text}{Colors.RESET}"
+    
+    @staticmethod
+    def red(text):
+        return f"{Colors.RED}{text}{Colors.RESET}"
+    
+    @staticmethod
+    def yellow(text):
+        return f"{Colors.YELLOW}{text}{Colors.RESET}"
+    
+    @staticmethod
+    def blue(text):
+        return f"{Colors.BLUE}{text}{Colors.RESET}"
+    
+    @staticmethod
+    def cyan(text):
+        return f"{Colors.CYAN}{text}{Colors.RESET}"
+    
+    @staticmethod
+    def bold(text):
+        return f"{Colors.BOLD}{text}{Colors.RESET}"
+
 # Import ANTLR-generated lexer and parser
 try:
     from antlr_generated.grammar.JackLexer import JackLexer
     from antlr_generated.grammar.JackParser import JackParser
 except ImportError:
-    print("Error: ANTLR-generated files not found.")
-    print("Please run: java -jar antlr-4.13.0-complete.jar -Dlanguage=Python3 grammar/Jack.g4 -visitor -o src/antlr_generated")
+    print(Colors.red("ERROR: ANTLR-generated files not found."))
+    print(Colors.yellow("Please run:"))
+    print("  java -jar antlr-4.13.0-complete.jar -Dlanguage=Python3 grammar/Jack.g4 -visitor -o src/antlr_generated")
     sys.exit(1)
 
 from compiler_visitor_v2 import JackCompilerVisitorV2
@@ -71,7 +107,8 @@ class JackCompiler:
 
             # Check for syntax errors
             if parser.getNumberOfSyntaxErrors() > 0:
-                print(f"Error: Syntax errors in {input_path}")
+                print(f"\n{Colors.red('✗ COMPILATION FAILED')}: {input_path}")
+                print(f"  {Colors.red('Syntax errors detected')}")
                 return False
 
             # Compile using visitor - generates AST and VM code
@@ -85,14 +122,16 @@ class JackCompiler:
             with open(output_path, 'w', encoding='utf-8') as f:
                 f.write(vm_code)
 
-            print(f"✓ Compiled: {input_path} -> {output_path}")
+            print(f"{Colors.green('✓ SUCCESS')}: {input_path}")
+            print(f"  {Colors.cyan('→')} {output_path}")
             return True
 
         except FileNotFoundError:
-            print(f"Error: File not found: {input_path}")
+            print(f"\n{Colors.red('✗ FILE NOT FOUND')}: {input_path}")
             return False
         except Exception as e:
-            print(f"Error compiling {input_path}: {e}")
+            print(f"\n{Colors.red('✗ COMPILATION ERROR')}: {input_path}")
+            print(f"  {Colors.red(str(e))}")
             import traceback
             traceback.print_exc()
             return False
@@ -112,25 +151,40 @@ class JackCompiler:
         output_path = Path(output_dir)
 
         if not input_path.is_dir():
-            print(f"Error: Input directory not found: {input_dir}")
+            print(f"\n{Colors.red('✗ ERROR')}: Input directory not found: {input_dir}")
             return False
 
         # Find all .jack files
         jack_files = list(input_path.glob("*.jack"))
 
         if not jack_files:
-            print(f"Warning: No .jack files found in {input_dir}")
+            print(f"{Colors.yellow('⚠ WARNING')}: No .jack files found in {input_dir}")
             return False
 
-        print(f"Found {len(jack_files)} Jack file(s) to compile")
+        print(f"\n{Colors.blue('═' * 60)}")
+        print(f"{Colors.bold(Colors.blue('JACK COMPILER - BATCH COMPILATION'))}")
+        print(f"{Colors.blue('═' * 60)}")
+        print(f"{Colors.cyan(f'Found {len(jack_files)} Jack file(s) to compile')}")
+        print(f"{Colors.blue('─' * 60)}\n")
 
         all_succeeded = True
-        for jack_file in sorted(jack_files):
+        for i, jack_file in enumerate(sorted(jack_files), 1):
             vm_file = output_path / jack_file.stem
             vm_file = vm_file.with_suffix('.vm')
+            
+            print(f"{Colors.cyan(f'[{i}/{len(jack_files)}]')} ", end="")
 
             if not self.compile_file(str(jack_file), str(vm_file)):
                 all_succeeded = False
+            print()  # Add spacing between compilations
+
+        # Print summary
+        print(f"{Colors.blue('─' * 60)}")
+        if all_succeeded:
+            print(f"{Colors.green('✓ ALL COMPILATIONS SUCCESSFUL')}")
+        else:
+            print(f"{Colors.red('✗ SOME COMPILATIONS FAILED')}")
+        print(f"{Colors.blue('═' * 60)}\n")
 
         return all_succeeded
 
@@ -170,7 +224,7 @@ Examples:
     input_path = Path(args.input)
 
     if not input_path.exists():
-        print(f"Error: Input path not found: {args.input}")
+        print(f"{Colors.red('✗ ERROR')}: Input path not found: {args.input}")
         sys.exit(1)
 
     compiler = JackCompiler()
@@ -182,7 +236,9 @@ Examples:
         else:
             output_path = args.output
 
+        print(f"\n{Colors.bold(Colors.blue('JACK COMPILER - SINGLE FILE'))}\n")
         success = compiler.compile_file(str(input_path), str(output_path))
+        print()
         sys.exit(0 if success else 1)
 
     else:
