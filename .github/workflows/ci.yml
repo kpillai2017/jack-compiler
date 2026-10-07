@@ -31,6 +31,8 @@ jobs:
         run: |
           jackc --version
           jackc examples/ -o output/
+          jackc -r --clean --dry-run examples/
+          jackc -r examples/ -o output-recursive/
 
   grammar:
     # Ensure committed ANTLR output is in sync with grammar/Jack.g4

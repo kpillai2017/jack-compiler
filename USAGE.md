@@ -38,7 +38,7 @@ This will generate `.vm` files in the same directory as the `.jack` files.
 ## Command Line Options
 
 ```
-usage: jackc [-h] [-o OUTPUT] [-v] [--version] input
+usage: jackc [-h] [-o OUTPUT] [-r] [--clean] [-n] [-v] [--version] input
 
 Jack compiler for nand2tetris Hack computer
 
