@@ -3,6 +3,9 @@
 [![CI](https://github.com/kpillai2017/jack-compiler/actions/workflows/ci.yml/badge.svg)](https://github.com/kpillai2017/jack-compiler/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8%2B-blue.svg)](https://www.python.org/)
+[![Docs](https://img.shields.io/badge/docs-GitHub%20Pages-blue.svg)](https://kpillai2017.github.io/jack-compiler/)
+
+📖 **Documentation:** <https://kpillai2017.github.io/jack-compiler/>
 
 A complete, production-ready Jack compiler implementation using ANTLR4 that translates Jack source code to Hack Virtual Machine (VM) code.
 
@@ -74,7 +77,7 @@ jack-compiler/
 ├── tests/
 │   ├── test_compiler.py         # Unit, end-to-end and CLI tests
 │   └── expected/                # Golden VM output for the examples
-└── docs/                        # HTML documentation site
+└── docs/                        # HTML documentation site (published via GitHub Pages)
 ```
 
 ## Quick Start

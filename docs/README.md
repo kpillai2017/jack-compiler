@@ -142,4 +142,9 @@ Licensed for educational use in the nand2tetris course.
 
 ---
 
-**Ready to get started?** Open [index.html](index.html) in your browser or read [getting-started.html](getting-started.html) to begin!
+**Ready to get started?** Browse the docs online at
+<https://kpillai2017.github.io/jack-compiler/>, or open [index.html](index.html)
+locally and read [getting-started.html](getting-started.html) to begin!
+
+These pages are published with GitHub Pages from the `docs/` folder of the
+`main` branch, so changes merged to `main` go live automatically.
