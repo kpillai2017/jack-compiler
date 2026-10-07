@@ -17,10 +17,36 @@ from pathlib import Path
 from typing import List, Tuple
 
 from antlr4 import CommonTokenStream, FileStream
+from antlr4.error.ErrorListener import ErrorListener
 
 from .antlr_generated.grammar.JackLexer import JackLexer
 from .antlr_generated.grammar.JackParser import JackParser
 from .compiler_visitor import JackCompilerVisitor
+
+
+class JackSyntaxError(SyntaxError):
+    """Raised when a Jack source file has lexical or syntax errors."""
+
+    def __init__(self, source: str, errors: List[str]):
+        super().__init__(f"{len(errors)} syntax error(s) in {source}")
+        self.source = source
+        self.errors = errors
+
+
+class CollectingErrorListener(ErrorListener):
+    """
+    Collects ANTLR lexer/parser errors as ``file:line:col: message`` strings
+    instead of printing them to stderr, so they can be reported alongside
+    the file they belong to. Columns are 1-based.
+    """
+
+    def __init__(self, source: str):
+        super().__init__()
+        self.source = source
+        self.errors: List[str] = []
+
+    def syntaxError(self, recognizer, offendingSymbol, line, column, msg, e):
+        self.errors.append(f"{self.source}:{line}:{column + 1}: {msg}")
 
 
 def _colors_enabled() -> bool:
@@ -88,16 +114,24 @@ class JackCompiler:
 
         Raises:
             FileNotFoundError: If the input file does not exist.
-            SyntaxError: If the source contains syntax errors.
+            JackSyntaxError: If the source contains lexical or syntax errors;
+                ``.errors`` holds ``file:line:col: message`` strings.
         """
         input_stream = FileStream(input_path, encoding='utf-8')
-        parser = JackParser(CommonTokenStream(JackLexer(input_stream)))
+        listener = CollectingErrorListener(input_path)
+
+        lexer = JackLexer(input_stream)
+        lexer.removeErrorListeners()
+        lexer.addErrorListener(listener)
+
+        parser = JackParser(CommonTokenStream(lexer))
+        parser.removeErrorListeners()
+        parser.addErrorListener(listener)
+
         tree = parser.program()
 
-        if parser.getNumberOfSyntaxErrors() > 0:
-            raise SyntaxError(
-                f"{parser.getNumberOfSyntaxErrors()} syntax error(s) in {input_path}"
-            )
+        if listener.errors:
+            raise JackSyntaxError(input_path, listener.errors)
 
         # Visitor generates both the AST and the VM code.
         self.visitor.compile_program(tree)
@@ -126,14 +160,16 @@ class JackCompiler:
             return True
 
         except FileNotFoundError:
-            print(f"\n{Colors.red('✗ FILE NOT FOUND')}: {input_path}")
+            print(f"{Colors.red('✗ FILE NOT FOUND')}: {input_path}")
             return False
-        except SyntaxError:
-            print(f"\n{Colors.red('✗ COMPILATION FAILED')}: {input_path}")
-            print(f"  {Colors.red('Syntax errors detected')}")
+        except JackSyntaxError as e:
+            print(f"{Colors.red('✗ COMPILATION FAILED')}: {input_path}")
+            print(f"  {Colors.red(f'{len(e.errors)} syntax error(s):')}")
+            for err in e.errors:
+                print(f"  {err}")
             return False
         except Exception as e:  # pragma: no cover - defensive
-            print(f"\n{Colors.red('✗ COMPILATION ERROR')}: {input_path}")
+            print(f"{Colors.red('✗ COMPILATION ERROR')}: {input_path}")
             print(f"  {Colors.red(str(e))}")
             if self.verbose:
                 traceback.print_exc()

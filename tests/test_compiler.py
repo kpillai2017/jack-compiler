@@ -180,6 +180,27 @@ class TestEndToEnd:
         assert not JackCompiler().compile_file(str(bad), str(tmp_path / "Bad.vm"))
         assert not (tmp_path / "Bad.vm").exists()
 
+    def test_syntax_errors_are_located_and_not_on_stderr(self, tmp_path, capsys):
+        from jack_compiler import JackSyntaxError
+        bad = tmp_path / "Bad.jack"
+        bad.write_text("class Bad {\n    function void f() {\n        let x = ;\n    }\n}\n")
+        with pytest.raises(JackSyntaxError) as exc:
+            JackCompiler().compile_source(str(bad))
+        assert exc.value.errors[0].startswith(f"{bad}:3:17: ")
+
+        assert not JackCompiler().compile_file(str(bad), str(tmp_path / "Bad.vm"))
+        out, err = capsys.readouterr()
+        assert err == ""
+        assert f"{bad}:3:17:" in out
+
+    def test_lexer_error_fails(self, tmp_path):
+        """Invalid characters must fail compilation, not be silently skipped."""
+        bad = tmp_path / "Lex.jack"
+        # '@' is the *only* error: once the lexer drops it the parse is valid.
+        bad.write_text("class Lex { function void f() { var int x; @ let x = 1; return; } }")
+        assert not JackCompiler().compile_file(str(bad), str(tmp_path / "Lex.vm"))
+        assert not (tmp_path / "Lex.vm").exists()
+
     def test_missing_file_fails(self, tmp_path):
         assert not JackCompiler().compile_file(
             str(tmp_path / "Nope.jack"), str(tmp_path / "Nope.vm")
