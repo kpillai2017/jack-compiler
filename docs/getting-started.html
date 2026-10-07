@@ -245,20 +245,23 @@ java -version      # Should show Java 11+</pre>
                 <h2>Quick Setup (Recommended)</h2>
                 
                 <div class="step">
-                    <h4><span class="step-number">1</span>Navigate to the compiler directory</h4>
-                    <pre>cd jack-compiler</pre>
+                    <h4><span class="step-number">1</span>Clone the repository</h4>
+                    <pre>git clone https://github.com/kpillai2017/jack-compiler.git
+cd jack-compiler
+python3 -m venv venv &amp;&amp; source venv/bin/activate</pre>
                 </div>
                 
                 <div class="step">
-                    <h4><span class="step-number">2</span>Run the automated setup script</h4>
-                    <pre>bash setup.sh</pre>
-                    <p>This script automatically:</p>
+                    <h4><span class="step-number">2</span>Install the package</h4>
+                    <pre>pip install --upgrade pip
+pip install -e ".[dev]"</pre>
+                    <p>This installs:</p>
                     <ul style="margin-left: 20px; margin-top: 10px;">
-                        <li>Checks for Java installation</li>
-                        <li>Downloads ANTLR4 (if needed)</li>
-                        <li>Generates the parser from the grammar</li>
-                        <li>Installs Python dependencies</li>
+                        <li>The ANTLR4 Python runtime</li>
+                        <li>The <code>jackc</code> command-line tool</li>
+                        <li>pytest (for running the test suite)</li>
                     </ul>
+                    <p>The generated parser is committed to the repository, so Java is only needed if you modify <code>grammar/Jack.g4</code>.</p>
                 </div>
                 
                 <div class="card success">
@@ -284,7 +287,7 @@ EOF</pre>
                 
                 <div class="step">
                     <h4><span class="step-number">2</span>Compile it to VM code</h4>
-                    <pre>python src/compiler.py hello.jack -o hello.vm</pre>
+                    <pre>jackc hello.jack -o hello.vm</pre>
                 </div>
                 
                 <div class="step">
@@ -298,7 +301,7 @@ EOF</pre>
                 <h2>Command-Line Usage</h2>
                 
                 <h3>Basic Syntax</h3>
-                <pre>python src/compiler.py &lt;input.jack&gt; -o &lt;output.vm&gt;</pre>
+                <pre>jackc &lt;input.jack&gt; -o &lt;output.vm&gt;</pre>
                 
                 <h3>Examples</h3>
                 <table>
@@ -311,15 +314,15 @@ EOF</pre>
                     <tbody>
                         <tr>
                             <td>Compile single file</td>
-                            <td><code>python src/compiler.py program.jack -o program.vm</code></td>
+                            <td><code>jackc program.jack -o program.vm</code></td>
                         </tr>
                         <tr>
                             <td>Compile with default output name</td>
-                            <td><code>python src/compiler.py program.jack</code></td>
+                            <td><code>jackc program.jack</code></td>
                         </tr>
                         <tr>
                             <td>Get help</td>
-                            <td><code>python src/compiler.py --help</code></td>
+                            <td><code>jackc --help</code></td>
                         </tr>
                     </tbody>
                 </table>
@@ -329,12 +332,12 @@ EOF</pre>
                 <h2>Batch Compilation</h2>
                 
                 <p>
-                    For projects with multiple files, use the batch compilation script to compile 
-                    entire directories recursively:
+                    For projects with multiple files, pass a directory. Every <code>.jack</code> file in it
+                    is compiled to a matching <code>.vm</code> file:
                 </p>
                 
                 <h3>Basic Usage</h3>
-                <pre>./compile_all.sh src/</pre>
+                <pre>jackc src/</pre>
                 
                 <h3>Useful Options</h3>
                 <table>
@@ -346,16 +349,16 @@ EOF</pre>
                     </thead>
                     <tbody>
                         <tr>
-                            <td><code>--dry-run</code></td>
-                            <td>Preview files without compiling</td>
+                            <td><code>-o DIR</code></td>
+                            <td>Write .vm files to a different directory</td>
                         </tr>
                         <tr>
-                            <td><code>--clean</code></td>
-                            <td>Remove old .vm files before compiling</td>
+                            <td><code>-v</code></td>
+                            <td>Show full tracebacks for internal errors</td>
                         </tr>
                         <tr>
-                            <td><code>--verbose</code></td>
-                            <td>Show detailed compilation progress</td>
+                            <td><code>--version</code></td>
+                            <td>Print the compiler version</td>
                         </tr>
                         <tr>
                             <td><code>--help</code></td>
@@ -365,17 +368,14 @@ EOF</pre>
                 </table>
                 
                 <h3>Examples</h3>
-                <pre># Compile all Jack files in src/ and subdirectories
-./compile_all.sh src/
+                <pre># Compile all Jack files in src/ (output next to sources)
+jackc src/
 
-# Preview without compiling
-./compile_all.sh src/ --dry-run
+# Compile into a separate output directory
+jackc src/ -o bin/
 
-# Clean and rebuild
-./compile_all.sh src/ --clean
-
-# Detailed output
-./compile_all.sh src/ --verbose</pre>
+# Recursively compile every sub-directory (shell)
+find src -type d -exec jackc {} \;</pre>
             </div>
             
             <div class="section">
@@ -383,13 +383,13 @@ EOF</pre>
                 
                 <div class="step">
                     <h4>Run the test suite</h4>
-                    <pre>python tests/test_compiler.py</pre>
-                    <p>You should see "✓ All tests passed!" if everything is working correctly.</p>
+                    <pre>pytest -v</pre>
+                    <p>All tests should pass (reported as <code>passed</code> by pytest).</p>
                 </div>
                 
                 <div class="step">
                     <h4>Compile the examples</h4>
-                    <pre>./compile_all.sh examples/</pre>
+                    <pre>jackc examples/ -o output/</pre>
                     <p>This compiles all example programs (HelloWorld, Math, Loop, Point, Array).</p>
                 </div>
             </div>
@@ -422,9 +422,9 @@ EOF</pre>
                     (e.g., <code>brew install openjdk</code> on macOS).</p>
                 </div>
                 
-                <h3>Permission denied on setup.sh</h3>
+                <h3>"jackc: command not found"</h3>
                 <div class="card warning">
-                    <p><strong>Solution:</strong> Run <code>chmod +x setup.sh</code> first, then <code>bash setup.sh</code>.</p>
+                    <p><strong>Solution:</strong> Activate your virtual environment and run <code>pip install -e .</code>, or use <code>python -m jack_compiler</code> from the repository root.</p>
                 </div>
                 
                 <p>For more help, see the <a href="faq.html">FAQ section</a>.</p>

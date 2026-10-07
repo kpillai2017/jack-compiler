@@ -40,6 +40,12 @@
             </div>
         </div>
         <div class="content">
+<div style="border-left:4px solid #f0ad4e;background:#fff8e6;padding:12px 16px;margin:0 0 20px;">
+<strong>Note:</strong> This page describes the standalone <code>compile_all.sh</code> batch script, which is
+<strong>not included in this repository</strong>. For batch compilation use the built-in directory mode:
+<code>jackc &lt;dir&gt; [-o &lt;outdir&gt;]</code> (non-recursive; exits non-zero if any file fails).
+</div>
+
             <h1>Batch Compilation Examples</h1>
 
 <p>This document provides practical examples of using the <code>compile_all.sh</code> script for various scenarios.</p>
@@ -476,7 +482,7 @@ fi
 
 echo ""
 echo "Step 2: Running tests..."
-python3 tests/test_compiler.py
+pytest -v
 TEST_RESULT=$?
 
 if [ $TEST_RESULT -ne 0 ]; then

@@ -9,7 +9,7 @@
 cd jack-compiler
 
 # Run setup script (downloads ANTLR4 and generates parser)
-bash setup.sh
+pip install -e ".[dev]"
 
 # Or manually install dependencies
 pip install -r requirements.txt
@@ -18,19 +18,19 @@ pip install -r requirements.txt
 ### 2. Compile a Single File
 
 ```bash
-python src/compiler.py program.jack -o program.vm
+jackc program.jack -o program.vm
 ```
 
 ### 3. Compile a Directory
 
 ```bash
-python src/compiler.py src_dir/ -o bin_dir/
+jackc src_dir/ -o bin_dir/
 ```
 
 ### 4. In-place Compilation
 
 ```bash
-python src/compiler.py src_dir/
+jackc src_dir/
 ```
 
 This will generate `.vm` files in the same directory as the `.jack` files.
@@ -38,7 +38,7 @@ This will generate `.vm` files in the same directory as the `.jack` files.
 ## Command Line Options
 
 ```
-usage: compiler.py [-h] [-o OUTPUT] input
+usage: jackc [-h] [-o OUTPUT] [-v] [--version] input
 
 Jack compiler for nand2tetris Hack computer
 
@@ -300,8 +300,9 @@ The generated VM code follows the Hack Virtual Machine specification:
 
 ## Troubleshooting
 
-### "ANTLR-generated files not found"
-Solution: Run `bash setup.sh` to generate parser and lexer
+### "No module named jack_compiler.antlr_generated..."
+Solution: The generated parser is committed to the repo. If it was deleted, regenerate it:
+`java -jar antlr-4.13.0-complete.jar -Dlanguage=Python3 -visitor -o jack_compiler/antlr_generated grammar/Jack.g4`
 
 ### Syntax Errors
 The compiler will report syntax errors from the ANTLR parser. Check your Jack code for:
@@ -324,7 +325,7 @@ Ensure the input file path is correct and the file exists
 Run the included test suite:
 
 ```bash
-python tests/test_compiler.py
+pytest -v
 ```
 
 This tests:
@@ -337,7 +338,7 @@ This tests:
 
 1. Compile your Jack program to VM code:
    ```bash
-   python src/compiler.py myprogram.jack -o myprogram.vm
+   jackc myprogram.jack -o myprogram.vm
    ```
 
 2. Use the Hack VM translator to convert VM code to machine code:
@@ -353,7 +354,7 @@ This tests:
 
 ```bash
 # Compile all Jack files in a directory
-python src/compiler.py src/ -o compiled/
+jackc src/ -o compiled/
 
 # This will preserve the directory structure
 ```
@@ -361,7 +362,7 @@ python src/compiler.py src/ -o compiled/
 ### Using as a Library
 
 ```python
-from src.compiler import JackCompiler
+from jack_compiler import JackCompiler
 
 compiler = JackCompiler()
 compiler.compile_file("input.jack", "output.vm")

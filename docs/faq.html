@@ -261,11 +261,11 @@
                 </div>
                 
                 <div class="faq-item">
-                    <div class="faq-question">What if setup.sh fails?</div>
+                    <div class="faq-question">What if installation fails?</div>
                     <div class="faq-answer">
                         <p>Common issues and solutions:</p>
                         <ul>
-                            <li><strong>Permission denied:</strong> Run <code>chmod +x setup.sh</code></li>
+                            <li><strong>Editable install fails:</strong> Upgrade pip first with <code>pip install --upgrade pip</code></li>
                             <li><strong>Java not found:</strong> Install Java from oracle.com</li>
                             <li><strong>Python not found:</strong> Use <code>python3</code> instead of <code>python</code></li>
                             <li><strong>Network error:</strong> Check your internet connection and try again</li>
@@ -281,7 +281,7 @@
                     <div class="faq-question">How do I compile a Jack file?</div>
                     <div class="faq-answer">
                         <p>Use the compiler command:</p>
-                        <pre>python src/compiler.py program.jack -o program.vm</pre>
+                        <pre>jackc program.jack -o program.vm</pre>
                         <p>Replace <code>program.jack</code> with your filename and <code>program.vm</code> 
                         with the desired output file.</p>
                     </div>
@@ -290,28 +290,18 @@
                 <div class="faq-item">
                     <div class="faq-question">Can I compile multiple files at once?</div>
                     <div class="faq-answer">
-                        <p>Yes! Use the batch compilation script:</p>
-                        <pre>./compile_all.sh src/</pre>
-                        <p>This recursively compiles all .jack files in the directory and subdirectories.</p>
-                    </div>
-                </div>
-                
-                <div class="faq-item">
-                    <div class="faq-question">What is the --dry-run option?</div>
-                    <div class="faq-answer">
-                        <p>The <code>--dry-run</code> option shows you which files would be compiled without 
-                        actually compiling them:</p>
-                        <pre>./compile_all.sh src/ --dry-run</pre>
-                        <p>Useful for verifying you're compiling the right files before running the actual compilation.</p>
+                        <p>Yes! Pass a directory instead of a file:</p>
+                        <pre>jackc src/ -o bin/</pre>
+                        <p>This compiles every .jack file in that directory (one .vm per class). Without <code>-o</code>, output is written alongside the sources.</p>
                     </div>
                 </div>
                 
                 <div class="faq-item">
                     <div class="faq-question">What is the --verbose option?</div>
                     <div class="faq-answer">
-                        <p>The <code>--verbose</code> option shows detailed progress for each file:</p>
-                        <pre>./compile_all.sh src/ --verbose</pre>
-                        <p>Helpful for debugging or seeing exactly which files are being compiled.</p>
+                        <p>The <code>-v</code> / <code>--verbose</code> option prints a full Python traceback if the compiler hits an internal error:</p>
+                        <pre>jackc src/ -v</pre>
+                        <p>Helpful when reporting a bug.</p>
                     </div>
                 </div>
             </div>
@@ -365,7 +355,7 @@ let y = 10; // ✗ Error: y not declared</pre>
                         <ul>
                             <li>Verify the filename is spelled correctly</li>
                             <li>Check the file exists in the current directory</li>
-                            <li>Use full paths if the file is in a subdirectory: <code>python src/compiler.py src/program.jack</code></li>
+                            <li>Use full paths if the file is in a subdirectory: <code>jackc src/program.jack</code></li>
                         </ul>
                     </div>
                 </div>

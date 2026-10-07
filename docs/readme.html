@@ -95,8 +95,9 @@
 jack-compiler/
 ├── grammar/
 │   └── Jack.g4                  # Complete ANTLR4 grammar for Jack language
-├── src/
+├── jack_compiler/
 │   ├── __init__.py
+│   ├── __main__.py              # Enables `python -m jack_compiler`
 │   ├── compiler.py              # Main compiler driver (command-line interface)
 │   ├── compiler_visitor.py      # Parse tree visitor for code generation
 │   ├── symbols.py               # Symbol table implementation
@@ -109,10 +110,10 @@ jack-compiler/
 │   ├── Point.jack               # Object-oriented with methods/fields
 │   └── Array.jack               # Array operations
 ├── tests/
-│   └── test_compiler.py         # Unit tests for components
-├── setup.sh                      # Automated setup script
+│   ├── test_compiler.py         # Unit + end-to-end tests
+│   └── expected/                # Golden VM output for examples
 ├── requirements.txt              # Python dependencies
-├── setup.py                      # Python package configuration
+├── pyproject.toml                # Python package configuration
 ├── README.md                     # This file
 ├── USAGE.md                      # Detailed usage guide
 └── grammar/Jack.g4              # ANTLR4 grammar
@@ -124,7 +125,7 @@ jack-compiler/
 
 <pre><code class="language-bash">
 cd jack-compiler
-bash setup.sh
+pip install -e ".[dev]"
 </code></pre>
 
 </ul>
@@ -139,20 +140,20 @@ bash setup.sh
 
 <pre><code class="language-bash">
 # Single file
-python src/compiler.py program.jack -o program.vm
+jackc program.jack -o program.vm
 
 # Directory of Jack files
-python src/compiler.py src/ -o bin/
+jackc src/ -o bin/
 </code></pre>
 
 <h3>3. Test the Installation</h3>
 
 <pre><code class="language-bash">
 # Run unit tests
-python tests/test_compiler.py
+pytest -v
 
 # Compile examples
-python src/compiler.py examples/HelloWorld.jack -o examples/HelloWorld.vm
+jackc examples/HelloWorld.jack -o examples/HelloWorld.vm
 </code></pre>
 
 <h2>Installation Details</h2>
@@ -176,7 +177,7 @@ wget https://www.antlr.org/download/antlr-4.13.0-complete.jar
 java -jar antlr-4.13.0-complete.jar \
     -Dlanguage=Python3 \
     -visitor \
-    -o src/antlr_generated \
+    -o jack_compiler/antlr_generated \
     grammar/Jack.g4
 </code></pre>
 
@@ -298,7 +299,7 @@ Hack VM Code
 <p>Run the comprehensive test suite:</p>
 
 <pre><code class="language-bash">
-python tests/test_compiler.py
+pytest -v
 </code></pre>
 
 <p>Tests cover:</p>
@@ -311,7 +312,7 @@ python tests/test_compiler.py
 <h2>Command-Line Usage</h2>
 
 <pre><code class="language-bash">
-python src/compiler.py [-h] [-o OUTPUT] input
+jackc [-h] [-o OUTPUT] [-v] [--version] input
 
 Arguments:
   input                 Input Jack file or directory
@@ -372,7 +373,7 @@ Arguments:
 </ul>
 <p>1. Compile Jack to VM:</p>
 <pre><code class="language-bash">
-   python src/compiler.py program.jack -o program.vm
+   jackc program.jack -o program.vm
 </code></pre>
 
 <p>2. Compile VM to Hack ASM (using nand2tetris tools):</p>

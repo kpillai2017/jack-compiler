@@ -77,7 +77,7 @@ Program
 
 ### 2. Symbol Table Management
 
-**File**: `src/symbols.py`
+**File**: `jack_compiler/symbols.py`
 
 Implements a two-level symbol table:
 
@@ -110,7 +110,7 @@ SymbolInfo:
 
 ### 3. Code Generator
 
-**File**: `src/codegen.py`
+**File**: `jack_compiler/codegen.py`
 
 Emits Hack VM instructions during code generation:
 
@@ -151,7 +151,7 @@ CodeGenerator
 
 ### 4. Compiler Visitor
 
-**File**: `src/compiler_visitor.py`
+**File**: `jack_compiler/compiler_visitor.py`
 
 Implements the ANTLR visitor pattern to traverse the parse tree:
 
@@ -183,7 +183,7 @@ JackCompilerVisitor
 
 ### 5. Main Compiler Driver
 
-**File**: `src/compiler.py`
+**File**: `jack_compiler/compiler.py`
 
 Command-line interface and file handling:
 

@@ -1,5 +1,10 @@
 # Error Detection & Handling Guide
 
+> **Note:** This guide describes the standalone `compile_all.sh` batch script, which is **not
+> included in this repository**. For batch compilation use the built-in directory mode:
+> `jackc <dir> [-o <outdir>]` (non-recursive; exits non-zero if any file fails). The error
+> categories and CI patterns below still apply to `jackc`.
+
 ## Overview
 
 **Yes, the batch compilation script thoroughly checks for compilation errors!** Errors are detected at multiple levels and reported clearly so you always know exactly what went wrong.
@@ -9,7 +14,7 @@
 ### 1. **Environment Validation** (Before Compilation Starts)
 
 The script checks:
-- ✅ Compiler script exists (`src/compiler.py`)
+- ✅ Compiler script exists (`jack_compiler/compiler.py`)
 - ✅ Python 3 is installed
 - ✅ Input directory exists
 - ✅ Directory is readable
@@ -145,7 +150,7 @@ These stop the script immediately:
 
 | Error | Message | Solution |
 |-------|---------|----------|
-| Compiler missing | `✗ Compiler script not found: src/compiler.py` | Run from jack-compiler directory |
+| Compiler missing | `✗ Compiler script not found: jack_compiler/compiler.py` | Install the package (`pip install -e .`) |
 | Python missing | `✗ Python 3 is not installed or not in PATH` | Install Python 3 |
 | Directory missing | `✗ Directory not found: src/` | Check directory path |
 
@@ -440,7 +445,7 @@ A: The script generates .vm files for successful compilations. The summary shows
 **Q: How do I get detailed error information?**
 A: Run the single file directly with the compiler:
 ```bash
-python src/compiler.py src/broken.jack -o test.vm
+jackc src/broken.jack -o test.vm
 ```
 
 **Q: Where are the error messages coming from?**

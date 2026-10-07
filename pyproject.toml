@@ -1,0 +1,55 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "jack-compiler"
+dynamic = ["version"]
+description = "Jack compiler for the nand2tetris Hack computer, built with ANTLR4"
+readme = "README.md"
+license = { file = "LICENSE" }
+authors = [{ name = "kpillai2017" }]
+requires-python = ">=3.8"
+dependencies = ["antlr4-python3-runtime==4.13.0"]
+keywords = ["nand2tetris", "jack", "compiler", "antlr4", "hack", "vm"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Education",
+    "Topic :: Software Development :: Compilers",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7"]
+
+[project.scripts]
+jackc = "jack_compiler.compiler:main"
+
+[project.urls]
+Homepage = "https://github.com/kpillai2017/jack-compiler"
+Repository = "https://github.com/kpillai2017/jack-compiler"
+Issues = "https://github.com/kpillai2017/jack-compiler/issues"
+Documentation = "https://kpillai2017.github.io/jack-compiler/"
+
+[tool.setuptools]
+packages = [
+    "jack_compiler",
+    "jack_compiler.antlr_generated",
+    "jack_compiler.antlr_generated.grammar",
+]
+
+[tool.setuptools.dynamic]
+version = { attr = "jack_compiler.__version__" }
+
+[tool.setuptools.package-data]
+"jack_compiler.antlr_generated.grammar" = ["*.interp", "*.tokens"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

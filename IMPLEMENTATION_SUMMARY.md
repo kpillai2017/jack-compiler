@@ -21,14 +21,14 @@ A **complete, production-ready Jack compiler** built with ANTLR4 v4.13.0 (Terenc
 **Tokens**: 30+ (keywords, operators, punctuation)
 **Rules**: 25+ (program, class, subroutine, statements, expressions)
 
-### 2. Symbol Table Management (`src/symbols.py`)
+### 2. Symbol Table Management (`jack_compiler/symbols.py`)
 - Two-level scoping: class scope + subroutine scope
 - Automatic index assignment for variables
 - VarKind tracking: STATIC, FIELD, LOCAL, ARG
 - Type information storage
 - Proper scope isolation and reset
 
-### 3. Code Generator (`src/codegen.py`)
+### 3. Code Generator (`jack_compiler/codegen.py`)
 - Emits Hack VM instructions
 - Arithmetic: add, sub, mul, div
 - Logical: and, or, not
@@ -36,13 +36,13 @@ A **complete, production-ready Jack compiler** built with ANTLR4 v4.13.0 (Terenc
 - Memory operations and array access
 - Control flow and functions
 
-### 4. Parse Tree Visitor (`src/compiler_visitor.py`)
+### 4. Parse Tree Visitor (`jack_compiler/compiler_visitor.py`)
 - ANTLR4 visitor pattern implementation
 - Traverses parse tree and generates code
 - Manages symbol table during compilation
 - ~420 lines of implementation
 
-### 5. Main Compiler Driver (`src/compiler.py`)
+### 5. Main Compiler Driver (`jack_compiler/compiler.py`)
 - Command-line interface with argparse
 - Single file and batch directory compilation
 - Error reporting and handling
@@ -122,18 +122,18 @@ Successfully compiles all example programs:
 ### Quick Start
 ```bash
 cd jack-compiler
-bash setup.sh
-python src/compiler.py program.jack -o program.vm
+pip install -e ".[dev]"
+jackc program.jack -o program.vm
 ```
 
 ### Batch Compilation
 ```bash
-python src/compiler.py src/ -o bin/
+jackc src/ -o bin/
 ```
 
 ### Run Tests
 ```bash
-python tests/test_compiler.py
+pytest -v
 ```
 
 ## Architecture Highlights

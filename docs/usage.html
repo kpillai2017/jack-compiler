@@ -55,7 +55,7 @@
 cd jack-compiler
 
 # Run setup script (downloads ANTLR4 and generates parser)
-bash setup.sh
+pip install -e ".[dev]"
 
 # Or manually install dependencies
 pip install -r requirements.txt
@@ -64,19 +64,19 @@ pip install -r requirements.txt
 <h3>2. Compile a Single File</h3>
 
 <pre><code class="language-bash">
-python src/compiler.py program.jack -o program.vm
+jackc program.jack -o program.vm
 </code></pre>
 
 <h3>3. Compile a Directory</h3>
 
 <pre><code class="language-bash">
-python src/compiler.py src_dir/ -o bin_dir/
+jackc src_dir/ -o bin_dir/
 </code></pre>
 
 <h3>4. In-place Compilation</h3>
 
 <pre><code class="language-bash">
-python src/compiler.py src_dir/
+jackc src_dir/
 </code></pre>
 
 <p>This will generate <code>.vm</code> files in the same directory as the <code>.jack</code> files.</p>
@@ -84,7 +84,7 @@ python src/compiler.py src_dir/
 <h2>Command Line Options</h2>
 
 <pre><code class="language-">
-usage: compiler.py [-h] [-o OUTPUT] input
+usage: jackc [-h] [-o OUTPUT] [-v] [--version] input
 
 Jack compiler for nand2tetris Hack computer
 
@@ -351,9 +351,9 @@ class Strings {
 
 <h2>Troubleshooting</h2>
 
-<h3>"ANTLR-generated files not found"</h3>
+<h3>"No module named jack_compiler.antlr_generated..."</h3>
 </ul>
-<p>Solution: Run <code>bash setup.sh</code> to generate parser and lexer</p>
+<p>Solution: The generated parser is committed to the repo. If it was deleted, regenerate it: <code>java -jar antlr-4.13.0-complete.jar -Dlanguage=Python3 -visitor -o jack_compiler/antlr_generated grammar/Jack.g4</code></p>
 
 <h3>Syntax Errors</h3>
 <p>The compiler will report syntax errors from the ANTLR parser. Check your Jack code for:</p>
@@ -380,7 +380,7 @@ class Strings {
 <p>Run the included test suite:</p>
 
 <pre><code class="language-bash">
-python tests/test_compiler.py
+pytest -v
 </code></pre>
 
 <p>This tests:</p>
@@ -395,7 +395,7 @@ python tests/test_compiler.py
 </ul>
 <p>1. Compile your Jack program to VM code:</p>
 <pre><code class="language-bash">
-   python src/compiler.py myprogram.jack -o myprogram.vm
+   jackc myprogram.jack -o myprogram.vm
 </code></pre>
 
 <p>2. Use the Hack VM translator to convert VM code to machine code:</p>
@@ -411,7 +411,7 @@ python tests/test_compiler.py
 
 <pre><code class="language-bash">
 # Compile all Jack files in a directory
-python src/compiler.py src/ -o compiled/
+jackc src/ -o compiled/
 
 # This will preserve the directory structure
 </code></pre>
@@ -419,7 +419,7 @@ python src/compiler.py src/ -o compiled/
 <h3>Using as a Library</h3>
 
 <pre><code class="language-python">
-from src.compiler import JackCompiler
+from jack_compiler import JackCompiler
 
 compiler = JackCompiler()
 compiler.compile_file("input.jack", "output.vm")

@@ -552,13 +552,10 @@ function Point.getX 0
                 
                 <div class="card">
                     <p><strong>Single File Compilation:</strong></p>
-                    <pre>python src/compiler.py program.jack -o program.vm</pre>
+                    <pre>jackc program.jack -o program.vm</pre>
                     
                     <p style="margin-top: 15px;"><strong>Batch Compilation:</strong></p>
-                    <pre>./compile_all.sh examples/ --verbose</pre>
-                    
-                    <p style="margin-top: 15px;"><strong>Dry Run (Preview):</strong></p>
-                    <pre>./compile_all.sh examples/ --dry-run</pre>
+                    <pre>jackc examples/ -o output/</pre>
                 </div>
             </div>
         </div>

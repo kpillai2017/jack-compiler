@@ -44,6 +44,12 @@
             </div>
         </div>
         <div class="content">
+<div style="border-left:4px solid #f0ad4e;background:#fff8e6;padding:12px 16px;margin:0 0 20px;">
+<strong>Note:</strong> This page describes the standalone <code>compile_all.sh</code> batch script, which is
+<strong>not included in this repository</strong>. For batch compilation use the built-in directory mode:
+<code>jackc &lt;dir&gt; [-o &lt;outdir&gt;]</code> (non-recursive; exits non-zero if any file fails).
+</div>
+
             <h1>Batch Compilation Script - Complete Summary</h1>
 
 <h2>Overview</h2>
@@ -329,7 +335,7 @@ sudo apt-get install python3  # Linux
 
 <h3>"Compiler not found"</h3>
 <pre><code class="language-bash">
-# Run from jack-compiler directory
+# Install the package (`pip install -e .`)
 cd jack-compiler
 ./compile_all.sh .
 </code></pre>

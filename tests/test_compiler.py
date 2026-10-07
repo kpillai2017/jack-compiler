@@ -4,14 +4,22 @@ Tests lexing, parsing, and code generation functionality.
 """
 
 import sys
-import os
 from pathlib import Path
 
-# Add src to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
+import pytest
 
-from symbols import SymbolTable, VarKind, SymbolInfo
-from codegen import CodeGenerator
+# Allow running from a source checkout without installing the package.
+ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT))
+
+from jack_compiler import JackCompiler  # noqa: E402
+from jack_compiler.codegen import CodeGenerator  # noqa: E402
+from jack_compiler.compiler import main  # noqa: E402
+from jack_compiler.symbols import SymbolTable, VarKind  # noqa: E402
+
+EXAMPLES_DIR = ROOT / "examples"
+EXPECTED_DIR = Path(__file__).resolve().parent / "expected"
+EXAMPLES = sorted(p.stem for p in EXAMPLES_DIR.glob("*.jack"))
 
 
 class TestSymbolTable:
@@ -151,28 +159,43 @@ class TestCodeGenerator:
         assert "call String.appendChar 2" in code
 
 
-def run_tests():
-    """Run all tests."""
-    print("Running Symbol Table Tests...")
-    test_table = TestSymbolTable()
-    test_table.test_define_and_lookup()
-    test_table.test_class_scope()
-    test_table.test_subroutine_scope()
-    test_table.test_undefined_variable()
-    print("✓ Symbol table tests passed")
+class TestEndToEnd:
+    """Compile the bundled examples and compare against golden VM output."""
 
-    print("\nRunning Code Generator Tests...")
-    test_gen = TestCodeGenerator()
-    test_gen.test_push_pop_constant()
-    test_gen.test_arithmetic_operations()
-    test_gen.test_labels_and_jumps()
-    test_gen.test_function_declaration()
-    test_gen.test_subroutine_call()
-    test_gen.test_string_constant()
-    print("✓ Code generator tests passed")
+    @pytest.mark.parametrize("name", EXAMPLES)
+    def test_example_matches_golden(self, name, tmp_path):
+        out = tmp_path / f"{name}.vm"
+        assert JackCompiler().compile_file(str(EXAMPLES_DIR / f"{name}.jack"), str(out))
+        assert out.read_text() == (EXPECTED_DIR / f"{name}.vm").read_text()
 
-    print("\n✓ All tests passed!")
+    def test_output_in_current_directory(self, tmp_path, monkeypatch):
+        """An output path with no directory component must work."""
+        monkeypatch.chdir(tmp_path)
+        assert JackCompiler().compile_file(str(EXAMPLES_DIR / "HelloWorld.jack"), "Out.vm")
+        assert (tmp_path / "Out.vm").exists()
+
+    def test_syntax_error_fails(self, tmp_path):
+        bad = tmp_path / "Bad.jack"
+        bad.write_text("class Bad { function void main() { let x = ; } }")
+        assert not JackCompiler().compile_file(str(bad), str(tmp_path / "Bad.vm"))
+        assert not (tmp_path / "Bad.vm").exists()
+
+    def test_missing_file_fails(self, tmp_path):
+        assert not JackCompiler().compile_file(
+            str(tmp_path / "Nope.jack"), str(tmp_path / "Nope.vm")
+        )
+
+    def test_cli_directory(self, tmp_path):
+        with pytest.raises(SystemExit) as exc:
+            main([str(EXAMPLES_DIR), "-o", str(tmp_path)])
+        assert exc.value.code == 0
+        assert sorted(p.stem for p in tmp_path.glob("*.vm")) == EXAMPLES
+
+    def test_cli_missing_input(self, tmp_path):
+        with pytest.raises(SystemExit) as exc:
+            main([str(tmp_path / "missing.jack")])
+        assert exc.value.code == 1
 
 
 if __name__ == '__main__':
-    run_tests()
+    sys.exit(pytest.main([__file__, "-v"]))

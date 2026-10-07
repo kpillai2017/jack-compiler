@@ -1,5 +1,9 @@
 # Jack Compiler for nand2tetris
 
+[![CI](https://github.com/kpillai2017/jack-compiler/actions/workflows/ci.yml/badge.svg)](https://github.com/kpillai2017/jack-compiler/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Python 3.8+](https://img.shields.io/badge/python-3.8%2B-blue.svg)](https://www.python.org/)
+
 A complete, production-ready Jack compiler implementation using ANTLR4 that translates Jack source code to Hack Virtual Machine (VM) code.
 
 ## Overview
@@ -10,7 +14,7 @@ This compiler implements the full Jack language specification from the nand2tetr
 - **Syntax Analysis**: Complete ANTLR4 grammar with visitor pattern implementation
 - **Semantic Analysis**: Symbol table management with class and subroutine scopes, type tracking
 - **Code Generation**: Translation to Hack VM bytecode format
-- **Comprehensive Testing**: Unit tests for symbol tables and code generation
+- **Comprehensive Testing**: Unit tests plus end-to-end golden-file tests, run on every push via GitHub Actions
 
 ## Features
 
@@ -40,195 +44,103 @@ This compiler implements the full Jack language specification from the nand2tetr
 
 ```
 jack-compiler/
-├── .gitignore                   # Git ignore rules
-├── .gitattributes               # Line ending normalization
+├── .github/workflows/ci.yml     # GitHub Actions: tests + grammar drift check
+├── .gitignore / .gitattributes
+├── LICENSE                      # MIT
 ├── README.md                    # This file
 ├── USAGE.md                     # Detailed usage guide
 ├── ARCHITECTURE.md              # Architecture documentation
 ├── QUICK_REFERENCE.md           # Quick reference guide
 ├── ERROR_DETECTION.md           # Error handling documentation
-├── REFERENCE_COMPATIBILITY.md   # Compatibility information
-├── CLEANUP_SUMMARY.md           # Repository cleanup details
+├── REFERENCE_COMPATIBILITY.md   # Compatibility with the nand2tetris web-ide
+├── IMPLEMENTATION_SUMMARY.md    # Implementation overview
+├── pyproject.toml               # Package configuration (provides `jackc`)
+├── requirements.txt             # Runtime dependency pin
+├── antlr-4.13.0-complete.jar    # ANTLR4 tool (only needed to regenerate the parser)
 │
-├── src/                         # SOURCE CODE
-│   ├── __init__.py
-│   ├── compiler.py              # Main compiler driver (CLI)
-│   ├── compiler_visitor_v2.py   # ANTLR visitor for code generation
+├── jack_compiler/               # SOURCE CODE (Python package)
+│   ├── __init__.py              # Public API
+│   ├── __main__.py              # Enables `python -m jack_compiler`
+│   ├── compiler.py              # Compiler driver + CLI (`jackc`)
+│   ├── compiler_visitor.py      # Parse-tree visitor: AST + VM code generation
 │   ├── symbols.py               # Symbol table implementation
-│   ├── codegen.py               # VM code generator
-│   └── antlr_generated/         # ANTLR4-generated files
+│   ├── codegen.py               # VM code emitter
+│   └── antlr_generated/         # ANTLR4-generated lexer/parser (committed)
 │       └── grammar/
-│           ├── JackLexer.py
-│           ├── JackParser.py
-│           ├── JackVisitor.py
-│           └── JackListener.py
 │
-├── examples/                    # EXAMPLE PROGRAMS
-│   ├── HelloWorld.jack / HelloWorld.vm
-│   ├── Math.jack / Math.vm
-│   ├── Loop.jack / Loop.vm
-│   ├── Point.jack / Point.vm
-│   └── Array.jack / Array.vm
-│
-├── tests/                       # UNIT TESTS
-│   └── test_compiler.py
-│
-├── grammar/                     # GRAMMAR DEFINITION
-│   └── Jack.g4                  # ANTLR4 grammar for Jack language
-│
-├── docs/                        # DOCUMENTATION (HTML)
-│   ├── index.html
-│   ├── architecture.html
-│   ├── usage.html
-│   └── [13 more documentation files]
-│
-├── requirements.txt             # Python dependencies
-├── setup.py                     # Python package configuration
-└── antlr-4.13.0-complete.jar   # ANTLR4 complete JAR
+├── grammar/
+│   └── Jack.g4                  # ANTLR4 grammar for the Jack language
+├── examples/                    # Example Jack programs
+├── tests/
+│   ├── test_compiler.py         # Unit, end-to-end and CLI tests
+│   └── expected/                # Golden VM output for the examples
+└── docs/                        # HTML documentation site
 ```
 
 ## Quick Start
 
-### 1. Prerequisites
-
-- **Python** 3.8 or higher
-- **Java** JDK 11 or later (required for ANTLR4)
-- **pip** (Python package manager)
-- **ANTLR4** 4.13.0 (included in repository as `antlr-4.13.0-complete.jar`)
-
-### 2. Install Dependencies
-
 ```bash
-pip install -r requirements.txt
+git clone https://github.com/kpillai2017/jack-compiler.git
+cd jack-compiler
+python3 -m venv venv && source venv/bin/activate   # Windows: venv\Scripts\activate
+pip install --upgrade pip
+pip install -e ".[dev]"
+
+jackc examples/HelloWorld.jack            # writes examples/HelloWorld.vm
+jackc examples/ -o output/                # compile a whole directory
+pytest                                    # run the test suite
 ```
 
-### 3. Generate Parser and Lexer (One-time Setup)
-
-```bash
-java -jar antlr-4.13.0-complete.jar \
-    -Dlanguage=Python3 \
-    -visitor \
-    -o src/antlr_generated \
-    grammar/Jack.g4
-```
-
-**Note:** The ANTLR4 JAR is already included in the repository. If you modify `grammar/Jack.g4`, you'll need to run this command again.
-
-### 4. Compile a Jack Program
-
-```bash
-# Single file
-python src/compiler.py examples/HelloWorld.jack -o HelloWorld.vm
-
-# Directory of Jack files
-python src/compiler.py examples/ -o output/
-
-# With custom output
-python src/compiler.py program.jack -o output/program.vm
-```
-
-### 5. Verify Installation
-
-```bash
-# Run unit tests (validates all components)
-python -m pytest tests/test_compiler.py -v
-
-# Or using unittest
-python tests/test_compiler.py
-
-# Compile and check an example
-python src/compiler.py examples/Math.jack -o Math.vm
-```
+No Java is required to *use* the compiler — the generated parser is committed.
 
 ## Installation Details
 
-### Full Setup Instructions
+### Prerequisites
 
-#### Step 1: Clone or Download the Repository
+- **Python** 3.8 or higher
+- **pip** 21.3+ (for editable installs from `pyproject.toml`)
+- **Java** JDK 11+ — *only* if you modify `grammar/Jack.g4`
 
-```bash
-git clone <your-bitbucket-url>
-cd jack-compiler
-```
-
-#### Step 2: Create Virtual Environment (Recommended)
+### Install options
 
 ```bash
-# Create virtual environment
-python3 -m venv venv
-
-# Activate virtual environment
-# On macOS/Linux:
-source venv/bin/activate
-# On Windows:
-venv\Scripts\activate
+pip install -e ".[dev]"     # editable install + pytest (recommended for development)
+pip install .               # regular install
+pip install -r requirements.txt && python -m jack_compiler ...   # no install, run from repo root
 ```
 
-#### Step 3: Install Python Dependencies
+### Regenerating the Parser and Lexer
 
-```bash
-pip install --upgrade pip
-pip install -r requirements.txt
-```
-
-#### Step 4: Verify ANTLR4 JAR
-
-The repository includes `antlr-4.13.0-complete.jar`. If you need to download it manually:
-
-```bash
-# Download if needed (already in repo)
-wget https://www.antlr.org/download/antlr-4.13.0-complete.jar -O antlr-4.13.0-complete.jar
-```
-
-#### Step 5: Generate Parser and Lexer
+Only needed after editing `grammar/Jack.g4`:
 
 ```bash
 java -jar antlr-4.13.0-complete.jar \
     -Dlanguage=Python3 \
     -visitor \
-    -o src/antlr_generated \
+    -o jack_compiler/antlr_generated \
     grammar/Jack.g4
 ```
 
-The generated files will be created in `src/antlr_generated/grammar/`.
-
-#### Step 6: Verify Installation
-
-```bash
-python -m pytest tests/test_compiler.py -v
-```
+Generated files are written to `jack_compiler/antlr_generated/grammar/`. Commit them —
+CI regenerates the parser and fails if the committed files are out of date.
 
 ### Troubleshooting
 
-#### Issue: "Java not found" or "java: command not found"
-**Solution:** Install Java Development Kit (JDK):
-- **macOS**: `brew install openjdk@11`
-- **Ubuntu/Debian**: `sudo apt-get install openjdk-11-jdk`
-- **Windows**: Download from [oracle.com](https://www.oracle.com/java/technologies/downloads/) or use `choco install openjdk`
+#### "jackc: command not found"
+Activate your virtual environment and run `pip install -e .`, or use `python -m jack_compiler` from the repository root.
 
-#### Issue: "ModuleNotFoundError: No module named 'antlr4'"
-**Solution:** Install dependencies:
+#### "ModuleNotFoundError: No module named 'antlr4'"
 ```bash
 pip install -r requirements.txt
 ```
 
-#### Issue: ANTLR4 generated files not found
-**Solution:** Regenerate the parser:
-```bash
-java -jar antlr-4.13.0-complete.jar \
-    -Dlanguage=Python3 \
-    -visitor \
-    -o src/antlr_generated \
-    grammar/Jack.g4
-```
+#### "editable mode currently requires a setuptools-based build"
+Your pip is too old for `pyproject.toml` editable installs: `pip install --upgrade pip`.
 
-#### Issue: Tests fail with import errors
-**Solution:** Ensure you're in the correct directory and the virtual environment is activated:
-```bash
-cd jack-compiler
-source venv/bin/activate  # or venv\Scripts\activate on Windows
-python -m pytest tests/test_compiler.py -v
-```
+#### "Java not found" (only when regenerating the parser)
+- **macOS**: `brew install openjdk`
+- **Ubuntu/Debian**: `sudo apt-get install openjdk-17-jdk`
+- **Windows**: `choco install openjdk` or download from [adoptium.net](https://adoptium.net/)
 
 ## Example Programs
 
@@ -340,27 +252,45 @@ Variables are tracked with:
 
 ## Testing
 
-Run the comprehensive test suite:
-
 ```bash
-python tests/test_compiler.py
+pytest -v
 ```
 
 Tests cover:
 - Symbol table operations (define, lookup, scoping)
-- Code generation (arithmetic, jumps, function calls)
-- Type tracking and variable indexing
-- Label generation
+- Code generation (arithmetic, jumps, function calls, strings)
+- End-to-end compilation of every program in `examples/`, compared byte-for-byte with `tests/expected/*.vm`
+- CLI behaviour and error handling (syntax errors, missing files)
+
+If you intentionally change code generation, regenerate the golden files:
+
+```bash
+for f in examples/*.jack; do jackc "$f" -o "tests/expected/$(basename "${f%.jack}").vm"; done
+```
 
 ## Command-Line Usage
 
 ```bash
-python src/compiler.py [-h] [-o OUTPUT] input
+jackc [-h] [-o OUTPUT] [-v] [--version] input
+# or: python -m jack_compiler ...
 
 Arguments:
   input                 Input Jack file or directory
   -o, --output OUTPUT   Output VM file or directory (default: same as input)
+  -v, --verbose         Show full tracebacks for internal compiler errors
+  --version             Show version and exit
   -h, --help            Show help message
+```
+
+Coloured output is disabled automatically when stdout is not a terminal or when `NO_COLOR` is set.
+
+### Python API
+
+```python
+from jack_compiler import JackCompiler
+
+JackCompiler().compile_file("Main.jack", "Main.vm")      # returns True/False
+vm_code = JackCompiler().compile_source("Main.jack")    # returns VM code as a string
 ```
 
 ## Supported Jack Language Constructs
@@ -413,7 +343,7 @@ Generated code follows the Hack VM specification:
 
 1. Compile Jack to VM:
    ```bash
-   python src/compiler.py program.jack -o program.vm
+   jackc program.jack -o program.vm
    ```
 
 2. Compile VM to Hack ASM (using nand2tetris tools):
@@ -435,12 +365,16 @@ Generated code follows the Hack VM specification:
 
 ## License
 
-This implementation is provided for educational purposes as part of the nand2tetris curriculum.
+Released under the [MIT License](LICENSE). Built for educational use with the
+[nand2tetris](https://www.nand2tetris.org/) curriculum.
 
 ## Contributing
 
-Improvements and enhancements are welcome. This project demonstrates best practices in:
-- Compiler design with ANTLR4
-- Visitor pattern for AST traversal
-- Symbol table management
-- Code generation for stack-based VMs
+Issues and pull requests are welcome at
+<https://github.com/kpillai2017/jack-compiler>.
+
+1. Fork and create a feature branch
+2. `pip install -e ".[dev]"`
+3. Make your change and add tests; run `pytest`
+4. If you edited `grammar/Jack.g4`, regenerate and commit `jack_compiler/antlr_generated/`
+5. Open a pull request — CI must pass

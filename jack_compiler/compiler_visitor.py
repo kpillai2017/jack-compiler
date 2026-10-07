@@ -1,11 +1,15 @@
 """
-Updated Visitor class for traversing Jack parse tree with proper AST generation.
-Matches reference implementation AST structure from web-ide.
+Parse-tree visitor for the Jack compiler.
+
+Walks the ANTLR parse tree, emitting Hack VM code via :class:`CodeGenerator`
+and building an AST whose shape matches the nand2tetris web-ide reference
+implementation.
 """
 
-from typing import Any, Optional, List, Dict, Tuple
-from symbols import SymbolTable, VarKind
-from codegen import CodeGenerator
+from typing import Any, Dict, List, Optional
+
+from .codegen import CodeGenerator
+from .symbols import VarKind
 
 
 class Span:
@@ -19,9 +23,9 @@ class Span:
         return {"start": self.start, "end": self.end, "line": self.line}
 
 
-class JackCompilerVisitorV2:
+class JackCompilerVisitor:
     """
-    Updated visitor that generates proper AST structure matching the reference implementation.
+    Visitor that emits VM code and builds an AST matching the reference implementation.
     
     AST Structure:
     - Class: { name, varDecs, subroutines }
@@ -682,3 +686,7 @@ class JackCompilerVisitorV2:
             self.codegen.emit_gt()
         elif op == "=":
             self.codegen.emit_eq()
+
+
+# Backwards-compatible alias for code written against the old module name.
+JackCompilerVisitorV2 = JackCompilerVisitor

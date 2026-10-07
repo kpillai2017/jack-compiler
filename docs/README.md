@@ -49,8 +49,9 @@ Welcome to the comprehensive documentation for the Jack Compiler - a complete im
 
 1. **Setup**: Read [getting-started.html](getting-started.html)
    ```bash
+   git clone https://github.com/kpillai2017/jack-compiler.git
    cd jack-compiler
-   bash setup.sh
+   pip install -e ".[dev]"
    ```
 
 2. **Understand**: Read [how-it-works.html](how-it-works.html)
@@ -112,10 +113,10 @@ jack-compiler/
 │   └── README.md           # This file
 ├── grammar/                # ANTLR4 grammar
 │   └── Jack.g4
-├── src/                    # Python implementation
+├── jack_compiler/          # Python implementation
 ├── examples/               # Sample Jack programs
 ├── tests/                  # Test suite
-└── compile_all.sh         # Batch compiler script
+└── pyproject.toml         # Package configuration (jackc CLI)
 ```
 
 ## 🔗 Related Resources

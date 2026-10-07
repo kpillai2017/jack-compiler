@@ -48,7 +48,7 @@
 
 <h2>Status: In Progress</h2>
 
-<p>This document tracks adjustments to ensure our ANTLR4-based Jack compiler produces output compatible with the reference implementation in <code>~/WorkData/Dev/web-ide</code>.</p>
+<p>This document tracks adjustments to ensure our ANTLR4-based Jack compiler produces output compatible with the reference implementation in <a href="https://github.com/nand2tetris/web-ide">nand2tetris/web-ide</a>.</p>
 
 <h2>Adjustments Made</h2>
 
@@ -65,7 +65,7 @@
 
 <h3>2. 🔄 AST Structure Update (In Progress)</h3>
 <ul>
-<li>**File**: `src/compiler_visitor.py`</li>
+<li>**File**: `jack_compiler/compiler_visitor.py`</li>
 <li>**Change**: Update to match reference AST format</li>
 <li>**Status**: PENDING</li>
 <li>**Details**:</li>
@@ -77,7 +77,7 @@
 
 <h3>3. 🔄 VM Code Generator Update (Pending)</h3>
 <ul>
-<li>**File**: `src/codegen.py`</li>
+<li>**File**: `jack_compiler/codegen.py`</li>
 <li>**Change**: Format VM output with proper indentation</li>
 <li>**Status**: PENDING</li>
 <li>**Details**:</li>
@@ -90,7 +90,7 @@
 
 <h3>Location</h3>
 <pre><code class="language-">
-/Users/kpillai/WorkData/Dev/web-ide/simulator/src/languages/
+web-ide/simulator/src/languages/
 ├── grammars/jack.ohm      (OHM grammar)
 ├── jack.ts                (Parser + AST generation)
 └── jack.test.ts           (Tests)
@@ -272,7 +272,7 @@ function Main.main 0
 <h2>Files to Update</h2>
 
 <pre><code class="language-">
-jack-compiler/src/
+jack-compiler/jack_compiler/
 ├── compiler_visitor.py      ← Major rewrite needed
 ├── codegen.py              ← VM formatting updates
 └── symbols.py              ← Already compatible
@@ -281,9 +281,9 @@ jack-compiler/src/
 <h2>References</h2>
 
 <ul>
-<li>Reference Grammar: `/Users/kpillai/WorkData/Dev/web-ide/simulator/src/languages/grammars/jack.ohm`</li>
-<li>Reference Implementation: `/Users/kpillai/WorkData/Dev/web-ide/simulator/src/languages/jack.ts`</li>
-<li>Test Samples: `/Users/kpillai/WorkData/Dev/web-ide/projects/build/samples/project_11/`</li>
+<li>Reference Grammar: `web-ide/simulator/src/languages/grammars/jack.ohm`</li>
+<li>Reference Implementation: `web-ide/simulator/src/languages/jack.ts`</li>
+<li>Test Samples: `web-ide/projects/build/samples/project_11/`</li>
 
 <h2>Next Steps</h2>
 

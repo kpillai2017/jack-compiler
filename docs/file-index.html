@@ -60,16 +60,17 @@
 
 <h2>File Organization</h2>
 
-<h3>Core Compiler (`src/`)</h3>
+<h3>Core Compiler (`jack_compiler/`)</h3>
 
 <pre><code class="language-">
-src/
+jack_compiler/
+├── __main__.py (enables `python -m jack_compiler`)
 ├── compiler.py (200 lines)
 │   Main entry point and CLI driver
 │   - Command-line argument parsing
 │   - File I/O handling
 │   - Batch compilation support
-│   Usage: python src/compiler.py input.jack -o output.vm
+│   Usage: jackc input.jack -o output.vm
 │
 ├── compiler_visitor.py (420 lines)
 │   ANTLR4 visitor pattern implementation
@@ -119,7 +120,7 @@ grammar/
     - 25+ grammar rules
     - Full expression and statement support
     - Comment and string literal handling
-    Run: java -jar antlr-4.13.0-complete.jar -Dlanguage=Python3 -visitor -o src/antlr_generated grammar/Jack.g4
+    Run: java -jar antlr-4.13.0-complete.jar -Dlanguage=Python3 -visitor -o jack_compiler/antlr_generated grammar/Jack.g4
 </code></pre>
 
 <h3>Examples (`examples/`)</h3>
@@ -173,22 +174,18 @@ tests/
     - test_subroutine_call()
     - test_string_constant()
     
-    Run: python tests/test_compiler.py
+    Run: pytest -v
 </code></pre>
 
 <h3>Build & Configuration</h3>
 
 <pre><code class="language-">
-├── setup.sh (automated setup)
-│   - Checks Java installation
-│   - Downloads ANTLR4 (if needed)
-│   - Generates parser/lexer
-│   - Installs Python dependencies
-│   Run: bash setup.sh
+├── pyproject.toml
+│   Python package configuration (provides the `jackc` command)
+│   Run: pip install -e ".[dev]"
 │
-├── setup.py
-│   Python package configuration
-│   Run: pip install -e .
+├── .github/workflows/ci.yml
+│   GitHub Actions: tests + grammar drift check
 │
 └── requirements.txt
     Python dependencies
@@ -275,15 +272,15 @@ tests/
 
 <h3>I want to use the compiler</h3>
 <p>1. Read: <strong>README.md</strong> (5 min)</p>
-<p>2. Run: <code>bash setup.sh</code> (2 min)</p>
-<p>3. Try: <code>python src/compiler.py examples/HelloWorld.jack -o test.vm</code> (1 min)</p>
+<p>2. Run: <code>pip install -e ".[dev]"</code> (2 min)</p>
+<p>3. Try: <code>jackc examples/HelloWorld.jack -o test.vm</code> (1 min)</p>
 <p>4. Reference: <strong>QUICK_REFERENCE.md</strong> (as needed)</p>
 
 <h3>I want to understand how it works</h3>
 <p>1. Read: <strong>README.md</strong> (10 min)</p>
 <p>2. Read: <strong>ARCHITECTURE.md</strong> (25 min)</p>
 <p>3. Read: <strong>IMPLEMENTATION_SUMMARY.md</strong> (10 min)</p>
-<p>4. Explore: Source code in <code>src/</code> (30 min)</p>
+<p>4. Explore: Source code in <code>jack_compiler/</code> (30 min)</p>
 
 <h3>I want to extend the compiler</h3>
 <p>1. Read: <strong>README.md</strong> (10 min)</p>
@@ -295,7 +292,7 @@ tests/
 <h3>I want to teach with this compiler</h3>
 <p>1. Read: <strong>README.md</strong> (10 min)</p>
 <p>2. Copy: <code>jack-compiler/</code> to students</p>
-<p>3. Have students run: <code>bash setup.sh</code> (5 min)</p>
+<p>3. Have students run: <code>pip install -e ".[dev]"</code> (5 min)</p>
 <p>4. Direct to: <strong>QUICK_REFERENCE.md</strong> and <strong>USAGE.md</strong></p>
 <p>5. Have them compile: Examples in <code>examples/</code></p>
 
@@ -314,10 +311,10 @@ tests/
 
 <h2>Generated Files (Auto)</h2>
 
-<p>After running <code>setup.sh</code>:</p>
+<p>Committed to the repository; regenerate with ANTLR if you change <code>grammar/Jack.g4</code>:</p>
 
 <pre><code class="language-">
-src/antlr_generated/
+jack_compiler/antlr_generated/
 ├── __init__.py
 └── grammar/
     ├── __init__.py
@@ -331,7 +328,7 @@ src/antlr_generated/
 
 <h2>Example Compilation Output</h2>
 
-<p>When you run <code>python src/compiler.py examples/Math.jack -o output.vm</code>:</p>
+<p>When you run <code>jackc examples/Math.jack -o output.vm</code>:</p>
 
 <p><strong>Input</strong>: <code>examples/Math.jack</code></p>
 <pre><code class="language-jack">
@@ -374,19 +371,19 @@ return
 
 <pre><code class="language-bash">
 # Run all tests
-python tests/test_compiler.py
+pytest -v
 
 # Compile examples
-python src/compiler.py examples/ -o out/
+jackc examples/ -o out/
 
 # Check help
-python src/compiler.py -h
+jackc -h
 </code></pre>
 
 <h2>Troubleshooting</h2>
 
 <p><strong>"ANTLR-generated files not found"</strong></p>
-<p>→ Run: <code>bash setup.sh</code></p>
+<p>→ Run: <code>pip install -e ".[dev]"</code></p>
 
 <p><strong>"Java not found"</strong></p>
 <p>→ Install Java: <code>brew install openjdk</code> (macOS) or system package manager</p>
@@ -421,7 +418,7 @@ project/
 └── Math.jack
 
 Compile all:
-python src/compiler.py project/ -o bin/
+jackc project/ -o bin/
 
 Result:
 bin/
@@ -433,7 +430,7 @@ bin/
 <h2>Next Steps</h2>
 
 <p>1. <strong>Start Here</strong>: Read README.md</p>
-<p>2. <strong>Try It</strong>: Run <code>bash setup.sh</code></p>
+<p>2. <strong>Try It</strong>: Run <code>pip install -e ".[dev]"</code></p>
 <p>3. <strong>Learn Syntax</strong>: Use QUICK_REFERENCE.md</p>
 <p>4. <strong>Deep Dive</strong>: Study ARCHITECTURE.md</p>
 <p>5. <strong>Extend</strong>: Modify grammar/Jack.g4 for new features</p>

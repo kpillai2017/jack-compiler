@@ -3,8 +3,9 @@ Code generator for Jack compiler.
 Converts parsed Jack AST to Hack VM code.
 """
 
-from typing import List, Optional
-from symbols import SymbolTable, VarKind
+from typing import List
+
+from .symbols import SymbolTable, VarKind
 
 
 class CodeGenerator:

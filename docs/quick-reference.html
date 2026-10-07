@@ -50,26 +50,26 @@
 
 <pre><code class="language-bash">
 cd jack-compiler
-bash setup.sh
+pip install -e ".[dev]"
 </code></pre>
 
 <h2>Basic Usage</h2>
 
 <pre><code class="language-bash">
 # Compile single file
-python src/compiler.py input.jack -o output.vm
+jackc input.jack -o output.vm
 
 # Compile directory
-python src/compiler.py src_dir/ -o out_dir/
+jackc src_dir/ -o out_dir/
 
 # In-place compilation
-python src/compiler.py src_dir/
+jackc src_dir/
 </code></pre>
 
 <h2>Run Tests</h2>
 
 <pre><code class="language-bash">
-python tests/test_compiler.py
+pytest -v
 </code></pre>
 
 <h2>Jack Language Syntax</h2>
@@ -426,7 +426,7 @@ project/
 </ul>
 <p>Compile all at once:</p>
 <pre><code class="language-bash">
-python compiler.py project/ -o output/
+jackc project/ -o output/
 </code></pre>
 
 <h2>VM Output Format</h2>
@@ -454,7 +454,7 @@ return
 
 <pre><code class="language-bash">
 # 1. Compile Jack to VM
-python compiler.py program.jack -o program.vm
+jackc program.jack -o program.vm
 
 # 2. Translate VM to Hack Assembly
 java -jar VMTranslator.jar program.vm
@@ -485,11 +485,11 @@ java -jar VMTranslator.jar program.vm
 
 <p>| Task | Command |</p>
 <p>|------|---------|</p>
-<p>| Setup | <code>bash setup.sh</code> |</p>
-<p>| Compile file | <code>python src/compiler.py in.jack -o out.vm</code> |</p>
-<p>| Compile dir | <code>python src/compiler.py src/ -o bin/</code> |</p>
-<p>| Run tests | <code>python tests/test_compiler.py</code> |</p>
-<p>| View help | <code>python src/compiler.py -h</code> |</p>
+<p>| Setup | <code>pip install -e ".[dev]"</code> |</p>
+<p>| Compile file | <code>jackc in.jack -o out.vm</code> |</p>
+<p>| Compile dir | <code>jackc src/ -o bin/</code> |</p>
+<p>| Run tests | <code>pytest -v</code> |</p>
+<p>| View help | <code>jackc -h</code> |</p>
 
         </div>
         <div class="footer">

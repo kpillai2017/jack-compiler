@@ -4,26 +4,26 @@
 
 ```bash
 cd jack-compiler
-bash setup.sh
+pip install -e ".[dev]"
 ```
 
 ## Basic Usage
 
 ```bash
 # Compile single file
-python src/compiler.py input.jack -o output.vm
+jackc input.jack -o output.vm
 
 # Compile directory
-python src/compiler.py src_dir/ -o out_dir/
+jackc src_dir/ -o out_dir/
 
 # In-place compilation
-python src/compiler.py src_dir/
+jackc src_dir/
 ```
 
 ## Run Tests
 
 ```bash
-python tests/test_compiler.py
+pytest -v
 ```
 
 ## Jack Language Syntax
@@ -378,7 +378,7 @@ project/
 
 Compile all at once:
 ```bash
-python compiler.py project/ -o output/
+jackc project/ -o output/
 ```
 
 ## VM Output Format
@@ -406,7 +406,7 @@ return
 
 ```bash
 # 1. Compile Jack to VM
-python compiler.py program.jack -o program.vm
+jackc program.jack -o program.vm
 
 # 2. Translate VM to Hack Assembly
 java -jar VMTranslator.jar program.vm
@@ -435,8 +435,8 @@ java -jar VMTranslator.jar program.vm
 
 | Task | Command |
 |------|---------|
-| Setup | `bash setup.sh` |
-| Compile file | `python src/compiler.py in.jack -o out.vm` |
-| Compile dir | `python src/compiler.py src/ -o bin/` |
-| Run tests | `python tests/test_compiler.py` |
-| View help | `python src/compiler.py -h` |
+| Setup | `pip install -e ".[dev]"` |
+| Compile file | `jackc in.jack -o out.vm` |
+| Compile dir | `jackc src/ -o bin/` |
+| Run tests | `pytest -v` |
+| View help | `jackc -h` |

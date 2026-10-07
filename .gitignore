@@ -138,6 +138,10 @@ dmypy.json
 
 # Project specific
 *.vm
+!tests/expected/*.vm
+output/
 compiled_examples/
 final_test/
-jack-compiler/
+
+# ANTLR tool cache
+.antlr/

@@ -2,7 +2,7 @@
 
 ## Status: In Progress
 
-This document tracks adjustments to ensure our ANTLR4-based Jack compiler produces output compatible with the reference implementation in `~/WorkData/Dev/web-ide`.
+This document tracks adjustments to ensure our ANTLR4-based Jack compiler produces output compatible with the reference implementation in [nand2tetris/web-ide](https://github.com/nand2tetris/web-ide).
 
 ## Adjustments Made
 
@@ -16,7 +16,7 @@ This document tracks adjustments to ensure our ANTLR4-based Jack compiler produc
   - Now supports: `int`, `char`, `boolean`, `String`, and custom classes
 
 ### 2. 🔄 AST Structure Update (In Progress)
-- **File**: `src/compiler_visitor.py`
+- **File**: `jack_compiler/compiler_visitor.py`
 - **Change**: Update to match reference AST format
 - **Status**: PENDING
 - **Details**:
@@ -26,7 +26,7 @@ This document tracks adjustments to ensure our ANTLR4-based Jack compiler produc
   - Term types: `numericLiteral`, `stringLiteral`, `keywordLiteral`, `variable`, `arrayAccess`, `subroutineCall`, `groupedExpression`, `unaryExpression`
 
 ### 3. 🔄 VM Code Generator Update (Pending)
-- **File**: `src/codegen.py`
+- **File**: `jack_compiler/codegen.py`
 - **Change**: Format VM output with proper indentation
 - **Status**: PENDING
 - **Details**:
@@ -38,7 +38,7 @@ This document tracks adjustments to ensure our ANTLR4-based Jack compiler produc
 
 ### Location
 ```
-/Users/kpillai/WorkData/Dev/web-ide/simulator/src/languages/
+web-ide/simulator/src/languages/
 ├── grammars/jack.ohm      (OHM grammar)
 ├── jack.ts                (Parser + AST generation)
 └── jack.test.ts           (Tests)
@@ -216,7 +216,7 @@ function Main.main 0
 ## Files to Update
 
 ```
-jack-compiler/src/
+jack-compiler/jack_compiler/
 ├── compiler_visitor.py      ← Major rewrite needed
 ├── codegen.py              ← VM formatting updates
 └── symbols.py              ← Already compatible
@@ -224,9 +224,9 @@ jack-compiler/src/
 
 ## References
 
-- Reference Grammar: `/Users/kpillai/WorkData/Dev/web-ide/simulator/src/languages/grammars/jack.ohm`
-- Reference Implementation: `/Users/kpillai/WorkData/Dev/web-ide/simulator/src/languages/jack.ts`
-- Test Samples: `/Users/kpillai/WorkData/Dev/web-ide/projects/build/samples/project_11/`
+- Reference Grammar: `web-ide/simulator/src/languages/grammars/jack.ohm`
+- Reference Implementation: `web-ide/simulator/src/languages/jack.ts`
+- Test Samples: `web-ide/projects/build/samples/project_11/`
 
 ## Next Steps
 
