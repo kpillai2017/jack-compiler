@@ -26,6 +26,11 @@
         li { margin-bottom: 8px; }
         a { color: #007acc; text-decoration: none; border-bottom: 1px dotted #007acc; }
         a:hover { background-color: #f0f7ff; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: #f0f0f0; font-weight: bold; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        blockquote { border-left: 4px solid #f0ad4e; background: #fff8e6; margin: 20px 0; padding: 4px 16px; }
         .footer { margin-top: 50px; padding-top: 20px; border-top: 1px solid #eee; color: #999; font-size: 0.9em; text-align: center; }
         strong { font-weight: 600; }
         em { font-style: italic; }
@@ -40,572 +45,183 @@
             </div>
         </div>
         <div class="content">
-<div style="border-left:4px solid #f0ad4e;background:#fff8e6;padding:12px 16px;margin:0 0 20px;">
-<strong>Note:</strong> This page describes the standalone <code>compile_all.sh</code> batch script, which is
-<strong>not included in this repository</strong>. For batch compilation use the built-in directory mode:
-<code>jackc &lt;dir&gt; [-o &lt;outdir&gt;]</code> (non-recursive; exits non-zero if any file fails).
-</div>
-
-            <h1>Batch Compilation Examples</h1>
-
-<p>This document provides practical examples of using the <code>compile_all.sh</code> script for various scenarios.</p>
-
+<h1>Batch Compilation Examples</h1>
+<p>Worked examples for <code>jackc</code>'s batch options. The output shown is real; colour
+codes are omitted. For the full option reference see the
+<a href="batch-compilation.html">Batch Compilation Guide</a>.</p>
 <h2>Quick Reference</h2>
-
-<pre><code class="language-bash">
-# Help
-./compile_all.sh --help
-
-# Compile current directory recursively
-./compile_all.sh .
-
-# Compile specific directory
-./compile_all.sh src/
-
-# Preview without compiling
-./compile_all.sh . --dry-run
-
-# Clean old VM files and recompile
-./compile_all.sh . --clean
-
-# Detailed output
-./compile_all.sh . --verbose
-
-# Combine options
-./compile_all.sh src/ --clean --verbose
+<pre><code class="language-bash">jackc src/                          # one directory
+jackc -r src/                       # directory tree, output next to sources
+jackc -r src/ -o build/             # directory tree, output mirrored under build/
+jackc -r --clean --dry-run src/     # preview a clean rebuild
+jackc -r --clean src/               # clean rebuild
+jackc src/Main.jack                 # single file
 </code></pre>
-
-<h2>Example 1: Simple Single-Level Directory</h2>
-
-<h3>Scenario</h3>
-<p>You have a simple project with Jack files in one directory:</p>
-
-<pre><code class="language-">
-my_project/
+<p>The examples below use this project:</p>
+<pre><code>src/
 ├── Main.jack
-├── Game.jack
-└── Player.jack
+└── game/
+    ├── Ghost.vm          ← leftover from a deleted class
+    ├── Math.jack
+    └── objects/
+        └── Point.jack
 </code></pre>
+<h2>Example 1: One Directory</h2>
+<pre><code>$ jackc src/
 
-<h3>Command</h3>
-<pre><code class="language-bash">
-cd my_project
-/path/to/jack-compiler/compile_all.sh .
+════════════════════════════════════════════════════════════
+JACK COMPILER - BATCH COMPILATION
+════════════════════════════════════════════════════════════
+Found 1 Jack file(s) to compile
+────────────────────────────────────────────────────────────
+
+[1/1] ✓ SUCCESS: src/Main.jack
+  → src/Main.vm
+
+────────────────────────────────────────────────────────────
+Compiled: 1  Failed: 0  Total: 1
+✓ ALL COMPILATIONS SUCCESSFUL
+════════════════════════════════════════════════════════════
 </code></pre>
+<p>Only <code>src/</code> itself is searched; <code>src/game/</code> is ignored without <code>-r</code>.</p>
+<h2>Example 2: Whole Tree, In Place</h2>
+<pre><code>$ jackc -r src/
 
-<h3>Output</h3>
-<pre><code class="language-">
-ℹ Jack Compiler - Recursive Batch Compilation
+════════════════════════════════════════════════════════════
+JACK COMPILER - BATCH COMPILATION (RECURSIVE)
+════════════════════════════════════════════════════════════
+Found 3 Jack file(s) to compile
+────────────────────────────────────────────────────────────
 
-ℹ Source Directory: /home/user/my_project
+[1/3] ✓ SUCCESS: src/Main.jack
+  → src/Main.vm
 
-ℹ Found 3 Jack file(s) in 1 directory/directories
+[2/3] ✓ SUCCESS: src/game/Math.jack
+  → src/game/Math.vm
 
-ℹ Compiling: ...
+[3/3] ✓ SUCCESS: src/game/objects/Point.jack
+  → src/game/objects/Point.vm
 
-╔════════════════════════════════════════════════════════════════╗
-║                   COMPILATION SUMMARY                          ║
-╠════════════════════════════════════════════════════════════════╣
-║  Total Files Found:                                           3║
-║  Successfully Compiled:                                       3║
-║  Time Elapsed:                                               1s║
-╚════════════════════════════════════════════════════════════════╝
-
-✓ All files compiled successfully!
+────────────────────────────────────────────────────────────
+Compiled: 3  Failed: 0  Total: 3
+✓ ALL COMPILATIONS SUCCESSFUL
+════════════════════════════════════════════════════════════
 </code></pre>
-
-<h3>Result</h3>
-<pre><code class="language-">
-my_project/
-├── Main.jack
-├── Main.vm           ← Generated
-├── Game.jack
-├── Game.vm           ← Generated
-├── Player.jack
-└── Player.vm         ← Generated
-</code></pre>
-
-<h2>Example 2: Nested Directory Structure</h2>
-
-<h3>Scenario</h3>
-<p>You have a complex project with subdirectories:</p>
-
-<pre><code class="language-">
-game_project/
-├── Main.jack
-├── core/
-│   ├── Game.jack
-│   ├── GameController.jack
-│   └── physics/
-│       ├── Physics.jack
-│       └── Collision.jack
-└── ui/
-    ├── Menu.jack
-    └── HUD.jack
-</code></pre>
-
-<h3>Command</h3>
-<pre><code class="language-bash">
-./compile_all.sh game_project/
-</code></pre>
-
-<h3>Output</h3>
-<pre><code class="language-">
-ℹ Jack Compiler - Recursive Batch Compilation
-
-ℹ Source Directory: /home/user/game_project
-
-ℹ Found 7 Jack file(s) in 4 directory/directories
-
-ℹ Compiling: .......
-
-╔════════════════════════════════════════════════════════════════╗
-║                   COMPILATION SUMMARY                          ║
-╠════════════════════════════════════════════════════════════════╣
-║  Total Files Found:                                           7║
-║  Successfully Compiled:                                       7║
-║  Time Elapsed:                                               2s║
-╚════════════════════════════════════════════════════════════════╝
-
-✓ All files compiled successfully!
-</code></pre>
-
-<h3>Result</h3>
-<p>All directories get their <code>.vm</code> files generated:</p>
-<pre><code class="language-">
-game_project/
-├── Main.jack
-├── Main.vm           ← Generated
-├── core/
-│   ├── Game.jack
-│   ├── Game.vm       ← Generated
-│   ├── GameController.jack
-│   ├── GameController.vm  ← Generated
-│   └── physics/
-│       ├── Physics.jack
-│       ├── Physics.vm ← Generated
-│       ├── Collision.jack
-│       └── Collision.vm ← Generated
-└── ui/
-    ├── Menu.jack
-    ├── Menu.vm       ← Generated
-    ├── HUD.jack
-    └── HUD.vm        ← Generated
-</code></pre>
-
-<h2>Example 3: Preview Before Compiling</h2>
-
-<h3>Scenario</h3>
-<p>You want to see what files will be compiled before actually compiling them.</p>
-
-<h3>Command</h3>
-<pre><code class="language-bash">
-./compile_all.sh . --dry-run
-</code></pre>
-
-<h3>Output</h3>
-<pre><code class="language-">
-ℹ Jack Compiler - Recursive Batch Compilation
-
-ℹ Source Directory: /home/user/project
-
-⚠ DRY RUN MODE - no files will be compiled
-
-ℹ Found 5 Jack file(s) in 2 directory/directories
-
-ℹ Compiling: 
-ℹ Would compile: src/Main.jack → src/Main.vm
-ℹ Would compile: src/Game.jack → src/Game.vm
-ℹ Would compile: src/utils/Math.jack → src/utils/Math.vm
-ℹ Would compile: src/utils/String.jack → src/utils/String.vm
-ℹ Would compile: examples/Test.jack → examples/Test.vm
-
-╔════════════════════════════════════════════════════════════════╗
-║                   COMPILATION SUMMARY                          ║
-╠════════════════════════════════════════════════════════════════╣
-║  Mode:                     DRY RUN (no files actually compiled)║
-║  Total Files Found:                                           5║
-║  Successfully Compiled:                                        ║
-║  Time Elapsed:                                               0s║
-╚════════════════════════════════════════════════════════════════╝
-</code></pre>
-
-<p><strong>Note:</strong> No <code>.vm</code> files are created; it's just a preview.</p>
-
-<h2>Example 4: Clean and Rebuild</h2>
-
-<h3>Scenario</h3>
-<p>You want to remove all old <code>.vm</code> files and rebuild the project from scratch.</p>
-
-<h3>Command</h3>
-<pre><code class="language-bash">
-./compile_all.sh . --clean
-</code></pre>
-
-<h3>Output</h3>
-<pre><code class="language-">
-ℹ Jack Compiler - Recursive Batch Compilation
-
-ℹ Source Directory: /home/user/project
-
-ℹ Found 10 Jack file(s) in 3 directory/directories
-
-⚠ Cleaning .vm files in /home/user/project...
-
-✓ Removed 10 .vm file(s)
-
-ℹ Compiling: ..........
-
-╔════════════════════════════════════════════════════════════════╗
-║                   COMPILATION SUMMARY                          ║
-╠════════════════════════════════════════════════════════════════╣
-║  Total Files Found:                                          10║
-║  Successfully Compiled:                                      10║
-║  Time Elapsed:                                               3s║
-╚════════════════════════════════════════════════════════════════╝
-
-✓ All files compiled successfully!
-</code></pre>
-
-<h2>Example 5: Verbose Mode for Troubleshooting</h2>
-
-<h3>Scenario</h3>
-<p>You want detailed output to track compilation progress and identify issues.</p>
-
-<h3>Command</h3>
-<pre><code class="language-bash">
-./compile_all.sh . --verbose
-</code></pre>
-
-<h3>Output</h3>
-<pre><code class="language-">
-ℹ Jack Compiler - Recursive Batch Compilation
-
-ℹ Source Directory: /home/user/project
-
-ℹ Found 5 Jack file(s) in 2 directory/directories
-
-ℹ Starting compilation...
-
-ℹ Compiling: src/Main.jack
-✓ Compiled: src/Main.jack → src/Main.vm
-ℹ Compiling: src/Game.jack
-✓ Compiled: src/Game.jack → src/Game.vm
-ℹ Compiling: src/utils/Math.jack
-✓ Compiled: src/utils/Math.jack → src/utils/Math.vm
-ℹ Compiling: src/utils/String.jack
-✓ Compiled: src/utils/String.jack → src/utils/String.vm
-ℹ Compiling: examples/Test.jack
-✓ Compiled: examples/Test.jack → examples/Test.vm
-
-╔════════════════════════════════════════════════════════════════╗
-║                   COMPILATION SUMMARY                          ║
-╠════════════════════════════════════════════════════════════════╣
-║  Total Files Found:                                           5║
-║  Successfully Compiled:                                       5║
-║  Time Elapsed:                                               2s║
-╚════════════════════════════════════════════════════════════════╝
-
-✓ All files compiled successfully!
-</code></pre>
-
-<h2>Example 6: Error Handling</h2>
-
-<h3>Scenario</h3>
-<p>One or more Jack files have syntax errors.</p>
-
-<h3>Command</h3>
-<pre><code class="language-bash">
-./compile_all.sh .
-</code></pre>
-
-<h3>Output</h3>
-<pre><code class="language-">
-ℹ Jack Compiler - Recursive Batch Compilation
-
-ℹ Source Directory: /home/user/project
-
-ℹ Found 5 Jack file(s) in 2 directory/directories
-
-ℹ Compiling: .✗..✓.
-
-✗ Failed to compile: src/broken.jack
-
-╔════════════════════════════════════════════════════════════════╗
-║                   COMPILATION SUMMARY                          ║
-╠════════════════════════════════════════════════════════════════╣
-║  Total Files Found:                                           5║
-║  Successfully Compiled:                                       4║
-║  Failed:                                                      1║
-║  Time Elapsed:                                               2s║
-╚════════════════════════════════════════════════════════════════╝
-
-✗ The following files failed to compile:
-  - src/broken.jack
-</code></pre>
-
-<h3>How to Fix</h3>
-<p>1. Use verbose mode to see the exact error: <code>./compile_all.sh . --verbose</code></p>
-<p>2. Fix the syntax error in <code>src/broken.jack</code></p>
-<p>3. Recompile: <code>./compile_all.sh .</code></p>
-
-<h2>Example 7: Combining Options</h2>
-
-<h3>Scenario</h3>
-<p>You want to clean old files, see detailed output, and rebuild.</p>
-
-<h3>Command</h3>
-<pre><code class="language-bash">
-./compile_all.sh src/ --clean --verbose
-</code></pre>
-
-<h3>Output</h3>
-<pre><code class="language-">
-ℹ Jack Compiler - Recursive Batch Compilation
-
-ℹ Source Directory: /home/user/src
-
-ℹ Found 8 Jack file(s) in 3 directory/directories
-
-⚠ Cleaning .vm files in /home/user/src...
-
-✓ Removed 8 .vm file(s)
-
-ℹ Starting compilation...
-
-ℹ Compiling: src/Main.jack
-✓ Compiled: src/Main.jack → src/Main.vm
-ℹ Compiling: src/Game.jack
-✓ Compiled: src/Game.jack → src/Game.vm
+<h2>Example 3: Whole Tree, Separate Output Directory</h2>
+<pre><code>$ jackc -r src/ -o build/
 ...
+[1/3] ✓ SUCCESS: src/Main.jack
+  → build/Main.vm
 
-╔════════════════════════════════════════════════════════════════╗
-║                   COMPILATION SUMMARY                          ║
-╠════════════════════════════════════════════════════════════════╣
-║  Total Files Found:                                           8║
-║  Successfully Compiled:                                       8║
-║  Time Elapsed:                                               3s║
-╚════════════════════════════════════════════════════════════════╝
+[2/3] ✓ SUCCESS: src/game/Math.jack
+  → build/game/Math.vm
 
-✓ All files compiled successfully!
+[3/3] ✓ SUCCESS: src/game/objects/Point.jack
+  → build/game/objects/Point.vm
+...
 </code></pre>
-
-<h2>Example 8: Compiling Only Subdirectories</h2>
-
-<h3>Scenario</h3>
-<p>You have a project structure and want to compile only the <code>src/</code> subdirectory.</p>
-
-<pre><code class="language-">
-project/
-├── src/
-│   ├── Main.jack
-│   ├── Game.jack
-│   └── core/
-│       └── Engine.jack
-├── examples/
-│   └── test.jack
-└── tests/
-    └── unit_test.jack
+<p>Result:</p>
+<pre><code>build/
+├── Main.vm
+└── game/
+    ├── Math.vm
+    └── objects/
+        └── Point.vm
 </code></pre>
+<h2>Example 4: Preview Before Compiling</h2>
+<p><code>--dry-run</code> (or <code>-n</code>) prints the plan and changes nothing:</p>
+<pre><code>$ jackc -r --clean --dry-run src/
 
-<h3>Command</h3>
-<pre><code class="language-bash">
-./compile_all.sh src/
+════════════════════════════════════════════════════════════
+JACK COMPILER - BATCH COMPILATION (RECURSIVE) - DRY RUN
+════════════════════════════════════════════════════════════
+Would remove 4 existing .vm file(s)
+  - src/Main.vm
+  - src/game/Ghost.vm
+  - src/game/Math.vm
+  - src/game/objects/Point.vm
+Would compile 3 Jack file(s)
+────────────────────────────────────────────────────────────
+  src/Main.jack → src/Main.vm
+  src/game/Math.jack → src/game/Math.vm
+  src/game/objects/Point.jack → src/game/objects/Point.vm
+════════════════════════════════════════════════════════════
 </code></pre>
+<h2>Example 5: Clean and Rebuild</h2>
+<pre><code>$ jackc -r --clean src/
 
-<h3>Result</h3>
-<p>Only files in <code>src/</code> and its subdirectories are compiled:</p>
-<pre><code class="language-">
-project/
-├── src/
-│   ├── Main.jack
-│   ├── Main.vm       ← Generated
-│   ├── Game.jack
-│   ├── Game.vm       ← Generated
-│   └── core/
-│       ├── Engine.jack
-│       └── Engine.vm ← Generated
-├── examples/
-│   └── test.jack     ← NOT compiled
-└── tests/
-    └── unit_test.jack ← NOT compiled
+════════════════════════════════════════════════════════════
+JACK COMPILER - BATCH COMPILATION (RECURSIVE)
+════════════════════════════════════════════════════════════
+Removed 4 existing .vm file(s)
+  - src/Main.vm
+  - src/game/Ghost.vm
+  - src/game/Math.vm
+  - src/game/objects/Point.vm
+Found 3 Jack file(s) to compile
+...
+Compiled: 3  Failed: 0  Total: 3
+✓ ALL COMPILATIONS SUCCESSFUL
 </code></pre>
+<p>The stale <code>Ghost.vm</code> is gone; everything else is rebuilt.</p>
+<h2>Example 6: A File With Errors</h2>
+<p>After adding a broken <code>src/game/Broken.jack</code>:</p>
+<pre><code>$ jackc -r --clean src/
+...
+[2/4] ✗ COMPILATION FAILED: src/game/Broken.jack
+  2 syntax error(s):
+  src/game/Broken.jack:3:17: mismatched input ';' expecting {'true', 'false', 'null', 'this', '-', '~', '(', INTEGER, STRING_LITERAL, IDENTIFIER}
+  src/game/Broken.jack:5:5: mismatched input '}' expecting {'true', 'false', 'null', 'this', '-', '~', ';', '(', INTEGER, STRING_LITERAL, IDENTIFIER}
 
-<h2>Example 9: Saving Output to Log File</h2>
-
-<h3>Scenario</h3>
-<p>You want to save compilation output to a file for review or archiving.</p>
-
-<h3>Command</h3>
-<pre><code class="language-bash">
-./compile_all.sh . --verbose &gt; compilation.log 2&gt;&amp;1
+[3/4] ✓ SUCCESS: src/game/Math.jack
+  → src/game/Math.vm
+...
+────────────────────────────────────────────────────────────
+Compiled: 3  Failed: 1  Total: 4
+✗ SOME COMPILATIONS FAILED
+  ✗ src/game/Broken.jack
+════════════════════════════════════════════════════════════
+$ echo $?
+1
 </code></pre>
-
-<h3>Usage</h3>
-<pre><code class="language-bash">
-# View the log
-cat compilation.log
-
-# Search the log
-grep "Failed" compilation.log
-
-# Count files
-grep "Compiled:" compilation.log | wc -l
+<p>The other files are still compiled. Because <code>--clean</code> was used, no stale
+<code>Broken.vm</code> is left behind.</p>
+<h2>Example 7: Only Part of a Tree</h2>
+<p>Point <code>jackc</code> at the sub-directory you want:</p>
+<pre><code class="language-bash">jackc -r src/game/
 </code></pre>
-
-<h2>Example 10: Integration with Build System</h2>
-
-<h3>Scenario</h3>
-<p>You want a complete build script that compiles, runs tests, and reports results.</p>
-
-<h3>build.sh Script</h3>
-<pre><code class="language-bash">
-#!/bin/bash
-
-echo "========================================"
-echo "Building Jack Project"
-echo "========================================"
-echo ""
-
-# Navigate to project
-cd $(dirname "$0")
-
-# Clean old files
-echo "Step 1: Cleaning old VM files..."
-./compile_all.sh src/ --clean
-BUILD_RESULT=$?
-
-if [ $BUILD_RESULT -ne 0 ]; then
-    echo "Build failed at compilation step!"
+<h2>Example 8: Single File</h2>
+<pre><code class="language-bash">jackc src/Main.jack                  # → src/Main.vm
+jackc src/Main.jack -o out/Main.vm   # → out/Main.vm (directories created)
+jackc --clean src/Main.jack          # removes only src/Main.vm first
+jackc -n src/Main.jack               # shows the plan; writes nothing
+</code></pre>
+<h2>Example 9: Saving Output to a Log</h2>
+<pre><code class="language-bash">jackc -r src/ &gt; build.log 2&gt;&amp;1
+</code></pre>
+<p>Colour is disabled automatically when output is redirected (or when <code>NO_COLOR</code> is set).</p>
+<h2>Example 10: Build Systems</h2>
+<p><strong>Make</strong></p>
+<pre><code class="language-makefile">build:
+    jackc -r --clean src/ -o build/
+</code></pre>
+<p><strong>Shell</strong></p>
+<pre><code class="language-bash">if jackc -r src/; then
+    echo &quot;Build OK&quot;
+else
+    echo &quot;Build failed&quot; &gt;&amp;2
     exit 1
 fi
-
-echo ""
-echo "Step 2: Running tests..."
-pytest -v
-TEST_RESULT=$?
-
-if [ $TEST_RESULT -ne 0 ]; then
-    echo "Build failed at testing step!"
-    exit 1
-fi
-
-echo ""
-echo "========================================"
-echo "Build successful!"
-echo "========================================"
 </code></pre>
-
-<h3>Usage</h3>
-<pre><code class="language-bash">
-bash build.sh
-</code></pre>
-
-<h2>Performance Examples</h2>
-
-<h3>Small Project (5 files)</h3>
-<pre><code class="language-">
-ℹ Found 5 Jack file(s) in 1 directory/directories
-ℹ Compiling: .....
-Time Elapsed: 0s
-</code></pre>
-
-<h3>Medium Project (50 files)</h3>
-<pre><code class="language-">
-ℹ Found 50 Jack file(s) in 8 directory/directories
-ℹ Compiling: ..................................................
-Time Elapsed: 4s
-</code></pre>
-
-<h3>Large Project (500 files)</h3>
-<pre><code class="language-">
-ℹ Found 500 Jack file(s) in 45 directory/directories
-ℹ Compiling: (shows progress dots)
-Time Elapsed: 45s
-</code></pre>
-
-<h2>Tips for Effective Batch Compilation</h2>
-
-<h3>Tip 1: Always Preview First</h3>
-<p>Use <code>--dry-run</code> to verify the script will process the right files:</p>
-<pre><code class="language-bash">
-./compile_all.sh . --dry-run
-</code></pre>
-
-<h3>Tip 2: Use Verbose for Large Projects</h3>
-<p>For projects with many files, use verbose mode:</p>
-<pre><code class="language-bash">
-./compile_all.sh . --verbose | tee build.log
-</code></pre>
-
-<h3>Tip 3: Clean Before Rebuild</h3>
-<p>Always clean when rebuilding to avoid stale files:</p>
-<pre><code class="language-bash">
-./compile_all.sh . --clean
-</code></pre>
-
-<h3>Tip 4: Check File Counts</h3>
-<p>Verify the number of <code>.jack</code> and <code>.vm</code> files match:</p>
-<pre><code class="language-bash">
-find . -name "*.jack" | wc -l  # Should match...
-find . -name "*.vm" | wc -l    # ...this count
-</code></pre>
-
-<h3>Tip 5: Save Build Logs</h3>
-<p>Keep logs of builds for troubleshooting:</p>
-<pre><code class="language-bash">
-./compile_all.sh . &gt; build-$(date +%Y%m%d-%H%M%S).log 2&gt;&amp;1
-</code></pre>
-
-<h2>Troubleshooting Examples</h2>
-
-<h3>Issue: Script Not Found</h3>
-<pre><code class="language-bash">
-# Make it executable
-chmod +x compile_all.sh
-
-# Then run
-./compile_all.sh .
-</code></pre>
-
-<h3>Issue: Python Not Found</h3>
-<pre><code class="language-bash">
-# Install Python
-brew install python3        # macOS
-sudo apt-get install python3 # Linux
-
-# Verify
-python3 --version
-</code></pre>
-
-<h3>Issue: Compiler Not Found</h3>
-<pre><code class="language-bash">
-# Make sure you're in jack-compiler directory
-cd jack-compiler
-./compile_all.sh examples/
-</code></pre>
-
-<h3>Issue: Some Files Failed</h3>
-<pre><code class="language-bash">
-# Run with verbose to see errors
-./compile_all.sh . --verbose
-
-# Fix the problematic file
-# Then recompile
-./compile_all.sh .
-</code></pre>
-
 <h2>See Also</h2>
-
 <ul>
-<li>[BATCH_COMPILATION.md](BATCH_COMPILATION.md) - Detailed guide</li>
-<li>[USAGE.md](USAGE.md) - General compiler usage</li>
-<li>[QUICK_REFERENCE.md](QUICK_REFERENCE.md) - Jack syntax reference</li>
-
+<li><a href="batch-compilation.html">Batch Compilation Guide</a></li>
+<li><a href="batch-summary.html">Batch Compilation Summary</a></li>
+<li><a href="error-detection.html">Error Detection &amp; Handling Guide</a></li>
 </ul>
         </div>
         <div class="footer">
-            <p>Jack Compiler Documentation | Generated 2025-11-27 20:29:41</p>
+            <p>Jack Compiler Documentation | Generated 2026-10-07 13:38:21</p>
         </div>
     </div>
 </body>

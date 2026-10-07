@@ -403,10 +403,18 @@ pop that 0              // Store in array
 
 The compiler handles errors at multiple levels:
 
-1. **Lexical Errors**: Invalid characters (handled by ANTLR4)
-2. **Syntax Errors**: Invalid grammar (detected by ANTLR4 parser)
-3. **Semantic Errors**: Undefined variables, type mismatches (detected during visiting)
+1. **Lexical Errors**: Invalid characters, unterminated strings (ANTLR4 lexer)
+2. **Syntax Errors**: Invalid grammar (ANTLR4 parser)
+3. **Semantic Errors**: Undefined variables (detected while visiting)
 4. **I/O Errors**: File not found, write permission denied
+
+Lexer and parser errors are captured by `CollectingErrorListener`
+(`jack_compiler/compiler.py`) rather than ANTLR's default console listener,
+and raised as `JackSyntaxError`, whose `.errors` list holds
+`file:line:col: message` strings (1-based). The driver prints them beneath the
+failing file, and no `.vm` file is written for it. Types, subroutine names and
+argument counts are not checked — as in the reference Jack compiler, those
+are resolved by the VM at run time. See [ERROR_DETECTION.md](ERROR_DETECTION.md).
 
 ## Performance Considerations
 
@@ -436,7 +444,7 @@ The compiler can be extended with:
 1. **Additional operators**: Add to grammar and visitor
 2. **New built-in types**: Modify symbol table type checking
 3. **Optimizations**: Post-processing on generated VM code
-4. **Better error messages**: Enhanced error listener in parser
+4. **More semantic checks**: e.g. warn on a missing `return` or unknown subroutine
 
 ## References
 

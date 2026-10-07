@@ -354,18 +354,21 @@ pointer     - Pointer 0 (this), Pointer 1 (that)
 ## Common Errors
 
 ```
-Error: Undefined variable
-→ Declare variable with var, field, or static
+✗ COMPILATION ERROR ... Undefined variable: x
+→ Declare the variable with var, field, or static
 
-Error: Syntax errors
-→ Check braces, semicolons, keywords
+✗ COMPILATION FAILED ... N syntax error(s):
+  File.jack:LINE:COL: <message>
+→ Go to LINE:COL (or the line before it); check braces, semicolons, keywords
 
-Error: Undefined subroutine
-→ Check class name, method name, and argument count
-
-Error: Type mismatch
-→ Ensure correct variable types and assignments
+token recognition error at: '@'
+→ Remove the invalid character / close the string literal
 ```
+
+Not detected at compile time (Jack is weakly typed and calls are resolved by
+the VM): undefined subroutines, wrong argument counts, type mismatches and a
+missing `return`. These surface when the program runs in the VM Emulator.
+See [ERROR_DETECTION.md](ERROR_DETECTION.md).
 
 ## File Organization
 

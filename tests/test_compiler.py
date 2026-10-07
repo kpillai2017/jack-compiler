@@ -180,6 +180,27 @@ class TestEndToEnd:
         assert not JackCompiler().compile_file(str(bad), str(tmp_path / "Bad.vm"))
         assert not (tmp_path / "Bad.vm").exists()
 
+    def test_syntax_errors_are_located_and_not_on_stderr(self, tmp_path, capsys):
+        from jack_compiler import JackSyntaxError
+        bad = tmp_path / "Bad.jack"
+        bad.write_text("class Bad {\n    function void f() {\n        let x = ;\n    }\n}\n")
+        with pytest.raises(JackSyntaxError) as exc:
+            JackCompiler().compile_source(str(bad))
+        assert exc.value.errors[0].startswith(f"{bad}:3:17: ")
+
+        assert not JackCompiler().compile_file(str(bad), str(tmp_path / "Bad.vm"))
+        out, err = capsys.readouterr()
+        assert err == ""
+        assert f"{bad}:3:17:" in out
+
+    def test_lexer_error_fails(self, tmp_path):
+        """Invalid characters must fail compilation, not be silently skipped."""
+        bad = tmp_path / "Lex.jack"
+        # '@' is the *only* error: once the lexer drops it the parse is valid.
+        bad.write_text("class Lex { function void f() { var int x; @ let x = 1; return; } }")
+        assert not JackCompiler().compile_file(str(bad), str(tmp_path / "Lex.vm"))
+        assert not (tmp_path / "Lex.vm").exists()
+
     def test_missing_file_fails(self, tmp_path):
         assert not JackCompiler().compile_file(
             str(tmp_path / "Nope.jack"), str(tmp_path / "Nope.vm")
@@ -195,6 +216,120 @@ class TestEndToEnd:
         with pytest.raises(SystemExit) as exc:
             main([str(tmp_path / "missing.jack")])
         assert exc.value.code == 1
+
+
+def _run_cli(*args) -> int:
+    """Run the CLI and return its exit code."""
+    with pytest.raises(SystemExit) as exc:
+        main([str(a) for a in args])
+    return exc.value.code
+
+
+@pytest.fixture
+def project(tmp_path):
+    """
+    A nested Jack project::
+
+        proj/Point.jack
+        proj/game/Math.jack
+        proj/game/Old.vm            (stale output to be cleaned)
+        proj/game/objects/Loop.jack
+        proj/.venv/Array.jack       (hidden dir - must be skipped)
+        proj/assets/Keep.vm         (no .jack files - never cleaned)
+    """
+    root = tmp_path / "proj"
+    for rel, example in [("Point.jack", "Point"), ("game/Math.jack", "Math"),
+                         ("game/objects/Loop.jack", "Loop"), (".venv/Array.jack", "Array")]:
+        dst = root / rel
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        dst.write_text((EXAMPLES_DIR / f"{example}.jack").read_text())
+    (root / "game" / "Old.vm").write_text("stale")
+    (root / "assets").mkdir()
+    (root / "assets" / "Keep.vm").write_text("keep")
+    return root
+
+
+class TestBatchOptions:
+    """Tests for --recursive, --clean and --dry-run."""
+
+    def test_find_jack_files(self, project):
+        from jack_compiler.compiler import find_jack_files
+        rel = lambda ps: [p.relative_to(project).as_posix() for p in ps]  # noqa: E731
+        assert rel(find_jack_files(project)) == ["Point.jack"]
+        assert rel(find_jack_files(project, recursive=True)) == [
+            "Point.jack", "game/Math.jack", "game/objects/Loop.jack"]
+
+    def test_non_recursive_ignores_subdirs(self, project):
+        assert _run_cli(project) == 0
+        assert (project / "Point.vm").exists()
+        assert not (project / "game" / "Math.vm").exists()
+
+    def test_recursive_in_place(self, project):
+        assert _run_cli("-r", project) == 0
+        for rel, name in [("Point.vm", "Point"), ("game/Math.vm", "Math"),
+                          ("game/objects/Loop.vm", "Loop")]:
+            assert (project / rel).read_text() == (EXPECTED_DIR / f"{name}.vm").read_text()
+        assert not (project / ".venv" / "Array.vm").exists()
+        assert (project / "game" / "Old.vm").exists()  # untouched without --clean
+
+    def test_recursive_mirrors_into_output_dir(self, project, tmp_path):
+        out = tmp_path / "out"
+        assert _run_cli("-r", project, "-o", out) == 0
+        assert sorted(p.relative_to(out).as_posix() for p in out.rglob("*.vm")) == [
+            "Point.vm", "game/Math.vm", "game/objects/Loop.vm"]
+        assert not list(project.rglob("Point.vm"))
+
+    def test_recursive_requires_directory(self, project):
+        assert _run_cli("-r", project / "Point.jack") == 2  # argparse usage error
+
+    def test_clean_removes_stale_vm_only_in_output_dirs(self, project):
+        assert _run_cli("-r", "--clean", project) == 0
+        assert not (project / "game" / "Old.vm").exists()
+        assert (project / "game" / "Math.vm").exists()
+        assert (project / "assets" / "Keep.vm").read_text() == "keep"
+
+    def test_clean_without_recursive_only_touches_top_dir(self, project):
+        (project / "Stale.vm").write_text("stale")
+        assert _run_cli("--clean", project) == 0
+        assert not (project / "Stale.vm").exists()
+        assert (project / "game" / "Old.vm").exists()
+
+    def test_clean_single_file_only_removes_its_target(self, project):
+        (project / "Point.vm").write_text("old")
+        (project / "Other.vm").write_text("other")
+        assert _run_cli("--clean", project / "Point.jack") == 0
+        assert (project / "Point.vm").read_text() == (EXPECTED_DIR / "Point.vm").read_text()
+        assert (project / "Other.vm").read_text() == "other"
+
+    def test_clean_leaves_no_stale_output_on_failure(self, project):
+        (project / "game" / "Math.jack").write_text("class Math { function void f() { let = ; } }")
+        (project / "game" / "Math.vm").write_text("previous good build")
+        assert _run_cli("-r", "--clean", project) == 1
+        assert not (project / "game" / "Math.vm").exists()
+
+    def test_dry_run_writes_and_deletes_nothing(self, project, capsys):
+        before = sorted(p.relative_to(project) for p in project.rglob("*"))
+        assert _run_cli("-r", "--clean", "--dry-run", project) == 0
+        assert sorted(p.relative_to(project) for p in project.rglob("*")) == before
+        out = capsys.readouterr().out
+        assert "Would remove 1 existing .vm file(s)" in out
+        assert "Would compile 3 Jack file(s)" in out
+        assert "Loop.vm" in out
+
+    def test_dry_run_single_file(self, project):
+        assert _run_cli("-n", project / "Point.jack") == 0
+        assert not (project / "Point.vm").exists()
+
+    def test_failures_are_summarised_and_exit_nonzero(self, project, capsys):
+        (project / "game" / "Bad.jack").write_text("class Bad { function void f() { let = ; } }")
+        assert _run_cli("-r", project) == 1
+        out = capsys.readouterr().out
+        assert "Failed: 1" in out
+        assert "Bad.jack" in out.split("SOME COMPILATIONS FAILED")[1]
+        assert (project / "game" / "Math.vm").exists()  # other files still compiled
+
+    def test_no_jack_files(self, tmp_path):
+        assert _run_cli("-r", tmp_path) == 1
 
 
 if __name__ == '__main__':

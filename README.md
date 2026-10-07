@@ -271,27 +271,53 @@ for f in examples/*.jack; do jackc "$f" -o "tests/expected/$(basename "${f%.jack
 ## Command-Line Usage
 
 ```bash
-jackc [-h] [-o OUTPUT] [-v] [--version] input
+jackc [-h] [-o OUTPUT] [-r] [--clean] [-n] [-v] [--version] input
 # or: python -m jack_compiler ...
 
 Arguments:
   input                 Input Jack file or directory
   -o, --output OUTPUT   Output VM file or directory (default: same as input)
+  -r, --recursive       Also compile sub-directories, mirroring the tree under OUTPUT
+  --clean               Delete ALL existing .vm files in each output directory first
+                        (single file: only its own .vm)
+  -n, --dry-run         Show what would be cleaned/compiled; change nothing
   -v, --verbose         Show full tracebacks for internal compiler errors
   --version             Show version and exit
   -h, --help            Show help message
 ```
+
+### Batch compilation
+
+```bash
+jackc src/                         # every .jack in src/ (not sub-directories)
+jackc -r projects/                 # whole tree, .vm written next to each .jack
+jackc -r projects/ -o build/       # whole tree, mirrored under build/
+jackc -r --clean --dry-run projects/   # preview a clean rebuild
+jackc -r --clean projects/         # clean rebuild (no stale .vm left if a file fails)
+```
+
+Hidden directories (e.g. `.git`, `.venv`) are skipped. `--clean` only touches
+directories that receive output, but removes *every* `.vm` file there — use
+`--dry-run` first if those directories contain hand-written VM code.
+Exit status is non-zero if any file fails; a summary lists the failed files.
 
 Coloured output is disabled automatically when stdout is not a terminal or when `NO_COLOR` is set.
 
 ### Python API
 
 ```python
-from jack_compiler import JackCompiler
+from jack_compiler import JackCompiler, JackSyntaxError
 
 JackCompiler().compile_file("Main.jack", "Main.vm")      # returns True/False
-vm_code = JackCompiler().compile_source("Main.jack")    # returns VM code as a string
+
+try:
+    vm_code = JackCompiler().compile_source("Main.jack")  # returns VM code as a string
+except JackSyntaxError as e:
+    print("\n".join(e.errors))                           # "Main.jack:4:9: ..." (1-based)
 ```
+
+Syntax errors are reported beneath the failing file as `file:line:col: message`;
+see [ERROR_DETECTION.md](ERROR_DETECTION.md).
 
 ## Supported Jack Language Constructs
 
