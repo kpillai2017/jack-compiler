@@ -356,15 +356,21 @@ class Strings {
 <p>Solution: The generated parser is committed to the repo. If it was deleted, regenerate it: <code>java -jar antlr-4.13.0-complete.jar -Dlanguage=Python3 -visitor -o jack_compiler/antlr_generated grammar/Jack.g4</code></p>
 
 <h3>Syntax Errors</h3>
-<p>The compiler will report syntax errors from the ANTLR parser. Check your Jack code for:</p>
+<p>The compiler reports every syntax error beneath the failing file as <code>file:line:col: message</code>, for example:</p>
+<pre><code>✗ COMPILATION FAILED: src/Main.jack
+  1 syntax error(s):
+  src/Main.jack:4:9: extraneous input 'return' expecting ';'
+</code></pre>
+<p>Check your Jack code for:</p>
 <ul>
-<li>Missing semicolons</li>
-<li>Unmatched braces</li>
-<li>Invalid keywords</li>
-<li>Type mismatches</li>
+<li>Missing semicolons (reported at the <em>next</em> token)</li>
+<li>Unmatched braces (<code>&lt;EOF&gt;</code> in the message usually means a missing <code>}</code>)</li>
+<li>Keywords used as names</li>
+<li>Invalid characters or unterminated strings</li>
+</ul>
+<p>See the <a href="error-detection.html">Error Detection &amp; Handling Guide</a> for more examples.</p>
 
 <h3>Undefined Variable Errors</h3>
-</ul>
 <p>Ensure variables are declared before use in the appropriate scope:</p>
 <ul>
 <li>Use `var` for local variables</li>

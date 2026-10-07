@@ -305,11 +305,22 @@ Solution: The generated parser is committed to the repo. If it was deleted, rege
 `java -jar antlr-4.13.0-complete.jar -Dlanguage=Python3 -visitor -o jack_compiler/antlr_generated grammar/Jack.g4`
 
 ### Syntax Errors
-The compiler will report syntax errors from the ANTLR parser. Check your Jack code for:
-- Missing semicolons
-- Unmatched braces
-- Invalid keywords
-- Type mismatches
+The compiler reports every syntax error beneath the failing file as
+`file:line:col: message`, for example:
+
+```
+✗ COMPILATION FAILED: src/Main.jack
+  1 syntax error(s):
+  src/Main.jack:4:9: extraneous input 'return' expecting ';'
+```
+
+Check your Jack code for:
+- Missing semicolons (reported at the *next* token)
+- Unmatched braces (`<EOF>` in the message usually means a missing `}`)
+- Keywords used as names
+- Invalid characters or unterminated strings
+
+See [ERROR_DETECTION.md](ERROR_DETECTION.md) for more examples.
 
 ### Undefined Variable Errors
 Ensure variables are declared before use in the appropriate scope:

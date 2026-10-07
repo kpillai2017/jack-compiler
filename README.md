@@ -306,11 +306,18 @@ Coloured output is disabled automatically when stdout is not a terminal or when 
 ### Python API
 
 ```python
-from jack_compiler import JackCompiler
+from jack_compiler import JackCompiler, JackSyntaxError
 
 JackCompiler().compile_file("Main.jack", "Main.vm")      # returns True/False
-vm_code = JackCompiler().compile_source("Main.jack")    # returns VM code as a string
+
+try:
+    vm_code = JackCompiler().compile_source("Main.jack")  # returns VM code as a string
+except JackSyntaxError as e:
+    print("\n".join(e.errors))                           # "Main.jack:4:9: ..." (1-based)
 ```
+
+Syntax errors are reported beneath the failing file as `file:line:col: message`;
+see [ERROR_DETECTION.md](ERROR_DETECTION.md).
 
 ## Supported Jack Language Constructs
 
