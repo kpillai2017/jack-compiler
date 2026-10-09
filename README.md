@@ -359,6 +359,7 @@ jackc-gui examples/Math.jack     # ...or one file
 jackc-gui -r projects/           # a whole tree, like jackc -r
 jackc-gui src/ -o bin/           # write the .vm files to bin/
 jackc-gui --no-write src/        # preview only: never write .vm files
+jackc-gui --werror src/          # warnings count as errors, like jackc --werror
 python -m jack_compiler.gui ...  # the same, without installing
 ```
 
@@ -377,6 +378,7 @@ STATUS / FILES / PROBLEMS / OUTPUT boxes, and under them a SHORTCUTS box.
 | Ctrl+E | Jump to the next error or warning |
 | Ctrl+I | Show / hide the compiler messages under the code |
 | Ctrl+R | Recompile (re-reads the files, so edit in your editor and press Ctrl+R) |
+| Ctrl+W | Warnings count as errors (like `--werror`), or back again; recompiles. STATUS shows which |
 | Ctrl+J | Run the program in [JackVM](https://github.com/kpillai2017/jackvm-py), if it's installed ([details](#using-it-with-jackvm)) |
 | Ctrl+O | Open another file or folder |
 | Ctrl+D | Show / hide the info panel |

@@ -373,6 +373,8 @@ except JackSyntaxError as e:                  # also catches JackSemanticError
 
 **Q: Can warnings fail the build?**
 A: Yes: `jackc --werror src/` treats every warning as an error. `jackc -w` hides warnings instead.
+In the compiler window, start it with `jackc-gui --werror` or press Ctrl+W to switch it on and off;
+the STATUS box shows which is in use.
 
 **Q: Where do the messages come from?**
 A: Lexical and syntax errors come from the ANTLR4-generated lexer and parser

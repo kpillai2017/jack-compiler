@@ -524,3 +524,94 @@ def test_warnings_shade_amber_and_ctrl_i_hides_the_messages(tmp_path):
     assert problems.rows[0] == ("3:17 warning: unused variable 'unused'", "warning")
     w._draw()
     pygame.quit()
+
+
+# --- warnings as errors (--werror / Ctrl+W) ---------------------------------------
+WARNS = """class Warns {
+    function void main() {
+        var int unused;
+        return;
+    }
+}
+"""
+
+
+@pytest.fixture
+def warning_project(tmp_path):
+    (tmp_path / "Warns.jack").write_text(WARNS)
+    return tmp_path
+
+
+def test_werror_makes_a_file_with_warnings_fail_like_jackc(warning_project):
+    session = CompileSession(warning_project)
+    session.run()
+    assert session.failed_count == 0 and session.warning_count == 1
+    (warning_project / "Warns.vm").unlink()
+
+    session = CompileSession(warning_project, werror=True)
+    session.run()
+    result = session.results[0]
+    assert result.status == FAILED and not result.written
+    assert [d.message for d in result.errors] == ["unused variable 'unused' [-Werror]"]
+    assert not (warning_project / "Warns.vm").exists()
+
+
+def status_lines(session):
+    return [text for text, _ in build_sections(session, 0)[0].rows]
+
+
+def test_ctrl_w_switches_werror_and_recompiles(warning_project):
+    session = CompileSession(warning_project, write=False)
+    session.run()
+    w = make_window(session)
+    try:
+        assert "warnings don't stop a file (Ctrl+W)" in status_lines(session)
+        rows_before = build_sections(session, 0)[0].row_count
+
+        assert send(w, key_down(pygame.K_w, pygame.KMOD_CTRL)) is True
+        assert session.werror and session.wait(10)
+        assert session.failed_count == 1
+        assert "warnings count as errors (--werror)" in status_lines(session)
+        assert build_sections(session, 0)[0].row_count == rows_before  # the box doesn't change size
+        assert "--werror" in w._notice[0]
+
+        send(w, key_down(pygame.K_w, pygame.KMOD_CTRL))
+        assert not session.werror and session.wait(10)
+        assert session.failed_count == 0 and session.warning_count == 1
+    finally:
+        pygame.quit()
+
+
+def test_ctrl_w_waits_while_compiling(busy_window):
+    w = busy_window
+    assert w.toggle_werror() is False
+    assert w.session.werror is False and "Still compiling" in w._notice[0]
+
+
+def test_ctrl_w_is_listed_in_the_shortcuts(done_window):
+    assert any("Ctrl+W" in text for text, _ in done_window.shortcuts.rows)
+
+
+def test_ctrl_o_keeps_the_werror_setting(done_window, monkeypatch):
+    w = done_window
+    w.session.werror = True
+    seen = {}
+
+    def fake_choose_target(*args, **kwargs):
+        seen.update(kwargs)
+        return CANCEL, None
+
+    monkeypatch.setattr(window_module, "choose_target", fake_choose_target)
+    send(w, key_down(pygame.K_o, pygame.KMOD_CTRL))
+    assert seen["werror"] is True
+
+
+def test_jackc_gui_werror_option(warning_project, monkeypatch):
+    from jack_compiler.gui import main as gui_main
+
+    opened = []
+    monkeypatch.setattr(window_module.CompilerWindow, "run", lambda self: opened.append(self.session))
+    assert gui_main.main(["--werror", "--no-write", str(warning_project)]) == 0
+    assert opened[0].werror is True
+    assert gui_main.main(["--no-write", str(warning_project)]) == 0
+    assert opened[1].werror is False

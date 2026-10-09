@@ -40,6 +40,10 @@ def build_argument_parser() -> argparse.ArgumentParser:
     parser.add_argument("-o", "--output", help="output .vm file or folder (default: next to the sources)")
     parser.add_argument("-r", "--recursive", action="store_true", help="compile .jack files in sub-folders too")
     parser.add_argument("--no-write", action="store_true", help="compile and show the VM code, but don't write .vm files")
+    parser.add_argument(
+        "--werror", action="store_true",
+        help="treat warnings as errors, like jackc --werror (Ctrl+W switches it in the window)",
+    )
     parser.add_argument("--rows", type=int, default=34, metavar="N", help="lines of code shown in each pane (default: 34)")
     parser.add_argument("--font-size", type=int, default=13, metavar="PT", help="text size (default: 13)")
     parser.add_argument("--no-panel", action="store_true", help="hide the info panel (Ctrl+D shows it)")
@@ -66,7 +70,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         if args.output:
             parser.error("--output needs an input path (it can't be used with the picker)")
         start = Path(args.input).expanduser() if args.input else Path.cwd()
-        session = open_picker_window(start if start.is_dir() else Path.cwd(), args.recursive, write)
+        session = open_picker_window(start if start.is_dir() else Path.cwd(), args.recursive, write, args.werror)
         if session is None:
             return 0  # the user cancelled or closed the window
     else:
@@ -74,7 +78,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         if input_path.is_file() and args.recursive:
             parser.error("--recursive requires a directory as input")
         try:
-            session = CompileSession(input_path, args.output, args.recursive, write)
+            session = CompileSession(input_path, args.output, args.recursive, write, werror=args.werror)
         except FileNotFoundError as problem:
             print(problem, file=sys.stderr)
             return 1

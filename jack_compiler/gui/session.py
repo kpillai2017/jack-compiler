@@ -115,11 +115,15 @@ class CompileSession:
         output: Optional[Path] = None,
         recursive: bool = False,
         write: bool = True,
+        werror: bool = False,
     ) -> None:
         self.target = Path(target).expanduser().resolve()
         self.output = Path(output).expanduser().resolve() if output else None
         self.recursive = recursive
         self.write = write  # False = preview only: never touch the disk
+        # True = warnings count as errors (like jackc --werror). Read once at
+        # the start of each run, so change it only between runs.
+        self.werror = werror
 
         jobs = plan_session_jobs(self.target, self.output, recursive)
         if not jobs:
@@ -168,7 +172,7 @@ class CompileSession:
         self.state = COMPILING
 
     def _compile_all(self) -> None:
-        compiler = JackCompiler()  # one per run: the compiler isn't thread-safe
+        compiler = JackCompiler(werror=self.werror)  # one per run: the compiler isn't thread-safe
         try:
             for result in self.results:
                 self._compile_one(compiler, result)

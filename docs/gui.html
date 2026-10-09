@@ -98,6 +98,7 @@ jackc-gui examples/Math.jack         # ...or one file
 jackc-gui -r projects/               # a whole tree, like jackc -r
 jackc-gui src/ -o bin/               # write the .vm files to bin/
 jackc-gui --no-write src/            # preview only: never write .vm files
+jackc-gui --werror src/              # warnings count as errors
 python -m jack_compiler.gui ...      # the same, without installing
 </code></pre>
 
@@ -109,6 +110,7 @@ python -m jack_compiler.gui ...      # the same, without installing
 <tr><td><code>-o</code>, <code>--output</code></td><td>Where to write the <code>.vm</code> file(s). Default: next to the sources, like <code>jackc</code>. Needs an input path.</td></tr>
 <tr><td><code>-r</code>, <code>--recursive</code></td><td>Compile <code>.jack</code> files in sub-folders too. The folder layout is kept under <code>-o</code>.</td></tr>
 <tr><td><code>--no-write</code></td><td>Compile and show the VM code, but don't write any files.</td></tr>
+<tr><td><code>--werror</code></td><td>Warnings count as errors, like <code>jackc --werror</code>. <kbd>Ctrl</kbd>+<kbd>W</kbd> switches it in the window.</td></tr>
 <tr><td><code>--rows N</code></td><td>Lines of code shown in each pane (default 34). Use fewer on a small screen.</td></tr>
 <tr><td><code>--font-size PT</code></td><td>Text size (default 13).</td></tr>
 <tr><td><code>--no-panel</code></td><td>Start with the info boxes hidden (<kbd>Ctrl</kbd>+<kbd>D</kbd> shows them).</td></tr>
@@ -153,7 +155,7 @@ files anywhere below it.</li>
 <tr><td><strong>File tabs</strong> (top)</td><td>One tab per <code>.jack</code> file. Files with errors have red tabs. Click a tab, or press <kbd>1</kbd>–<kbd>9</kbd>, to show that file.</td></tr>
 <tr><td><strong>JACK pane</strong> (left)</td><td>The source, with syntax colours and line numbers. Errors and warnings are drawn under the line they belong to.</td></tr>
 <tr><td><strong>VM pane</strong> (right)</td><td>The VM code the selected file compiles to. A file with errors has no VM code, so this pane points you to PROBLEMS.</td></tr>
-<tr><td><strong>STATUS</strong></td><td>Whether it's compiling, finished or failed, what was compiled, whether files are written (<em>preview only</em> with <code>--no-write</code>), and how long it took.</td></tr>
+<tr><td><strong>STATUS</strong></td><td>Whether it's compiling, finished or failed, what was compiled, whether files are written (<em>preview only</em> with <code>--no-write</code>), whether warnings count as errors (<a href="#werror"><kbd>Ctrl</kbd>+<kbd>W</kbd></a>), and how long it took.</td></tr>
 <tr><td><strong>FILES</strong></td><td>Every file with <code>ok</code> or <code>ERR</code>. Click a row to show that file.</td></tr>
 <tr><td><strong>PROBLEMS</strong></td><td>All errors (red) and warnings (amber) in the selected file, as <code>line:column: message</code>.</td></tr>
 <tr><td><strong>OUTPUT</strong></td><td>The <code>.vm</code> file for the selected tab, its size in VM lines and functions, and whether it was saved.</td></tr>
@@ -205,6 +207,23 @@ the file still compiles. The complete list of checks is in the
 <a href="error-detection.html">Error Detection guide</a>.
 </div>
 
+<h3 id="werror">Making warnings count as errors</h3>
+<p>Press <kbd>Ctrl</kbd>+<kbd>W</kbd> (or start with <code>--werror</code>) to treat every
+warning as an error, the same as <code>jackc --werror</code>. The window recompiles
+straight away: files with warnings turn red, get no <code>.vm</code> file, and each
+message ends in <code>[-Werror]</code>. STATUS shows <em>warnings count as errors
+(--werror)</em> while it's on. Press <kbd>Ctrl</kbd>+<kbd>W</kbd> again to go back.
+This is handy for tidying a program up before you hand it in: work through the
+list with <kbd>Ctrl</kbd>+<kbd>E</kbd> until nothing is left.</p>
+<figure>
+    <img src="img/jackc-gui-werror.png" alt="jackc-gui with --werror on: an unused variable is shown as an error ending in [-Werror], and STATUS says warnings count as errors">
+    <figcaption>With <kbd>Ctrl</kbd>+<kbd>W</kbd> on, an unused variable stops <code>SquareGame.jack</code> from compiling.</figcaption>
+</figure>
+<p>Pressing <kbd>Ctrl</kbd>+<kbd>W</kbd> while a compilation is still running does nothing
+except show a message, so one run never mixes both settings. Wait for it to finish,
+then press it again. The setting is kept when you open something else with
+<kbd>Ctrl</kbd>+<kbd>O</kbd>.</p>
+
 <h2 id="run">5. Run it in JackVM</h2>
 <p>If the companion VM, <a href="https://github.com/kpillai2017/jackvm-py">jackvm-py</a>,
 is installed, press <kbd>Ctrl</kbd>+<kbd>J</kbd> to play the program you're looking
@@ -245,6 +264,7 @@ run <code>jackc --clean</code> if you don't want the VM Emulator to load it.</li
 <tr><td><kbd>Ctrl</kbd>+<kbd>E</kbd></td><td>Jump to the next error or warning</td></tr>
 <tr><td><kbd>Ctrl</kbd>+<kbd>I</kbd></td><td>Show or hide the messages under the code</td></tr>
 <tr><td><kbd>Ctrl</kbd>+<kbd>R</kbd></td><td>Recompile (reads the files again)</td></tr>
+<tr><td><kbd>Ctrl</kbd>+<kbd>W</kbd></td><td>Warnings count as errors (like <code>--werror</code>), or back again; recompiles (<a href="#werror">details</a>)</td></tr>
 <tr><td><kbd>Ctrl</kbd>+<kbd>J</kbd></td><td>Run the program in JackVM, if it's installed (<a href="#run">details</a>)</td></tr>
 <tr><td><kbd>Ctrl</kbd>+<kbd>O</kbd></td><td>Open another file or folder</td></tr>
 <tr><td><kbd>Ctrl</kbd>+<kbd>D</kbd></td><td>Show or hide the info boxes</td></tr>

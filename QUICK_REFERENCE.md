@@ -34,6 +34,7 @@ jackc-gui --no-write src_dir/    # preview only
 | Ctrl+E | Next error or warning |
 | Ctrl+R | Recompile (after saving in your editor) |
 | Ctrl+I | Show / hide messages under the code |
+| Ctrl+W | Warnings count as errors (`--werror`) on / off |
 | Ctrl+Tab, 1–9, click a tab | Switch file |
 | Tab | Switch pane (Jack / VM) |
 | Ctrl+J | Run the program in JackVM ([jackvm-py](https://github.com/kpillai2017/jackvm-py), if installed) |
