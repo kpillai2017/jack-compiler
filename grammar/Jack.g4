@@ -23,8 +23,7 @@ type
     : INT
     | BOOLEAN
     | CHAR
-    | STRING
-    | className
+    | className   // String and Array are ordinary classes, not keywords
     ;
 
 subroutineDeclaration
@@ -155,7 +154,6 @@ VAR         : 'var';
 INT         : 'int';
 BOOLEAN     : 'boolean';
 CHAR        : 'char';
-STRING      : 'String';
 VOID        : 'void';
 TRUE        : 'true';
 FALSE       : 'false';
