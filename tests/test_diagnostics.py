@@ -327,3 +327,73 @@ def test_a_class_named_string_compiles_for_project_12(tmp_path):
     vm, diagnostics = diagnose(tmp_path, source, name="String")
     assert vm is not None and "function String.new 0" in vm
     assert [d.message for d in diagnostics] == ["class 'String' has the same name as a Jack OS class"]
+
+
+# --- class names that aren't in the program ------------------------------------------
+@pytest.mark.parametrize(
+    "body, decls, name, line, column, help",
+    [
+        ('        do Outptu.printString("hi");', "", "Outptu", 3, 12, "did you mean 'Output'?"),
+        ("        var Strng s;", "", "Strng", 3, 13, "did you mean 'String'?"),
+        ("        do Game.start();", "", "Game", 3, 12,
+         "no Game.jack in this folder, and it isn't a Jack OS class"),
+        ("", "    field Arary items;\n", "Arary", 2, 11, "did you mean 'Array'?"),
+    ],
+)  # fmt: skip
+def test_unknown_class_names_are_warnings(tmp_path, body, decls, name, line, column, help):
+    vm, diagnostics = diagnose(tmp_path, in_main(body, decls))
+    assert vm is not None  # only a warning: the class might live elsewhere
+    [warning] = [d for d in diagnostics if d.message.startswith("there is no class")]
+    assert warning.severity == "warning"
+    assert warning.message == f"there is no class named '{name}' in this program"
+    assert (warning.line, warning.column, warning.help) == (line, column, help)
+
+
+def test_parameter_and_return_types_are_checked(tmp_path):
+    source = "class Main {\n    function Pointt make(Pointt p) {\n        return p;\n    }\n}\n"
+    _, diagnostics = diagnose(tmp_path, source)
+    assert [(d.line, d.column, d.message) for d in diagnostics] == [
+        (2, 14, "there is no class named 'Pointt' in this program"),
+        (2, 26, "there is no class named 'Pointt' in this program"),
+    ]
+
+
+def test_classes_in_the_same_folder_are_known(tmp_path):
+    (tmp_path / "Game.jack").write_text("class Game {\n    constructor Game new() {\n        return this;\n    }\n}\n")
+    vm, diagnostics = diagnose(tmp_path, in_main("        var Game g;\n        let g = Game.new();\n        do g.run();"))
+    assert vm is not None and diagnostics == []
+
+
+def test_a_lowercase_unknown_receiver_is_reported_once_with_a_suggestion(tmp_path):
+    _, diagnostics = diagnose(tmp_path, in_main("        do output.printInt(1);"))
+    warning = only(diagnostics, "warning")
+    assert warning.message == "'output' is not a variable, so this calls a class named 'output'"
+    assert warning.help == "did you mean 'Output'?"
+
+
+def test_an_os_class_may_call_main(tmp_path):
+    source = "class Sys {\n    function void init() {\n        do Main.main();\n        return;\n    }\n}\n"
+    _, diagnostics = diagnose(tmp_path, source, name="Sys")
+    assert [d.message for d in diagnostics] == ["class 'Sys' has the same name as a Jack OS class"]
+
+
+def test_werror_makes_an_unknown_class_an_error(tmp_path):
+    path = tmp_path / "Main.jack"
+    path.write_text(in_main('        do Outptu.printString("hi");'))
+    with pytest.raises(JackSemanticError) as problem:
+        JackCompiler(werror=True).compile_source(str(path))
+    assert problem.value.diagnostics[0].message == "there is no class named 'Outptu' in this program [-Werror]"
+
+
+def test_known_classes_can_be_given_explicitly(tmp_path):
+    from antlr4 import CommonTokenStream, InputStream
+
+    from jack_compiler.antlr_generated.grammar.JackLexer import JackLexer
+    from jack_compiler.antlr_generated.grammar.JackParser import JackParser
+    from jack_compiler.checker import check
+
+    source = in_main("        var Game g;\n        let g = Game.new();")
+    tree = JackParser(CommonTokenStream(JackLexer(InputStream(source)))).program()
+    file = str(tmp_path / "Main.jack")  # the folder is empty: by default 'Game' is unknown
+    assert [d.message for d in check(tree, file)] == ["there is no class named 'Game' in this program"] * 2
+    assert check(tree, file, known_classes={"Game"}) == []

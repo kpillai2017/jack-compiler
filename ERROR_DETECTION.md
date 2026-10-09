@@ -73,10 +73,12 @@ A file can be grammatically fine and still make no sense. A semantic pass
 | Class name ≠ file name | `class 'Foo' is in a file named 'Bar.jack'` |
 | Class named like an OS class | `class 'Math' has the same name as a Jack OS class` |
 | `lowercase.f()` and `lowercase` isn't a variable | `'output' is not a variable, so this calls a class named 'output'` |
+| Unknown class name | `there is no class named 'Outptu' in this program` + `help: did you mean 'Output'?` |
 
-Only what one file can decide is checked. Calls into *other* classes
-(including the Jack OS) are trusted, because those classes are compiled
-separately.
+A class name (in a type, or before `.` in a call) is known if it is a Jack OS
+class or there is a matching `.jack` file in the same folder. Beyond that,
+calls into *other* classes are trusted: their subroutine names and argument
+counts aren't checked, because those classes are compiled separately.
 
 Internal compiler bugs are reported as `✗ COMPILATION ERROR`; add `-v` for a
 Python traceback to include in a bug report.
@@ -168,9 +170,10 @@ echo $?        # 0 = success, non-zero = failure
 ### What is *not* detected
 
 Jack is weakly typed, so type mismatches (`let x = "text";` for an `int x`)
-are not errors. Calls into other classes aren't checked either: they are
-compiled separately, so a wrong name or argument count there shows up when
-the program runs in the VM.
+are not errors. Class names are checked against the folder and the Jack OS,
+but subroutines in other classes aren't: they are compiled separately, so a
+wrong subroutine name or argument count there (`Output.printSting`) shows up
+when the program runs in the VM.
 
 ## Common Jack Errors
 
@@ -281,6 +284,18 @@ errs/Sem.jack:29:5: error: function 'helper' can reach its end without a 'return
  29 |     }
     |     ^
     = help: every Jack subroutine must end with 'return' (use 'return;' in a void one)
+```
+
+### Misspelt class name
+
+A warning, so the file still compiles; the VM fails when it reaches the call.
+Use `--werror` to make it stop the build.
+
+```
+Main.jack:3:12: warning: there is no class named 'Outptu' in this program
+ 3 |         do Outptu.printInt(1);
+   |            ^~~~~~
+   = help: did you mean 'Output'?
 ```
 
 ### Empty file

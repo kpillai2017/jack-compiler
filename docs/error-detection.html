@@ -183,11 +183,16 @@ parser errors it causes on the same line are dropped.</p>
 <td><code>lowercase.f()</code> and <code>lowercase</code> isn't a variable</td>
 <td><code>'output' is not a variable, so this calls a class named 'output'</code></td>
 </tr>
+<tr>
+<td>Unknown class name</td>
+<td><code>there is no class named 'Outptu' in this program</code> + <code>help: did you mean 'Output'?</code></td>
+</tr>
 </tbody>
 </table>
-<p>Only what one file can decide is checked. Calls into <em>other</em> classes
-(including the Jack OS) are trusted, because those classes are compiled
-separately.</p>
+<p>A class name (in a type, or before <code>.</code> in a call) is known if it is a Jack OS
+class or there is a matching <code>.jack</code> file in the same folder. Beyond that,
+calls into <em>other</em> classes are trusted: their subroutine names and argument
+counts aren't checked, because those classes are compiled separately.</p>
 <p>Internal compiler bugs are reported as <code>✗ COMPILATION ERROR</code>; add <code>-v</code> for a
 Python traceback to include in a bug report.</p>
 <h3 id="4-reporting-after-compiling">4. Reporting (after compiling)</h3>
@@ -309,9 +314,10 @@ echo $?        # 0 = success, non-zero = failure
 </table>
 <h3 id="what-is-not-detected">What is <em>not</em> detected</h3>
 <p>Jack is weakly typed, so type mismatches (<code>let x = "text";</code> for an <code>int x</code>)
-are not errors. Calls into other classes aren't checked either: they are
-compiled separately, so a wrong name or argument count there shows up when
-the program runs in the VM.</p>
+are not errors. Class names are checked against the folder and the Jack OS,
+but subroutines in other classes aren't: they are compiled separately, so a
+wrong subroutine name or argument count there (<code>Output.printSting</code>) shows up
+when the program runs in the VM.</p>
 <h2 id="common-jack-errors">Common Jack Errors</h2>
 <p>All messages below are real <code>jackc</code> output.</p>
 <h3 id="missing-semicolon">Missing semicolon</h3>
@@ -386,6 +392,14 @@ errs/Sem.jack:27:18: note: 'helper' is declared here
  29 |     }
     |     ^
     = help: every Jack subroutine must end with 'return' (use 'return;' in a void one)
+</code></pre>
+<h3 id="misspelt-class-name">Misspelt class name</h3>
+<p>A warning, so the file still compiles; the VM fails when it reaches the call.
+Use <code>--werror</code> to make it stop the build.</p>
+<pre><code>Main.jack:3:12: warning: there is no class named 'Outptu' in this program
+ 3 |         do Outptu.printInt(1);
+   |            ^~~~~~
+   = help: did you mean 'Output'?
 </code></pre>
 <h3 id="empty-file">Empty file</h3>
 <pre><code>errs/Missing.jack:1:1: error: unexpected end of file: expected 'class'
