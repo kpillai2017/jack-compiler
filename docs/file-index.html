@@ -104,7 +104,7 @@ jack_compiler/
 │   - Control flow (labels, jumps) and function management
 │
 ├── integrations.py
-│   Finds jackvm-py (env var -> same Python environment -> PATH);
+│   Finds jackvm-py (env var -> config file -> same Python environment -> PATH);
 │   an identical copy lives in jackvm-py (tests/test_shared_files.py checks)
 │
 ├── __init__.py
@@ -189,10 +189,10 @@ tests/
 │
 ├── test_gui.py
 │   jackc-gui: sessions, syntax colours, panels, the window and picker
-│   (with a fake clock for the hold-Esc-to-quit rule)
+│   (with a fake clock for the hold-Esc-to-go-back rule)
 │
 ├── test_integrations.py
-│   Finding JackVM, and the Ctrl+J launcher (with a fake VM)
+│   Finding JackVM (incl. the config file), and the Ctrl+J launcher (with a fake VM)
 │
 ├── test_shared_files.py
 │   integrations.py must match the copy in jackvm-py

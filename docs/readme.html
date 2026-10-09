@@ -391,12 +391,12 @@ STATUS / FILES / PROBLEMS / OUTPUT boxes, and under them a SHORTCUTS box.
 <td>Show / hide the info panel</td>
 </tr>
 <tr>
-<td>Ctrl+Q</td>
-<td>Quit</td>
+<td><strong>Esc</strong></td>
+<td><strong>Go back</strong> to the file picker, where you can open something else. The rules are the same as the jackvm player: <strong>a single press</strong> once the compilation has finished, but <strong>hold for 1 s</strong> while it's still running (a progress bar appears after 0.25 s; letting go cancels). In the picker, Esc goes back to what you had open, or quits if nothing is open yet.</td>
 </tr>
 <tr>
-<td><strong>Esc</strong></td>
-<td>Quit. The rules are the same as the jackvm player: <strong>hold for 1 s</strong> while a compilation is running (a progress bar appears after 0.25 s; letting go cancels), but <strong>a single press</strong> once it has finished. In the file picker, Esc cancels.</td>
+<td>Ctrl+Q, or close the window</td>
+<td>Quit (works in the file picker too)</td>
 </tr>
 </tbody>
 </table>
@@ -437,13 +437,28 @@ pip install -e &quot;./jack-compiler[gui]&quot; -e ./jackvm-py   # one environme
    other direction) holds the command to run, e.g.
    <code>JACKVM="/path/to/jackvm-py/.venv/bin/jackvm"</code>. Set it to <code>off</code> to hide the
    shortcut.</li>
-<li><strong>The same Python environment</strong>: each package registers itself in the
-   <code>jack_tools</code> entry-point group, so <code>pip install -e</code> is all you need.</li>
-<li><strong>The <code>PATH</code></strong>: a <code>jackvm</code> command installed elsewhere (another
-   virtual environment, <code>pipx install</code>, ...).</li>
+<li><strong>The config file</strong> shared by both apps, so they find each other from any
+   folder and any environment:</li>
 </ol>
+<p><code>ini
+   # ~/.config/jack-tools/config.ini   (Windows: %APPDATA%\jack-tools\config.ini)
+   [apps]
+   jackvm = ~/code/jackvm-py          ; a folder: its bin/, .venv, venv, env or .direnv/* is searched
+   jackc = ~/code/jack-compiler       ; jackc-gui is looked for there too
+   # jackc-gui = /full/path/to/jackc-gui   ; or give a command
+   # jackvm = off                          ; hide the shortcut</code></p>
+<p>A value is either the project's folder (the app must be installed in a
+   virtual environment inside it) or the full path of the command. The file
+   follows <code>XDG_CONFIG_HOME</code>, and <code>JACK_TOOLS_CONFIG=/some/file.ini</code> points
+   to a different one.
+3. <strong>The same Python environment</strong>: each package registers itself in the
+   <code>jack_tools</code> entry-point group, so <code>pip install -e</code> is all you need.
+4. <strong>The <code>PATH</code></strong>: a <code>jackvm</code> command installed elsewhere (another
+   virtual environment, <code>pipx install</code>, ...).</p>
 <p>If JackVM isn't found, the SHORTCUTS box shows <code>Ctrl+J JackVM (not installed)</code>,
-and pressing it shows the install command. The apps only run each other's
+and pressing it says what to put in the config file (or, if the folder you
+configured has no <code>jackvm</code> in it, where it looked). The full text is printed in
+the terminal too. The apps only run each other's
 command-line tools and never import each other's code. That way either repo
 can change its internals without breaking the other.</p>
 <h2 id="supported-jack-language-constructs">Supported Jack Language Constructs</h2>

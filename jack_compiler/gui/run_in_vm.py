@@ -27,7 +27,7 @@ import tempfile
 from pathlib import Path
 from typing import Callable, List, Optional, Tuple
 
-from ..integrations import JACKVM, Companion, find
+from ..integrations import JACKVM, Companion, find, not_found_message
 from .session import OK, CompileSession, FileResult
 
 LOG_NAME = "jackvm.log"  # what JackVM printed, kept in the run folder
@@ -53,7 +53,7 @@ class VMLauncher:
         return self.companion is not None
 
     def not_found_message(self) -> str:
-        return f"JackVM not found. Install it: {JACKVM.install_hint}"
+        return not_found_message(JACKVM)
 
     def launch(self, session: CompileSession, index: int) -> Tuple[bool, str]:
         """Try to run tab `index`'s program. Returns (started?, message for the user)."""

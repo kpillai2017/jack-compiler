@@ -110,12 +110,21 @@ jackc-gui --no-write src_dir/    # preview only
 <td>Show / hide info panel</td>
 </tr>
 <tr>
-<td>Ctrl+Q, or Esc (hold 1 s while compiling)</td>
+<td>Esc (hold 1 s while compiling)</td>
+<td>Back to the file picker</td>
+</tr>
+<tr>
+<td>Ctrl+Q</td>
 <td>Quit</td>
 </tr>
 </tbody>
 </table>
 <p>Full guide: <a href="gui.html">docs/gui.html</a></p>
+<p>So Ctrl+J finds JackVM from any folder, name its folder in
+<code>~/.config/jack-tools/config.ini</code> (Windows: <code>%APPDATA%\jack-tools\config.ini</code>):</p>
+<pre><code class="language-ini">[apps]
+jackvm = ~/code/jackvm-py
+</code></pre>
 <h2 id="run-tests">Run Tests</h2>
 <pre><code class="language-bash">pytest -v
 </code></pre>

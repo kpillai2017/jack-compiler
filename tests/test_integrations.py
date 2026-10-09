@@ -19,10 +19,13 @@ from jack_compiler.gui.run_in_vm import LOG_NAME, VMLauncher, program_results  #
 from jack_compiler.gui.session import CompileSession  # noqa: E402
 from jack_compiler.integrations import (  # noqa: E402
     JACKC,
+    JACKC_GUI,
     JACKVM,
     Companion,
+    config_path,
     entry_point_command,
     find,
+    not_found_message,
 )
 
 GOOD = "class Main {\n    function void main() {\n        do Output.printInt(1);\n        return;\n    }\n}\n"
@@ -59,6 +62,81 @@ def test_stale_installs_and_other_apps_entry_points_are_ignored():
 
 def test_nothing_found_returns_none():
     assert find(JACKVM, environ={}, entry_points=[], which=nothing_on_path) is None
+
+
+# --- the config file ----------------------------------------------------------
+def executable(path: Path) -> Path:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("#!/bin/sh\n")
+    path.chmod(0o755)
+    return path
+
+
+def config(tmp_path, text):
+    """A fake home folder with ~/.config/jack-tools/config.ini; returns its environ."""
+    path = tmp_path / "home" / ".config" / "jack-tools" / "config.ini"
+    path.parent.mkdir(parents=True)
+    path.write_text(text)
+    return {"HOME": str(tmp_path / "home")}
+
+
+def test_where_the_config_file_is():
+    assert config_path({}) is None  # no home folder: no config file
+    assert config_path({"HOME": "/h"}) == Path("/h/.config/jack-tools/config.ini")
+    assert config_path({"HOME": "/h", "XDG_CONFIG_HOME": "/x"}) == Path("/x/jack-tools/config.ini")
+    assert config_path({"HOME": "/h", "JACK_TOOLS_CONFIG": "/y/my.ini"}) == Path("/y/my.ini")
+
+
+@pytest.mark.parametrize("venv", ["", "bin", ".venv/bin", "venv/bin", "env/bin", ".direnv/python-3.13/bin"])
+def test_a_configured_folder_is_searched_for_the_command(tmp_path, venv):
+    command = executable(tmp_path / "anywhere" / "jackvm-py" / venv / "jackvm")
+    environ = config(tmp_path, f"[apps]\njackvm = {tmp_path / 'anywhere' / 'jackvm-py'}\n")
+    found = find(JACKVM, environ=environ, entry_points=[point("vm", "json.tool:main")], which=lambda n: "/bin/jackvm")
+    assert found.command == [str(command)] and found.found_by.startswith("config file ")
+
+
+def test_a_configured_command_and_off(tmp_path):
+    found = find(JACKVM, environ=config(tmp_path, "[apps]\njackvm = python3 -m jackvm\n"), entry_points=[], which=nothing_on_path)
+    assert found.command == ["python3", "-m", "jackvm"]
+    off = config(tmp_path / "2", "[apps]\njackvm = off\n")
+    assert find(JACKVM, environ=off, entry_points=[], which=lambda n: "/bin/jackvm") is None
+    assert not_found_message(JACKVM, off).startswith("JackVM is switched off in ~/.config/jack-tools/config.ini")
+
+
+def test_the_environment_variable_beats_the_config_file(tmp_path):
+    environ = {**config(tmp_path, "[apps]\njackvm = python3 -m jackvm\n"), "JACKVM": "/opt/jackvm"}
+    assert find(JACKVM, environ=environ, entry_points=[], which=nothing_on_path).command == ["/opt/jackvm"]
+
+
+def test_jackc_gui_is_found_where_jackc_is(tmp_path):
+    gui = executable(tmp_path / "jack-compiler" / ".venv" / "bin" / "jackc-gui")
+    executable(gui.parent / "jackc")
+    for value in (tmp_path / "jack-compiler", gui.parent / "jackc"):  # its folder, or its command
+        environ = config(tmp_path / str(len(str(value))), f"[apps]\njackc = {value}\n")
+        assert find(JACKC_GUI, environ=environ, entry_points=[], which=nothing_on_path).command == [str(gui)]
+
+
+def test_a_folder_without_the_command_falls_back_and_says_why(tmp_path):
+    (tmp_path / "empty").mkdir()
+    environ = config(tmp_path, f"[apps]\njackvm = {tmp_path / 'empty'}\n")
+    assert find(JACKVM, environ=environ, entry_points=[], which=lambda n: "/bin/jackvm").found_by == "PATH"
+    assert find(JACKVM, environ=environ, entry_points=[], which=nothing_on_path) is None
+    message = not_found_message(JACKVM, environ)
+    assert message.startswith(f"No jackvm command in {tmp_path / 'empty'} (set in ~/.config/jack-tools/config.ini)")
+
+
+@pytest.mark.parametrize("text", ["jackvm = /x\n", "[apps\n", "[apps]\njackvm = 'unclosed\n", "\xff\xfe"])
+def test_a_broken_config_file_never_stops_the_lookup(tmp_path, text):
+    environ = config(tmp_path, text)
+    assert find(JACKVM, environ=environ, entry_points=[], which=lambda n: "/bin/jackvm").found_by == "PATH"
+
+
+def test_not_found_message_says_how_to_configure_it(tmp_path):
+    message = not_found_message(JACKVM, {"HOME": str(tmp_path)})
+    first, *rest = message.split("\n")
+    assert first == "JackVM not found: set jackvm = <its folder> under [apps] in ~/.config/jack-tools/config.ini"
+    assert rest == [f"Or install it here: {JACKVM.install_hint}"]
+    assert "couldn't be read" in not_found_message(JACKVM, config(tmp_path / "b", "[apps\n"))
 
 
 def test_entry_point_commands_really_run():
@@ -157,7 +235,7 @@ def test_ctrl_j_refuses_broken_programs_and_explains_a_missing_jackvm(tmp_path, 
     missing = VMLauncher(lambda: None)
     assert not missing.available
     started, message = missing.launch(session, 0)
-    assert not started and message.startswith("JackVM not found. Install it: git clone")
+    assert not started and message == not_found_message(JACKVM)  # (what it says depends on the setup)
 
 
 def test_ctrl_j_waits_for_compiling_to_finish(tmp_path, fake_vm):
