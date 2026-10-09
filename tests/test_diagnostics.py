@@ -301,3 +301,29 @@ def test_cli_warnings_no_warnings_and_werror(tmp_path, capsys):
     assert _cli(source, "--werror") == 1
     assert "error: unused variable 'unused' [-Werror]" in capsys.readouterr().out
     assert not (tmp_path / "Main.vm").exists()
+
+
+# --- 'String' is a class, not a keyword --------------------------------------------
+def test_string_is_an_ordinary_class_name(tmp_path):
+    vm, diagnostics = diagnose(tmp_path, in_main(
+        "        var String s;\n        let s = String.new(5);\n        do s.appendChar(65);\n        do s.dispose();"
+    ))  # fmt: skip
+    assert diagnostics == []
+    assert "call String.new 1" in vm and "call String.appendChar 2" in vm and "call String.dispose 1" in vm
+
+
+def test_a_class_named_string_compiles_for_project_12(tmp_path):
+    source = """class String {
+    field int length;
+    constructor String new(int maxLength) {
+        let length = 0;
+        return this;
+    }
+    method int length() {
+        return length;
+    }
+}
+"""
+    vm, diagnostics = diagnose(tmp_path, source, name="String")
+    assert vm is not None and "function String.new 0" in vm
+    assert [d.message for d in diagnostics] == ["class 'String' has the same name as a Jack OS class"]

@@ -152,7 +152,7 @@ def summary(diagnostics: Sequence[Diagnostic]) -> str:
 # Groups of tokens that ANTLR lists one by one, and how a person names them.
 _EXPRESSION_START = {"'true'", "'false'", "'null'", "'this'", "'-'", "'~'", "'('", "INTEGER", "STRING_LITERAL", "IDENTIFIER"}
 _STATEMENT_START = {"'let'", "'if'", "'while'", "'do'", "'return'"}
-_TYPE = {"'int'", "'boolean'", "'char'", "'String'", "IDENTIFIER"}
+_TYPE = {"'int'", "'boolean'", "'char'", "IDENTIFIER"}
 _OPERATOR = {"'+'", "'-'", "'*'", "'/'", "'&'", "'|'", "'<'", "'>'", "'='"}
 _SUBROUTINE_KIND = {"'constructor'", "'function'", "'method'"}
 _CLASS_VAR_KIND = {"'static'", "'field'"}

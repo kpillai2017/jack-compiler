@@ -445,8 +445,8 @@ can change its internals without breaking the other.
 - Parameters: implicit for methods
 
 ### Types
-- Primitive: `int`, `boolean`, `String`
-- User-defined: class names
+- Primitive: `int`, `char`, `boolean`
+- Classes: `String`, `Array` (from the Jack OS) and your own classes
 
 ### Subroutine Types
 - `function` - Static method (no 'this')

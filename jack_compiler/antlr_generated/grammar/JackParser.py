@@ -10,98 +10,98 @@ else:
 
 def serializedATN():
     return [
-        4,1,47,270,2,0,7,0,2,1,7,1,2,2,7,2,2,3,7,3,2,4,7,4,2,5,7,5,2,6,7,
+        4,1,46,269,2,0,7,0,2,1,7,1,2,2,7,2,2,3,7,3,2,4,7,4,2,5,7,5,2,6,7,
         6,2,7,7,7,2,8,7,8,2,9,7,9,2,10,7,10,2,11,7,11,2,12,7,12,2,13,7,13,
         2,14,7,14,2,15,7,15,2,16,7,16,2,17,7,17,2,18,7,18,2,19,7,19,2,20,
         7,20,2,21,7,21,2,22,7,22,2,23,7,23,2,24,7,24,2,25,7,25,2,26,7,26,
         1,0,1,0,1,0,1,1,1,1,1,1,1,1,5,1,62,8,1,10,1,12,1,65,9,1,1,1,5,1,
         68,8,1,10,1,12,1,71,9,1,1,1,1,1,1,2,1,2,1,2,1,2,1,2,5,2,80,8,2,10,
-        2,12,2,83,9,2,1,2,1,2,1,3,1,3,1,3,1,3,1,3,3,3,92,8,3,1,4,1,4,1,4,
-        3,4,97,8,4,1,4,1,4,1,4,3,4,102,8,4,1,4,1,4,1,4,1,5,1,5,1,5,1,5,1,
-        5,1,5,5,5,113,8,5,10,5,12,5,116,9,5,1,6,1,6,5,6,120,8,6,10,6,12,
-        6,123,9,6,1,6,1,6,1,6,1,7,1,7,1,7,1,7,1,7,5,7,133,8,7,10,7,12,7,
-        136,9,7,1,7,1,7,1,8,5,8,141,8,8,10,8,12,8,144,9,8,1,9,1,9,1,9,1,
-        9,1,9,3,9,151,8,9,1,10,1,10,1,10,1,10,1,10,1,10,3,10,159,8,10,1,
-        10,1,10,1,10,1,10,1,11,1,11,1,11,1,11,1,11,1,11,1,11,1,11,1,11,1,
-        11,1,11,1,11,3,11,177,8,11,1,12,1,12,1,12,1,12,1,12,1,12,1,12,1,
-        12,1,13,1,13,1,13,1,13,1,14,1,14,3,14,193,8,14,1,14,1,14,1,15,1,
-        15,1,15,1,15,5,15,201,8,15,10,15,12,15,204,9,15,1,16,1,16,1,16,1,
-        16,1,16,1,16,1,16,1,16,1,16,1,16,1,16,1,16,1,16,1,16,1,16,1,16,1,
-        16,3,16,223,8,16,1,17,1,17,1,17,3,17,228,8,17,1,17,1,17,1,17,1,17,
-        3,17,234,8,17,1,17,1,17,1,17,1,17,3,17,240,8,17,1,17,1,17,3,17,244,
-        8,17,1,18,1,18,1,18,5,18,249,8,18,10,18,12,18,252,9,18,1,19,1,19,
-        1,20,1,20,1,21,1,21,1,22,1,22,1,23,1,23,1,24,1,24,1,25,1,25,1,26,
-        1,26,1,26,0,0,27,0,2,4,6,8,10,12,14,16,18,20,22,24,26,28,30,32,34,
-        36,38,40,42,44,46,48,50,52,0,5,1,0,5,6,1,0,2,4,2,0,23,28,30,32,2,
-        0,24,24,29,29,1,0,13,16,275,0,54,1,0,0,0,2,57,1,0,0,0,4,74,1,0,0,
-        0,6,91,1,0,0,0,8,93,1,0,0,0,10,106,1,0,0,0,12,117,1,0,0,0,14,127,
-        1,0,0,0,16,142,1,0,0,0,18,150,1,0,0,0,20,152,1,0,0,0,22,164,1,0,
-        0,0,24,178,1,0,0,0,26,186,1,0,0,0,28,190,1,0,0,0,30,196,1,0,0,0,
-        32,222,1,0,0,0,34,243,1,0,0,0,36,245,1,0,0,0,38,253,1,0,0,0,40,255,
-        1,0,0,0,42,257,1,0,0,0,44,259,1,0,0,0,46,261,1,0,0,0,48,263,1,0,
-        0,0,50,265,1,0,0,0,52,267,1,0,0,0,54,55,3,2,1,0,55,56,5,0,0,1,56,
-        1,1,0,0,0,57,58,5,1,0,0,58,59,3,44,22,0,59,63,5,40,0,0,60,62,3,4,
-        2,0,61,60,1,0,0,0,62,65,1,0,0,0,63,61,1,0,0,0,63,64,1,0,0,0,64,69,
-        1,0,0,0,65,63,1,0,0,0,66,68,3,8,4,0,67,66,1,0,0,0,68,71,1,0,0,0,
-        69,67,1,0,0,0,69,70,1,0,0,0,70,72,1,0,0,0,71,69,1,0,0,0,72,73,5,
-        41,0,0,73,3,1,0,0,0,74,75,7,0,0,0,75,76,3,6,3,0,76,81,3,48,24,0,
-        77,78,5,34,0,0,78,80,3,48,24,0,79,77,1,0,0,0,80,83,1,0,0,0,81,79,
-        1,0,0,0,81,82,1,0,0,0,82,84,1,0,0,0,83,81,1,0,0,0,84,85,5,35,0,0,
-        85,5,1,0,0,0,86,92,5,8,0,0,87,92,5,9,0,0,88,92,5,10,0,0,89,92,5,
-        11,0,0,90,92,3,44,22,0,91,86,1,0,0,0,91,87,1,0,0,0,91,88,1,0,0,0,
-        91,89,1,0,0,0,91,90,1,0,0,0,92,7,1,0,0,0,93,96,7,1,0,0,94,97,5,12,
-        0,0,95,97,3,6,3,0,96,94,1,0,0,0,96,95,1,0,0,0,97,98,1,0,0,0,98,99,
-        3,46,23,0,99,101,5,36,0,0,100,102,3,10,5,0,101,100,1,0,0,0,101,102,
-        1,0,0,0,102,103,1,0,0,0,103,104,5,37,0,0,104,105,3,12,6,0,105,9,
-        1,0,0,0,106,107,3,6,3,0,107,114,3,48,24,0,108,109,5,34,0,0,109,110,
-        3,6,3,0,110,111,3,48,24,0,111,113,1,0,0,0,112,108,1,0,0,0,113,116,
-        1,0,0,0,114,112,1,0,0,0,114,115,1,0,0,0,115,11,1,0,0,0,116,114,1,
-        0,0,0,117,121,5,40,0,0,118,120,3,14,7,0,119,118,1,0,0,0,120,123,
-        1,0,0,0,121,119,1,0,0,0,121,122,1,0,0,0,122,124,1,0,0,0,123,121,
-        1,0,0,0,124,125,3,16,8,0,125,126,5,41,0,0,126,13,1,0,0,0,127,128,
-        5,7,0,0,128,129,3,6,3,0,129,134,3,48,24,0,130,131,5,34,0,0,131,133,
-        3,48,24,0,132,130,1,0,0,0,133,136,1,0,0,0,134,132,1,0,0,0,134,135,
-        1,0,0,0,135,137,1,0,0,0,136,134,1,0,0,0,137,138,5,35,0,0,138,15,
-        1,0,0,0,139,141,3,18,9,0,140,139,1,0,0,0,141,144,1,0,0,0,142,140,
-        1,0,0,0,142,143,1,0,0,0,143,17,1,0,0,0,144,142,1,0,0,0,145,151,3,
-        20,10,0,146,151,3,22,11,0,147,151,3,24,12,0,148,151,3,26,13,0,149,
-        151,3,28,14,0,150,145,1,0,0,0,150,146,1,0,0,0,150,147,1,0,0,0,150,
-        148,1,0,0,0,150,149,1,0,0,0,151,19,1,0,0,0,152,153,5,17,0,0,153,
-        158,3,48,24,0,154,155,5,38,0,0,155,156,3,30,15,0,156,157,5,39,0,
-        0,157,159,1,0,0,0,158,154,1,0,0,0,158,159,1,0,0,0,159,160,1,0,0,
-        0,160,161,5,32,0,0,161,162,3,30,15,0,162,163,5,35,0,0,163,21,1,0,
-        0,0,164,165,5,19,0,0,165,166,5,36,0,0,166,167,3,30,15,0,167,168,
-        5,37,0,0,168,169,5,40,0,0,169,170,3,16,8,0,170,176,5,41,0,0,171,
-        172,5,20,0,0,172,173,5,40,0,0,173,174,3,16,8,0,174,175,5,41,0,0,
-        175,177,1,0,0,0,176,171,1,0,0,0,176,177,1,0,0,0,177,23,1,0,0,0,178,
-        179,5,21,0,0,179,180,5,36,0,0,180,181,3,30,15,0,181,182,5,37,0,0,
-        182,183,5,40,0,0,183,184,3,16,8,0,184,185,5,41,0,0,185,25,1,0,0,
-        0,186,187,5,18,0,0,187,188,3,34,17,0,188,189,5,35,0,0,189,27,1,0,
-        0,0,190,192,5,22,0,0,191,193,3,30,15,0,192,191,1,0,0,0,192,193,1,
-        0,0,0,193,194,1,0,0,0,194,195,5,35,0,0,195,29,1,0,0,0,196,202,3,
-        32,16,0,197,198,3,38,19,0,198,199,3,32,16,0,199,201,1,0,0,0,200,
-        197,1,0,0,0,201,204,1,0,0,0,202,200,1,0,0,0,202,203,1,0,0,0,203,
-        31,1,0,0,0,204,202,1,0,0,0,205,223,3,50,25,0,206,223,3,52,26,0,207,
-        223,3,42,21,0,208,223,3,48,24,0,209,210,3,48,24,0,210,211,5,38,0,
-        0,211,212,3,30,15,0,212,213,5,39,0,0,213,223,1,0,0,0,214,223,3,34,
-        17,0,215,216,5,36,0,0,216,217,3,30,15,0,217,218,5,37,0,0,218,223,
-        1,0,0,0,219,220,3,40,20,0,220,221,3,32,16,0,221,223,1,0,0,0,222,
-        205,1,0,0,0,222,206,1,0,0,0,222,207,1,0,0,0,222,208,1,0,0,0,222,
-        209,1,0,0,0,222,214,1,0,0,0,222,215,1,0,0,0,222,219,1,0,0,0,223,
-        33,1,0,0,0,224,225,3,46,23,0,225,227,5,36,0,0,226,228,3,36,18,0,
-        227,226,1,0,0,0,227,228,1,0,0,0,228,229,1,0,0,0,229,230,5,37,0,0,
-        230,244,1,0,0,0,231,234,3,44,22,0,232,234,3,48,24,0,233,231,1,0,
-        0,0,233,232,1,0,0,0,234,235,1,0,0,0,235,236,5,33,0,0,236,237,3,46,
-        23,0,237,239,5,36,0,0,238,240,3,36,18,0,239,238,1,0,0,0,239,240,
-        1,0,0,0,240,241,1,0,0,0,241,242,5,37,0,0,242,244,1,0,0,0,243,224,
-        1,0,0,0,243,233,1,0,0,0,244,35,1,0,0,0,245,250,3,30,15,0,246,247,
-        5,34,0,0,247,249,3,30,15,0,248,246,1,0,0,0,249,252,1,0,0,0,250,248,
-        1,0,0,0,250,251,1,0,0,0,251,37,1,0,0,0,252,250,1,0,0,0,253,254,7,
-        2,0,0,254,39,1,0,0,0,255,256,7,3,0,0,256,41,1,0,0,0,257,258,7,4,
-        0,0,258,43,1,0,0,0,259,260,5,44,0,0,260,45,1,0,0,0,261,262,5,44,
-        0,0,262,47,1,0,0,0,263,264,5,44,0,0,264,49,1,0,0,0,265,266,5,42,
-        0,0,266,51,1,0,0,0,267,268,5,43,0,0,268,53,1,0,0,0,21,63,69,81,91,
-        96,101,114,121,134,142,150,158,176,192,202,222,227,233,239,243,250
+        2,12,2,83,9,2,1,2,1,2,1,3,1,3,1,3,1,3,3,3,91,8,3,1,4,1,4,1,4,3,4,
+        96,8,4,1,4,1,4,1,4,3,4,101,8,4,1,4,1,4,1,4,1,5,1,5,1,5,1,5,1,5,1,
+        5,5,5,112,8,5,10,5,12,5,115,9,5,1,6,1,6,5,6,119,8,6,10,6,12,6,122,
+        9,6,1,6,1,6,1,6,1,7,1,7,1,7,1,7,1,7,5,7,132,8,7,10,7,12,7,135,9,
+        7,1,7,1,7,1,8,5,8,140,8,8,10,8,12,8,143,9,8,1,9,1,9,1,9,1,9,1,9,
+        3,9,150,8,9,1,10,1,10,1,10,1,10,1,10,1,10,3,10,158,8,10,1,10,1,10,
+        1,10,1,10,1,11,1,11,1,11,1,11,1,11,1,11,1,11,1,11,1,11,1,11,1,11,
+        1,11,3,11,176,8,11,1,12,1,12,1,12,1,12,1,12,1,12,1,12,1,12,1,13,
+        1,13,1,13,1,13,1,14,1,14,3,14,192,8,14,1,14,1,14,1,15,1,15,1,15,
+        1,15,5,15,200,8,15,10,15,12,15,203,9,15,1,16,1,16,1,16,1,16,1,16,
+        1,16,1,16,1,16,1,16,1,16,1,16,1,16,1,16,1,16,1,16,1,16,1,16,3,16,
+        222,8,16,1,17,1,17,1,17,3,17,227,8,17,1,17,1,17,1,17,1,17,3,17,233,
+        8,17,1,17,1,17,1,17,1,17,3,17,239,8,17,1,17,1,17,3,17,243,8,17,1,
+        18,1,18,1,18,5,18,248,8,18,10,18,12,18,251,9,18,1,19,1,19,1,20,1,
+        20,1,21,1,21,1,22,1,22,1,23,1,23,1,24,1,24,1,25,1,25,1,26,1,26,1,
+        26,0,0,27,0,2,4,6,8,10,12,14,16,18,20,22,24,26,28,30,32,34,36,38,
+        40,42,44,46,48,50,52,0,5,1,0,5,6,1,0,2,4,2,0,22,27,29,31,2,0,23,
+        23,28,28,1,0,12,15,273,0,54,1,0,0,0,2,57,1,0,0,0,4,74,1,0,0,0,6,
+        90,1,0,0,0,8,92,1,0,0,0,10,105,1,0,0,0,12,116,1,0,0,0,14,126,1,0,
+        0,0,16,141,1,0,0,0,18,149,1,0,0,0,20,151,1,0,0,0,22,163,1,0,0,0,
+        24,177,1,0,0,0,26,185,1,0,0,0,28,189,1,0,0,0,30,195,1,0,0,0,32,221,
+        1,0,0,0,34,242,1,0,0,0,36,244,1,0,0,0,38,252,1,0,0,0,40,254,1,0,
+        0,0,42,256,1,0,0,0,44,258,1,0,0,0,46,260,1,0,0,0,48,262,1,0,0,0,
+        50,264,1,0,0,0,52,266,1,0,0,0,54,55,3,2,1,0,55,56,5,0,0,1,56,1,1,
+        0,0,0,57,58,5,1,0,0,58,59,3,44,22,0,59,63,5,39,0,0,60,62,3,4,2,0,
+        61,60,1,0,0,0,62,65,1,0,0,0,63,61,1,0,0,0,63,64,1,0,0,0,64,69,1,
+        0,0,0,65,63,1,0,0,0,66,68,3,8,4,0,67,66,1,0,0,0,68,71,1,0,0,0,69,
+        67,1,0,0,0,69,70,1,0,0,0,70,72,1,0,0,0,71,69,1,0,0,0,72,73,5,40,
+        0,0,73,3,1,0,0,0,74,75,7,0,0,0,75,76,3,6,3,0,76,81,3,48,24,0,77,
+        78,5,33,0,0,78,80,3,48,24,0,79,77,1,0,0,0,80,83,1,0,0,0,81,79,1,
+        0,0,0,81,82,1,0,0,0,82,84,1,0,0,0,83,81,1,0,0,0,84,85,5,34,0,0,85,
+        5,1,0,0,0,86,91,5,8,0,0,87,91,5,9,0,0,88,91,5,10,0,0,89,91,3,44,
+        22,0,90,86,1,0,0,0,90,87,1,0,0,0,90,88,1,0,0,0,90,89,1,0,0,0,91,
+        7,1,0,0,0,92,95,7,1,0,0,93,96,5,11,0,0,94,96,3,6,3,0,95,93,1,0,0,
+        0,95,94,1,0,0,0,96,97,1,0,0,0,97,98,3,46,23,0,98,100,5,35,0,0,99,
+        101,3,10,5,0,100,99,1,0,0,0,100,101,1,0,0,0,101,102,1,0,0,0,102,
+        103,5,36,0,0,103,104,3,12,6,0,104,9,1,0,0,0,105,106,3,6,3,0,106,
+        113,3,48,24,0,107,108,5,33,0,0,108,109,3,6,3,0,109,110,3,48,24,0,
+        110,112,1,0,0,0,111,107,1,0,0,0,112,115,1,0,0,0,113,111,1,0,0,0,
+        113,114,1,0,0,0,114,11,1,0,0,0,115,113,1,0,0,0,116,120,5,39,0,0,
+        117,119,3,14,7,0,118,117,1,0,0,0,119,122,1,0,0,0,120,118,1,0,0,0,
+        120,121,1,0,0,0,121,123,1,0,0,0,122,120,1,0,0,0,123,124,3,16,8,0,
+        124,125,5,40,0,0,125,13,1,0,0,0,126,127,5,7,0,0,127,128,3,6,3,0,
+        128,133,3,48,24,0,129,130,5,33,0,0,130,132,3,48,24,0,131,129,1,0,
+        0,0,132,135,1,0,0,0,133,131,1,0,0,0,133,134,1,0,0,0,134,136,1,0,
+        0,0,135,133,1,0,0,0,136,137,5,34,0,0,137,15,1,0,0,0,138,140,3,18,
+        9,0,139,138,1,0,0,0,140,143,1,0,0,0,141,139,1,0,0,0,141,142,1,0,
+        0,0,142,17,1,0,0,0,143,141,1,0,0,0,144,150,3,20,10,0,145,150,3,22,
+        11,0,146,150,3,24,12,0,147,150,3,26,13,0,148,150,3,28,14,0,149,144,
+        1,0,0,0,149,145,1,0,0,0,149,146,1,0,0,0,149,147,1,0,0,0,149,148,
+        1,0,0,0,150,19,1,0,0,0,151,152,5,16,0,0,152,157,3,48,24,0,153,154,
+        5,37,0,0,154,155,3,30,15,0,155,156,5,38,0,0,156,158,1,0,0,0,157,
+        153,1,0,0,0,157,158,1,0,0,0,158,159,1,0,0,0,159,160,5,31,0,0,160,
+        161,3,30,15,0,161,162,5,34,0,0,162,21,1,0,0,0,163,164,5,18,0,0,164,
+        165,5,35,0,0,165,166,3,30,15,0,166,167,5,36,0,0,167,168,5,39,0,0,
+        168,169,3,16,8,0,169,175,5,40,0,0,170,171,5,19,0,0,171,172,5,39,
+        0,0,172,173,3,16,8,0,173,174,5,40,0,0,174,176,1,0,0,0,175,170,1,
+        0,0,0,175,176,1,0,0,0,176,23,1,0,0,0,177,178,5,20,0,0,178,179,5,
+        35,0,0,179,180,3,30,15,0,180,181,5,36,0,0,181,182,5,39,0,0,182,183,
+        3,16,8,0,183,184,5,40,0,0,184,25,1,0,0,0,185,186,5,17,0,0,186,187,
+        3,34,17,0,187,188,5,34,0,0,188,27,1,0,0,0,189,191,5,21,0,0,190,192,
+        3,30,15,0,191,190,1,0,0,0,191,192,1,0,0,0,192,193,1,0,0,0,193,194,
+        5,34,0,0,194,29,1,0,0,0,195,201,3,32,16,0,196,197,3,38,19,0,197,
+        198,3,32,16,0,198,200,1,0,0,0,199,196,1,0,0,0,200,203,1,0,0,0,201,
+        199,1,0,0,0,201,202,1,0,0,0,202,31,1,0,0,0,203,201,1,0,0,0,204,222,
+        3,50,25,0,205,222,3,52,26,0,206,222,3,42,21,0,207,222,3,48,24,0,
+        208,209,3,48,24,0,209,210,5,37,0,0,210,211,3,30,15,0,211,212,5,38,
+        0,0,212,222,1,0,0,0,213,222,3,34,17,0,214,215,5,35,0,0,215,216,3,
+        30,15,0,216,217,5,36,0,0,217,222,1,0,0,0,218,219,3,40,20,0,219,220,
+        3,32,16,0,220,222,1,0,0,0,221,204,1,0,0,0,221,205,1,0,0,0,221,206,
+        1,0,0,0,221,207,1,0,0,0,221,208,1,0,0,0,221,213,1,0,0,0,221,214,
+        1,0,0,0,221,218,1,0,0,0,222,33,1,0,0,0,223,224,3,46,23,0,224,226,
+        5,35,0,0,225,227,3,36,18,0,226,225,1,0,0,0,226,227,1,0,0,0,227,228,
+        1,0,0,0,228,229,5,36,0,0,229,243,1,0,0,0,230,233,3,44,22,0,231,233,
+        3,48,24,0,232,230,1,0,0,0,232,231,1,0,0,0,233,234,1,0,0,0,234,235,
+        5,32,0,0,235,236,3,46,23,0,236,238,5,35,0,0,237,239,3,36,18,0,238,
+        237,1,0,0,0,238,239,1,0,0,0,239,240,1,0,0,0,240,241,5,36,0,0,241,
+        243,1,0,0,0,242,223,1,0,0,0,242,232,1,0,0,0,243,35,1,0,0,0,244,249,
+        3,30,15,0,245,246,5,33,0,0,246,248,3,30,15,0,247,245,1,0,0,0,248,
+        251,1,0,0,0,249,247,1,0,0,0,249,250,1,0,0,0,250,37,1,0,0,0,251,249,
+        1,0,0,0,252,253,7,2,0,0,253,39,1,0,0,0,254,255,7,3,0,0,255,41,1,
+        0,0,0,256,257,7,4,0,0,257,43,1,0,0,0,258,259,5,43,0,0,259,45,1,0,
+        0,0,260,261,5,43,0,0,261,47,1,0,0,0,262,263,5,43,0,0,263,49,1,0,
+        0,0,264,265,5,41,0,0,265,51,1,0,0,0,266,267,5,42,0,0,267,53,1,0,
+        0,0,21,63,69,81,90,95,100,113,120,133,141,149,157,175,191,201,221,
+        226,232,238,242,249
     ]
 
 class JackParser ( Parser ):
@@ -116,21 +116,20 @@ class JackParser ( Parser ):
 
     literalNames = [ "<INVALID>", "'class'", "'constructor'", "'function'", 
                      "'method'", "'field'", "'static'", "'var'", "'int'", 
-                     "'boolean'", "'char'", "'String'", "'void'", "'true'", 
-                     "'false'", "'null'", "'this'", "'let'", "'do'", "'if'", 
-                     "'else'", "'while'", "'return'", "'+'", "'-'", "'*'", 
-                     "'/'", "'&'", "'|'", "'~'", "'<'", "'>'", "'='", "'.'", 
-                     "','", "';'", "'('", "')'", "'['", "']'", "'{'", "'}'" ]
+                     "'boolean'", "'char'", "'void'", "'true'", "'false'", 
+                     "'null'", "'this'", "'let'", "'do'", "'if'", "'else'", 
+                     "'while'", "'return'", "'+'", "'-'", "'*'", "'/'", 
+                     "'&'", "'|'", "'~'", "'<'", "'>'", "'='", "'.'", "','", 
+                     "';'", "'('", "')'", "'['", "']'", "'{'", "'}'" ]
 
     symbolicNames = [ "<INVALID>", "CLASS", "CONSTRUCTOR", "FUNCTION", "METHOD", 
                       "FIELD", "STATIC", "VAR", "INT", "BOOLEAN", "CHAR", 
-                      "STRING", "VOID", "TRUE", "FALSE", "NULL", "THIS", 
-                      "LET", "DO", "IF", "ELSE", "WHILE", "RETURN", "PLUS", 
-                      "MINUS", "MUL", "DIV", "AND", "OR", "NOT", "LT", "GT", 
-                      "EQUAL", "DOT", "COMMA", "SEMICOLON", "LPAREN", "RPAREN", 
-                      "LBRACKET", "RBRACKET", "LBRACE", "RBRACE", "INTEGER", 
-                      "STRING_LITERAL", "IDENTIFIER", "WS", "LINE_COMMENT", 
-                      "BLOCK_COMMENT" ]
+                      "VOID", "TRUE", "FALSE", "NULL", "THIS", "LET", "DO", 
+                      "IF", "ELSE", "WHILE", "RETURN", "PLUS", "MINUS", 
+                      "MUL", "DIV", "AND", "OR", "NOT", "LT", "GT", "EQUAL", 
+                      "DOT", "COMMA", "SEMICOLON", "LPAREN", "RPAREN", "LBRACKET", 
+                      "RBRACKET", "LBRACE", "RBRACE", "INTEGER", "STRING_LITERAL", 
+                      "IDENTIFIER", "WS", "LINE_COMMENT", "BLOCK_COMMENT" ]
 
     RULE_program = 0
     RULE_classDeclaration = 1
@@ -179,43 +178,42 @@ class JackParser ( Parser ):
     INT=8
     BOOLEAN=9
     CHAR=10
-    STRING=11
-    VOID=12
-    TRUE=13
-    FALSE=14
-    NULL=15
-    THIS=16
-    LET=17
-    DO=18
-    IF=19
-    ELSE=20
-    WHILE=21
-    RETURN=22
-    PLUS=23
-    MINUS=24
-    MUL=25
-    DIV=26
-    AND=27
-    OR=28
-    NOT=29
-    LT=30
-    GT=31
-    EQUAL=32
-    DOT=33
-    COMMA=34
-    SEMICOLON=35
-    LPAREN=36
-    RPAREN=37
-    LBRACKET=38
-    RBRACKET=39
-    LBRACE=40
-    RBRACE=41
-    INTEGER=42
-    STRING_LITERAL=43
-    IDENTIFIER=44
-    WS=45
-    LINE_COMMENT=46
-    BLOCK_COMMENT=47
+    VOID=11
+    TRUE=12
+    FALSE=13
+    NULL=14
+    THIS=15
+    LET=16
+    DO=17
+    IF=18
+    ELSE=19
+    WHILE=20
+    RETURN=21
+    PLUS=22
+    MINUS=23
+    MUL=24
+    DIV=25
+    AND=26
+    OR=27
+    NOT=28
+    LT=29
+    GT=30
+    EQUAL=31
+    DOT=32
+    COMMA=33
+    SEMICOLON=34
+    LPAREN=35
+    RPAREN=36
+    LBRACKET=37
+    RBRACKET=38
+    LBRACE=39
+    RBRACE=40
+    INTEGER=41
+    STRING_LITERAL=42
+    IDENTIFIER=43
+    WS=44
+    LINE_COMMENT=45
+    BLOCK_COMMENT=46
 
     def __init__(self, input:TokenStream, output:TextIO = sys.stdout):
         super().__init__(input, output)
@@ -451,7 +449,7 @@ class JackParser ( Parser ):
             self.state = 81
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            while _la==34:
+            while _la==33:
                 self.state = 77
                 self.match(JackParser.COMMA)
                 self.state = 78
@@ -487,9 +485,6 @@ class JackParser ( Parser ):
         def CHAR(self):
             return self.getToken(JackParser.CHAR, 0)
 
-        def STRING(self):
-            return self.getToken(JackParser.STRING, 0)
-
         def className(self):
             return self.getTypedRuleContext(JackParser.ClassNameContext,0)
 
@@ -519,7 +514,7 @@ class JackParser ( Parser ):
         localctx = JackParser.TypeContext(self, self._ctx, self.state)
         self.enterRule(localctx, 6, self.RULE_type)
         try:
-            self.state = 91
+            self.state = 90
             self._errHandler.sync(self)
             token = self._input.LA(1)
             if token in [8]:
@@ -537,14 +532,9 @@ class JackParser ( Parser ):
                 self.state = 88
                 self.match(JackParser.CHAR)
                 pass
-            elif token in [11]:
+            elif token in [43]:
                 self.enterOuterAlt(localctx, 4)
                 self.state = 89
-                self.match(JackParser.STRING)
-                pass
-            elif token in [44]:
-                self.enterOuterAlt(localctx, 5)
-                self.state = 90
                 self.className()
                 pass
             else:
@@ -627,42 +617,42 @@ class JackParser ( Parser ):
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 93
+            self.state = 92
             _la = self._input.LA(1)
             if not((((_la) & ~0x3f) == 0 and ((1 << _la) & 28) != 0)):
                 self._errHandler.recoverInline(self)
             else:
                 self._errHandler.reportMatch(self)
                 self.consume()
-            self.state = 96
+            self.state = 95
             self._errHandler.sync(self)
             token = self._input.LA(1)
-            if token in [12]:
-                self.state = 94
+            if token in [11]:
+                self.state = 93
                 self.match(JackParser.VOID)
                 pass
-            elif token in [8, 9, 10, 11, 44]:
-                self.state = 95
+            elif token in [8, 9, 10, 43]:
+                self.state = 94
                 self.type_()
                 pass
             else:
                 raise NoViableAltException(self)
 
-            self.state = 98
+            self.state = 97
             self.subroutineName()
-            self.state = 99
+            self.state = 98
             self.match(JackParser.LPAREN)
-            self.state = 101
+            self.state = 100
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            if (((_la) & ~0x3f) == 0 and ((1 << _la) & 17592186048256) != 0):
-                self.state = 100
+            if (((_la) & ~0x3f) == 0 and ((1 << _la) & 8796093024000) != 0):
+                self.state = 99
                 self.parameterList()
 
 
-            self.state = 103
+            self.state = 102
             self.match(JackParser.RPAREN)
-            self.state = 104
+            self.state = 103
             self.subroutineBody()
         except RecognitionException as re:
             localctx.exception = re
@@ -727,21 +717,21 @@ class JackParser ( Parser ):
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 106
+            self.state = 105
             self.type_()
-            self.state = 107
+            self.state = 106
             self.varName()
-            self.state = 114
+            self.state = 113
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            while _la==34:
-                self.state = 108
+            while _la==33:
+                self.state = 107
                 self.match(JackParser.COMMA)
-                self.state = 109
+                self.state = 108
                 self.type_()
-                self.state = 110
+                self.state = 109
                 self.varName()
-                self.state = 116
+                self.state = 115
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
 
@@ -805,21 +795,21 @@ class JackParser ( Parser ):
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 117
+            self.state = 116
             self.match(JackParser.LBRACE)
-            self.state = 121
+            self.state = 120
             self._errHandler.sync(self)
             _la = self._input.LA(1)
             while _la==7:
-                self.state = 118
+                self.state = 117
                 self.varDeclaration()
-                self.state = 123
+                self.state = 122
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
 
-            self.state = 124
+            self.state = 123
             self.statements()
-            self.state = 125
+            self.state = 124
             self.match(JackParser.RBRACE)
         except RecognitionException as re:
             localctx.exception = re
@@ -887,25 +877,25 @@ class JackParser ( Parser ):
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 127
+            self.state = 126
             self.match(JackParser.VAR)
-            self.state = 128
+            self.state = 127
             self.type_()
-            self.state = 129
+            self.state = 128
             self.varName()
-            self.state = 134
+            self.state = 133
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            while _la==34:
-                self.state = 130
+            while _la==33:
+                self.state = 129
                 self.match(JackParser.COMMA)
-                self.state = 131
+                self.state = 130
                 self.varName()
-                self.state = 136
+                self.state = 135
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
 
-            self.state = 137
+            self.state = 136
             self.match(JackParser.SEMICOLON)
         except RecognitionException as re:
             localctx.exception = re
@@ -957,13 +947,13 @@ class JackParser ( Parser ):
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 142
+            self.state = 141
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            while (((_la) & ~0x3f) == 0 and ((1 << _la) & 7208960) != 0):
-                self.state = 139
+            while (((_la) & ~0x3f) == 0 and ((1 << _la) & 3604480) != 0):
+                self.state = 138
                 self.statement()
-                self.state = 144
+                self.state = 143
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
 
@@ -1028,32 +1018,32 @@ class JackParser ( Parser ):
         localctx = JackParser.StatementContext(self, self._ctx, self.state)
         self.enterRule(localctx, 18, self.RULE_statement)
         try:
-            self.state = 150
+            self.state = 149
             self._errHandler.sync(self)
             token = self._input.LA(1)
-            if token in [17]:
+            if token in [16]:
                 self.enterOuterAlt(localctx, 1)
-                self.state = 145
+                self.state = 144
                 self.letStatement()
                 pass
-            elif token in [19]:
+            elif token in [18]:
                 self.enterOuterAlt(localctx, 2)
-                self.state = 146
+                self.state = 145
                 self.ifStatement()
                 pass
-            elif token in [21]:
+            elif token in [20]:
                 self.enterOuterAlt(localctx, 3)
-                self.state = 147
+                self.state = 146
                 self.whileStatement()
                 pass
-            elif token in [18]:
+            elif token in [17]:
                 self.enterOuterAlt(localctx, 4)
-                self.state = 148
+                self.state = 147
                 self.doStatement()
                 pass
-            elif token in [22]:
+            elif token in [21]:
                 self.enterOuterAlt(localctx, 5)
-                self.state = 149
+                self.state = 148
                 self.returnStatement()
                 pass
             else:
@@ -1128,27 +1118,27 @@ class JackParser ( Parser ):
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 152
+            self.state = 151
             self.match(JackParser.LET)
-            self.state = 153
+            self.state = 152
             self.varName()
-            self.state = 158
+            self.state = 157
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            if _la==38:
-                self.state = 154
+            if _la==37:
+                self.state = 153
                 self.match(JackParser.LBRACKET)
-                self.state = 155
+                self.state = 154
                 self.expression()
-                self.state = 156
+                self.state = 155
                 self.match(JackParser.RBRACKET)
 
 
-            self.state = 160
+            self.state = 159
             self.match(JackParser.EQUAL)
-            self.state = 161
+            self.state = 160
             self.expression()
-            self.state = 162
+            self.state = 161
             self.match(JackParser.SEMICOLON)
         except RecognitionException as re:
             localctx.exception = re
@@ -1228,31 +1218,31 @@ class JackParser ( Parser ):
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 164
+            self.state = 163
             self.match(JackParser.IF)
-            self.state = 165
+            self.state = 164
             self.match(JackParser.LPAREN)
-            self.state = 166
+            self.state = 165
             self.expression()
-            self.state = 167
+            self.state = 166
             self.match(JackParser.RPAREN)
-            self.state = 168
+            self.state = 167
             self.match(JackParser.LBRACE)
-            self.state = 169
+            self.state = 168
             self.statements()
-            self.state = 170
+            self.state = 169
             self.match(JackParser.RBRACE)
-            self.state = 176
+            self.state = 175
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            if _la==20:
-                self.state = 171
+            if _la==19:
+                self.state = 170
                 self.match(JackParser.ELSE)
-                self.state = 172
+                self.state = 171
                 self.match(JackParser.LBRACE)
-                self.state = 173
+                self.state = 172
                 self.statements()
-                self.state = 174
+                self.state = 173
                 self.match(JackParser.RBRACE)
 
 
@@ -1321,19 +1311,19 @@ class JackParser ( Parser ):
         self.enterRule(localctx, 24, self.RULE_whileStatement)
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 178
+            self.state = 177
             self.match(JackParser.WHILE)
-            self.state = 179
+            self.state = 178
             self.match(JackParser.LPAREN)
-            self.state = 180
+            self.state = 179
             self.expression()
-            self.state = 181
+            self.state = 180
             self.match(JackParser.RPAREN)
-            self.state = 182
+            self.state = 181
             self.match(JackParser.LBRACE)
-            self.state = 183
+            self.state = 182
             self.statements()
-            self.state = 184
+            self.state = 183
             self.match(JackParser.RBRACE)
         except RecognitionException as re:
             localctx.exception = re
@@ -1387,11 +1377,11 @@ class JackParser ( Parser ):
         self.enterRule(localctx, 26, self.RULE_doStatement)
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 186
+            self.state = 185
             self.match(JackParser.DO)
-            self.state = 187
+            self.state = 186
             self.subroutineCall()
-            self.state = 188
+            self.state = 187
             self.match(JackParser.SEMICOLON)
         except RecognitionException as re:
             localctx.exception = re
@@ -1446,17 +1436,17 @@ class JackParser ( Parser ):
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 190
+            self.state = 189
             self.match(JackParser.RETURN)
-            self.state = 192
+            self.state = 191
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            if (((_la) & ~0x3f) == 0 and ((1 << _la) & 30855598825472) != 0):
-                self.state = 191
+            if (((_la) & ~0x3f) == 0 and ((1 << _la) & 15427799412736) != 0):
+                self.state = 190
                 self.expression()
 
 
-            self.state = 194
+            self.state = 193
             self.match(JackParser.SEMICOLON)
         except RecognitionException as re:
             localctx.exception = re
@@ -1515,17 +1505,17 @@ class JackParser ( Parser ):
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 196
+            self.state = 195
             self.term()
-            self.state = 202
+            self.state = 201
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            while (((_la) & ~0x3f) == 0 and ((1 << _la) & 8044675072) != 0):
-                self.state = 197
+            while (((_la) & ~0x3f) == 0 and ((1 << _la) & 4022337536) != 0):
+                self.state = 196
                 self.op()
-                self.state = 198
+                self.state = 197
                 self.term()
-                self.state = 204
+                self.state = 203
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
 
@@ -1614,66 +1604,66 @@ class JackParser ( Parser ):
         localctx = JackParser.TermContext(self, self._ctx, self.state)
         self.enterRule(localctx, 32, self.RULE_term)
         try:
-            self.state = 222
+            self.state = 221
             self._errHandler.sync(self)
             la_ = self._interp.adaptivePredict(self._input,15,self._ctx)
             if la_ == 1:
                 self.enterOuterAlt(localctx, 1)
-                self.state = 205
+                self.state = 204
                 self.integerConstant()
                 pass
 
             elif la_ == 2:
                 self.enterOuterAlt(localctx, 2)
-                self.state = 206
+                self.state = 205
                 self.stringConstant()
                 pass
 
             elif la_ == 3:
                 self.enterOuterAlt(localctx, 3)
-                self.state = 207
+                self.state = 206
                 self.keywordConstant()
                 pass
 
             elif la_ == 4:
                 self.enterOuterAlt(localctx, 4)
-                self.state = 208
+                self.state = 207
                 self.varName()
                 pass
 
             elif la_ == 5:
                 self.enterOuterAlt(localctx, 5)
-                self.state = 209
+                self.state = 208
                 self.varName()
-                self.state = 210
+                self.state = 209
                 self.match(JackParser.LBRACKET)
-                self.state = 211
+                self.state = 210
                 self.expression()
-                self.state = 212
+                self.state = 211
                 self.match(JackParser.RBRACKET)
                 pass
 
             elif la_ == 6:
                 self.enterOuterAlt(localctx, 6)
-                self.state = 214
+                self.state = 213
                 self.subroutineCall()
                 pass
 
             elif la_ == 7:
                 self.enterOuterAlt(localctx, 7)
-                self.state = 215
+                self.state = 214
                 self.match(JackParser.LPAREN)
-                self.state = 216
+                self.state = 215
                 self.expression()
-                self.state = 217
+                self.state = 216
                 self.match(JackParser.RPAREN)
                 pass
 
             elif la_ == 8:
                 self.enterOuterAlt(localctx, 8)
-                self.state = 219
+                self.state = 218
                 self.unaryOp()
-                self.state = 220
+                self.state = 219
                 self.term()
                 pass
 
@@ -1745,58 +1735,58 @@ class JackParser ( Parser ):
         self.enterRule(localctx, 34, self.RULE_subroutineCall)
         self._la = 0 # Token type
         try:
-            self.state = 243
+            self.state = 242
             self._errHandler.sync(self)
             la_ = self._interp.adaptivePredict(self._input,19,self._ctx)
             if la_ == 1:
                 self.enterOuterAlt(localctx, 1)
-                self.state = 224
+                self.state = 223
                 self.subroutineName()
-                self.state = 225
+                self.state = 224
                 self.match(JackParser.LPAREN)
-                self.state = 227
+                self.state = 226
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
-                if (((_la) & ~0x3f) == 0 and ((1 << _la) & 30855598825472) != 0):
-                    self.state = 226
+                if (((_la) & ~0x3f) == 0 and ((1 << _la) & 15427799412736) != 0):
+                    self.state = 225
                     self.expressionList()
 
 
-                self.state = 229
+                self.state = 228
                 self.match(JackParser.RPAREN)
                 pass
 
             elif la_ == 2:
                 self.enterOuterAlt(localctx, 2)
-                self.state = 233
+                self.state = 232
                 self._errHandler.sync(self)
                 la_ = self._interp.adaptivePredict(self._input,17,self._ctx)
                 if la_ == 1:
-                    self.state = 231
+                    self.state = 230
                     self.className()
                     pass
 
                 elif la_ == 2:
-                    self.state = 232
+                    self.state = 231
                     self.varName()
                     pass
 
 
-                self.state = 235
+                self.state = 234
                 self.match(JackParser.DOT)
-                self.state = 236
+                self.state = 235
                 self.subroutineName()
-                self.state = 237
+                self.state = 236
                 self.match(JackParser.LPAREN)
-                self.state = 239
+                self.state = 238
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
-                if (((_la) & ~0x3f) == 0 and ((1 << _la) & 30855598825472) != 0):
-                    self.state = 238
+                if (((_la) & ~0x3f) == 0 and ((1 << _la) & 15427799412736) != 0):
+                    self.state = 237
                     self.expressionList()
 
 
-                self.state = 241
+                self.state = 240
                 self.match(JackParser.RPAREN)
                 pass
 
@@ -1857,17 +1847,17 @@ class JackParser ( Parser ):
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 245
+            self.state = 244
             self.expression()
-            self.state = 250
+            self.state = 249
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            while _la==34:
-                self.state = 246
+            while _la==33:
+                self.state = 245
                 self.match(JackParser.COMMA)
-                self.state = 247
+                self.state = 246
                 self.expression()
-                self.state = 252
+                self.state = 251
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
 
@@ -1941,9 +1931,9 @@ class JackParser ( Parser ):
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 253
+            self.state = 252
             _la = self._input.LA(1)
-            if not((((_la) & ~0x3f) == 0 and ((1 << _la) & 8044675072) != 0)):
+            if not((((_la) & ~0x3f) == 0 and ((1 << _la) & 4022337536) != 0)):
                 self._errHandler.recoverInline(self)
             else:
                 self._errHandler.reportMatch(self)
@@ -1997,9 +1987,9 @@ class JackParser ( Parser ):
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 255
+            self.state = 254
             _la = self._input.LA(1)
-            if not(_la==24 or _la==29):
+            if not(_la==23 or _la==28):
                 self._errHandler.recoverInline(self)
             else:
                 self._errHandler.reportMatch(self)
@@ -2059,9 +2049,9 @@ class JackParser ( Parser ):
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 257
+            self.state = 256
             _la = self._input.LA(1)
-            if not((((_la) & ~0x3f) == 0 and ((1 << _la) & 122880) != 0)):
+            if not((((_la) & ~0x3f) == 0 and ((1 << _la) & 61440) != 0)):
                 self._errHandler.recoverInline(self)
             else:
                 self._errHandler.reportMatch(self)
@@ -2111,7 +2101,7 @@ class JackParser ( Parser ):
         self.enterRule(localctx, 44, self.RULE_className)
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 259
+            self.state = 258
             self.match(JackParser.IDENTIFIER)
         except RecognitionException as re:
             localctx.exception = re
@@ -2158,7 +2148,7 @@ class JackParser ( Parser ):
         self.enterRule(localctx, 46, self.RULE_subroutineName)
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 261
+            self.state = 260
             self.match(JackParser.IDENTIFIER)
         except RecognitionException as re:
             localctx.exception = re
@@ -2205,7 +2195,7 @@ class JackParser ( Parser ):
         self.enterRule(localctx, 48, self.RULE_varName)
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 263
+            self.state = 262
             self.match(JackParser.IDENTIFIER)
         except RecognitionException as re:
             localctx.exception = re
@@ -2252,7 +2242,7 @@ class JackParser ( Parser ):
         self.enterRule(localctx, 50, self.RULE_integerConstant)
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 265
+            self.state = 264
             self.match(JackParser.INTEGER)
         except RecognitionException as re:
             localctx.exception = re
@@ -2299,7 +2289,7 @@ class JackParser ( Parser ):
         self.enterRule(localctx, 52, self.RULE_stringConstant)
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 267
+            self.state = 266
             self.match(JackParser.STRING_LITERAL)
         except RecognitionException as re:
             localctx.exception = re
