@@ -12,3 +12,7 @@ import os
 os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
 os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
 os.environ.setdefault("PYGAME_HIDE_SUPPORT_PROMPT", "1")
+
+# Never pick up a real JackVM installed on this machine: tests that need one
+# pass a fake (see tests/test_integrations.py). JACKVM=off disables the lookup.
+os.environ["JACKVM"] = "off"

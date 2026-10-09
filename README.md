@@ -7,6 +7,9 @@
 
 📖 **Documentation:** <https://kpillai2017.github.io/jack-compiler/>
 
+🎮 **Run what you compile:** [jackvm-py](https://github.com/kpillai2017/jackvm-py), the companion
+Jack VM with a game window and memory debugger. See [Using it with JackVM](#using-it-with-jackvm).
+
 A complete, production-ready Jack compiler implementation using ANTLR4 that translates Jack source code to Hack Virtual Machine (VM) code.
 
 ## Overview
@@ -370,10 +373,50 @@ STATUS / FILES / PROBLEMS / OUTPUT boxes, and under them a SHORTCUTS box.
 | Ctrl+E | Jump to the next error or warning |
 | Ctrl+I | Show / hide the compiler messages under the code |
 | Ctrl+R | Recompile (re-reads the files, so edit in your editor and press Ctrl+R) |
+| Ctrl+J | Run the program in [JackVM](https://github.com/kpillai2017/jackvm-py), if it's installed ([details](#using-it-with-jackvm)) |
 | Ctrl+O | Open another file or folder |
 | Ctrl+D | Show / hide the info panel |
 | Ctrl+Q | Quit |
 | **Esc** | Quit. The rules are the same as the jackvm player: **hold for 1 s** while a compilation is running (a progress bar appears after 0.25 s; letting go cancels), but **a single press** once it has finished. In the file picker, Esc cancels. |
+
+## Using it with JackVM
+
+[**jackvm-py**](https://github.com/kpillai2017/jackvm-py) is a companion
+project in its own repository: a Jack virtual machine with a game window and
+a live memory debugger. The two are cloned and installed separately, and
+neither one needs the other. When both are installed, each one adds a shortcut
+to the other:
+
+| From | What you get |
+|------|--------------|
+| `jackc-gui` | **Ctrl+J** runs the program you're looking at in a JackVM window. "The program" is every `.jack` file in the selected tab's folder, and all of them must compile without errors. The VM code goes to a temporary folder, so it works with `--no-write` too. Press Ctrl+J again to restart it with your latest changes. |
+| `jackvm` | `jackvm path/to/MyGame/` runs **Jack source**: it calls `jackc` first. The file picker offers `[compile+play]` for `.jack` folders. If the code has a mistake, **Ctrl+J** opens it in `jackc-gui`. |
+
+Set it up once, side by side:
+
+```bash
+git clone https://github.com/kpillai2017/jack-compiler.git
+git clone https://github.com/kpillai2017/jackvm-py.git
+python3 -m venv .venv && source .venv/bin/activate
+pip install -e "./jack-compiler[gui]" -e ./jackvm-py   # one environment: found automatically
+```
+
+How each app finds the other (the first match wins; see
+[`jack_compiler/integrations.py`](jack_compiler/integrations.py)):
+
+1. **An environment variable**: `JACKVM` (and `JACKC` / `JACKC_GUI` for the
+   other direction) holds the command to run, e.g.
+   `JACKVM="/path/to/jackvm-py/.venv/bin/jackvm"`. Set it to `off` to hide the
+   shortcut.
+2. **The same Python environment**: each package registers itself in the
+   `jack_tools` entry-point group, so `pip install -e` is all you need.
+3. **The `PATH`**: a `jackvm` command installed elsewhere (another
+   virtual environment, `pipx install`, ...).
+
+If JackVM isn't found, the SHORTCUTS box shows `Ctrl+J JackVM (not installed)`,
+and pressing it shows the install command. The apps only run each other's
+command-line tools and never import each other's code. That way either repo
+can change its internals without breaking the other.
 
 ## Supported Jack Language Constructs
 
@@ -422,6 +465,10 @@ Generated code follows the Hack VM specification:
 - **Scalability**: Successfully compiles complex programs with multiple classes and methods
 
 ## Integration with Nand2Tetris
+
+To run the compiled program straight away, use
+[jackvm-py](https://github.com/kpillai2017/jackvm-py) (see
+[Using it with JackVM](#using-it-with-jackvm)). Or use the course's own tools:
 
 1. Compile Jack to VM:
    ```bash

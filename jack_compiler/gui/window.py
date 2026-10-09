@@ -32,6 +32,9 @@ problem; Ctrl+I hides/shows the messages. Tabs are coloured like the
 FILES box: red for files with errors. The
 right-hand column (Ctrl+D hides it) shows how the compilation went.
 
+If JackVM (https://github.com/kpillai2017/jackvm-py) is installed, Ctrl+J
+runs the program you're looking at in a second window - see run_in_vm.py.
+
 Compiling runs on a background thread (see session.py), so the window
 stays responsive while a big folder compiles. Edit your .jack files in any
 editor, then press Ctrl+R here to recompile them.
@@ -57,6 +60,7 @@ import pygame
 
 from . import theme
 from .file_picker import CHOSEN, QUIT, FilePicker
+from .run_in_vm import VMLauncher
 from .panel import InfoPanel, build_sections, display_name, largest_sections
 from .session import COMPILING, FAILED, IDLE, OK, PENDING, CompileSession
 from .annotate import Row, build_rows, row_of_line, visible_line_range
@@ -67,6 +71,7 @@ FRAMES_PER_SECOND = 30  # a code viewer doesn't need more
 ESC_HOLD_SECONDS = 1.0  # hold Esc this long to quit
 ESC_SHOW_BAR_AFTER = 0.25  # ...and show the "keep holding" bar after this long
 FINISHED_HINT_SECONDS = 3.0  # how long "finished - press Esc" shows over the code
+NOTICE_SECONDS = 5.0  # how long a message such as "Running in JackVM" shows
 
 # Layout (pixels, or characters where it says so).
 MARGIN = 16  # empty space around the code view and the panel
@@ -121,8 +126,12 @@ class CompilerWindow:
         font_size: int = 13,
         code_rows: int = DEFAULT_CODE_ROWS,
         show_panel: bool = True,
+        launcher: Optional[VMLauncher] = None,
     ) -> None:
         self.session = session
+        # Ctrl+J: run in JackVM. Looked up once, when the window is made.
+        self.launcher = launcher if launcher is not None else VMLauncher()
+        self._notice: Optional[Tuple[str, str, float]] = None  # (text, colour, shown until)
         self.font_size = font_size
         self.code_rows = max(5, code_rows)
         self.show_panel = show_panel
@@ -182,7 +191,8 @@ class CompilerWindow:
 
         # The shortcuts box lines up with the outside edges of the frame.
         frame = self.code_rect.inflate(2 * FRAME_EXTENT, 2 * FRAME_EXTENT)
-        self.shortcuts = self.panel.shortcuts_section(frame.width)
+        jackvm = "Ctrl+J run in JackVM" if self.launcher.available else "Ctrl+J JackVM (not installed)"
+        self.shortcuts = self.panel.shortcuts_section(frame.width, [jackvm])
         self.shortcuts_rect = pygame.Rect(
             frame.left, frame.bottom + InfoPanel.GAP + 4,
             frame.width, self.panel.box_height(self.shortcuts.row_count),
@@ -295,6 +305,8 @@ class CompilerWindow:
         elif key == pygame.K_d:
             self.show_panel = not self.show_panel
             self._resize_window()
+        elif key == pygame.K_j:
+            self.run_in_vm()
         elif key == pygame.K_o:
             return self._open_something_else()
         return True
@@ -359,6 +371,17 @@ class CompilerWindow:
         self._esc_pressed_at = None
         self._finished_hint_until = None
         return True
+
+    def run_in_vm(self) -> bool:
+        """Ctrl+J: run the selected file's program in JackVM (if it compiled)."""
+        started, message = self.launcher.launch(self.session, self.selected)
+        self.notify(message, "normal" if started else "error")
+        return started
+
+    def notify(self, text: str, colour: str = "normal") -> None:
+        """Show a short message over the bottom of the code view for a few seconds."""
+        print(text)
+        self._notice = (text, colour, self.now() + NOTICE_SECONDS)
 
     def next_problem(self, errors_only: bool = False) -> bool:
         """
@@ -436,6 +459,9 @@ class CompilerWindow:
 
     # 2. Keep up with the compiler -------------------------------------------
     def _update(self) -> None:
+        failure = self.launcher.poll_failure()  # did the JackVM we started crash?
+        if failure:
+            self.notify(failure, "error")
         compiling = self.session.state == COMPILING
         if self._was_compiling and not compiling:
             self._on_compilation_finished()
@@ -643,13 +669,18 @@ class CompilerWindow:
         progress = self.esc_hold_progress()
         if self._esc_pressed_at is not None and progress * ESC_HOLD_SECONDS >= ESC_SHOW_BAR_AFTER:
             self._draw_banner("Keep holding Esc to quit...", progress)
+        elif self._notice is not None and self.now() < self._notice[2]:
+            self._draw_banner(self._notice[0], None, self._notice[1])
         elif self.compilation_finished() and self._finished_hint_until is not None and self.now() < self._finished_hint_until:
             self._draw_banner("Compilation finished - press Esc to quit", None)
 
-    def _draw_banner(self, text: str, progress: Optional[float]) -> None:
+    def _draw_banner(self, text: str, progress: Optional[float], colour: str = "normal") -> None:
         """A dark, see-through box over the bottom of the code view."""
         height = 44 if progress is not None else 28
-        box = pygame.Rect(0, 0, min(380, self.code_rect.width - 20), height)
+        widest = self.code_rect.width - 20
+        while len(text) > 4 and self.font.size(text)[0] + 24 > widest:
+            text = text[:-4] + "..."  # too long for the box: cut it short
+        box = pygame.Rect(0, 0, min(widest, max(380, self.font.size(text)[0] + 24)), height)
         box.midbottom = (self.code_rect.centerx, self.code_rect.bottom - 10)
 
         overlay = pygame.Surface(box.size, pygame.SRCALPHA)  # SRCALPHA = allows see-through
@@ -657,7 +688,7 @@ class CompilerWindow:
         self.window.blit(overlay, box)
         pygame.draw.rect(self.window, theme.FRAME_COLOUR, box, width=1, border_radius=4)
 
-        label = self.font.render(text, True, (235, 235, 235))
+        label = self.font.render(text, True, theme.COLOURS["error"] if colour == "error" else (235, 235, 235))
         self.window.blit(label, label.get_rect(midtop=(box.centerx, box.top + 6)))
         if progress is not None:
             bar = pygame.Rect(box.left + 12, box.bottom - 14, box.width - 24, 6)
