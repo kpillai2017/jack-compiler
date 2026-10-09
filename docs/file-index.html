@@ -199,10 +199,10 @@ tests/
 │   Finding JackVM (incl. the config file), and the Ctrl+J launcher (with a fake VM)
 │
 ├── test_locate_app.py
-│   Running a checkout from source, saving the config file, the folder chooser
+│   Running a checkout from source, saving the config file, its template, the folder chooser
 │
 ├── test_shared_files.py
-│   integrations.py and locate_app.py must match the copies in jackvm-py
+│   integrations.py, locate_app.py and config.example.ini must match jackvm-py's
 │
 └── fixtures/square/
     The nand2tetris Square program: must compile with no diagnostics
@@ -219,6 +219,10 @@ Run: pytest -v
 │
 ├── .github/workflows/ci.yml
 │   GitHub Actions: tests + grammar drift check
+│
+├── config.example.ini
+│   Template for ~/.config/jack-tools/config.ini (how the apps find each other);
+│   shared with jackvm-py. Copy it into place and uncomment what you need
 │
 └── requirements.txt
     Python dependencies

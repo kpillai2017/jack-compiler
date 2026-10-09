@@ -62,6 +62,7 @@ jack-compiler/
 ├── IMPLEMENTATION_SUMMARY.md    # Implementation overview
 ├── pyproject.toml               # Package configuration (provides `jackc` and `jackc-gui`)
 ├── requirements.txt             # Runtime dependency pin
+├── config.example.ini           # Template for ~/.config/jack-tools/config.ini (finding JackVM)
 ├── antlr-4.13.0-complete.jar    # ANTLR4 tool (only needed to regenerate the parser)
 │
 ├── jack_compiler/               # SOURCE CODE (Python package)
@@ -71,6 +72,8 @@ jack-compiler/
 │   ├── compiler_visitor.py      # Parse-tree visitor: AST + VM code generation
 │   ├── symbols.py               # Symbol table implementation
 │   ├── codegen.py               # VM code emitter
+│   ├── integrations.py          # Finds JackVM (shared with jackvm-py)
+│   ├── locate_app.py            # Ctrl+J's "where is JackVM?" folder chooser (shared too)
 │   ├── gui/                     # pygame front end (`jackc-gui`), see "Graphical Interface"
 │   └── antlr_generated/         # ANTLR4-generated lexer/parser (committed)
 │       └── grammar/
@@ -449,6 +452,13 @@ How each app finds the other (the first match wins; see
    virtual environment inside it) or the full path of the command. The file
    follows `XDG_CONFIG_HOME`, and `JACK_TOOLS_CONFIG=/some/file.ini` points
    to a different one.
+
+   [`config.example.ini`](config.example.ini) is a commented template with
+   every setting. Copy it into place and uncomment the lines you need:
+
+   ```bash
+   mkdir -p ~/.config/jack-tools && cp config.example.ini ~/.config/jack-tools/config.ini
+   ```
 3. **The same Python environment**: each package registers itself in the
    `jack_tools` entry-point group, so `pip install -e` is all you need.
 4. **The `PATH`**: a `jackvm` command installed elsewhere (another

@@ -97,6 +97,7 @@ Jack VM with a game window and memory debugger. See <a href="#using-it-with-jack
 ├── IMPLEMENTATION_SUMMARY.md    # Implementation overview
 ├── pyproject.toml               # Package configuration (provides `jackc` and `jackc-gui`)
 ├── requirements.txt             # Runtime dependency pin
+├── config.example.ini           # Template for ~/.config/jack-tools/config.ini (finding JackVM)
 ├── antlr-4.13.0-complete.jar    # ANTLR4 tool (only needed to regenerate the parser)
 │
 ├── jack_compiler/               # SOURCE CODE (Python package)
@@ -106,6 +107,8 @@ Jack VM with a game window and memory debugger. See <a href="#using-it-with-jack
 │   ├── compiler_visitor.py      # Parse-tree visitor: AST + VM code generation
 │   ├── symbols.py               # Symbol table implementation
 │   ├── codegen.py               # VM code emitter
+│   ├── integrations.py          # Finds JackVM (shared with jackvm-py)
+│   ├── locate_app.py            # Ctrl+J's &quot;where is JackVM?&quot; folder chooser (shared too)
 │   ├── gui/                     # pygame front end (`jackc-gui`), see &quot;Graphical Interface&quot;
 │   └── antlr_generated/         # ANTLR4-generated lexer/parser (committed)
 │       └── grammar/
@@ -469,7 +472,11 @@ pip install -e &quot;./jack-compiler[gui]&quot; -e ./jackvm-py   # one environme
 <p>A value is either the project's folder (the app must be installed in a
    virtual environment inside it) or the full path of the command. The file
    follows <code>XDG_CONFIG_HOME</code>, and <code>JACK_TOOLS_CONFIG=/some/file.ini</code> points
-   to a different one.
+   to a different one.</p>
+<p><a href="https://github.com/kpillai2017/jack-compiler/blob/main/config.example.ini"><code>config.example.ini</code></a> is a commented template with
+   every setting. Copy it into place and uncomment the lines you need:</p>
+<p><code>bash
+   mkdir -p ~/.config/jack-tools &amp;&amp; cp config.example.ini ~/.config/jack-tools/config.ini</code>
 3. <strong>The same Python environment</strong>: each package registers itself in the
    <code>jack_tools</code> entry-point group, so <code>pip install -e</code> is all you need.
 4. <strong>The <code>PATH</code></strong>: a <code>jackvm</code> command installed elsewhere (another

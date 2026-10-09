@@ -54,6 +54,9 @@ so it's found from any folder. You can also write it yourself:
 jackvm = ~/code/jackvm-py
 ```
 
+Every setting is explained in [`config.example.ini`](config.example.ini):
+`mkdir -p ~/.config/jack-tools && cp config.example.ini ~/.config/jack-tools/config.ini`.
+
 ## Run Tests
 
 ```bash
