@@ -20,6 +20,28 @@ jackc src_dir/ -o out_dir/
 jackc src_dir/
 ```
 
+## Compiler Window (`jackc-gui`)
+
+```bash
+pip install -e ".[gui]"          # adds pygame
+jackc-gui                        # pick a file or folder in a window
+jackc-gui src_dir/               # compile and show Jack + VM side by side
+jackc-gui --no-write src_dir/    # preview only
+```
+
+| Key | Action |
+|-----|--------|
+| Ctrl+E | Next error or warning |
+| Ctrl+R | Recompile (after saving in your editor) |
+| Ctrl+I | Show / hide messages under the code |
+| Ctrl+Tab, 1–9, click a tab | Switch file |
+| Tab | Switch pane (Jack / VM) |
+| Ctrl+O | Open something else |
+| Ctrl+D | Show / hide info panel |
+| Ctrl+Q, or Esc (hold 1 s while compiling) | Quit |
+
+Full guide: [docs/gui.html](docs/gui.html)
+
 ## Run Tests
 
 ```bash
@@ -436,6 +458,8 @@ java -jar VMTranslator.jar program.vm
 
 - Full Documentation: See README.md
 - Usage Guide: See USAGE.md
+- Error messages: See [ERROR_DETECTION.md](ERROR_DETECTION.md)
+- Compiler window: See [docs/gui.html](docs/gui.html)
 - Architecture: See ARCHITECTURE.md
 - Examples: See examples/ directory
 
@@ -450,3 +474,4 @@ java -jar VMTranslator.jar program.vm
 | Compile dir | `jackc src/ -o bin/` |
 | Run tests | `pytest -v` |
 | View help | `jackc -h` |
+| Compile in a window | `jackc-gui src/` |

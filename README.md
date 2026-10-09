@@ -343,8 +343,12 @@ more, and warns about unused variables and unreachable code. See
 ## Graphical Interface (`jackc-gui`)
 
 A pygame window for compiling and browsing the result, styled like the
-[jackvm-py](https://github.com/jcon/jackvm-rs) player, so the compiler and the
-VM feel like one tool.
+[jackvm-py](https://github.com/kpillai2017/jackvm-py) player, so the compiler and the
+VM feel like one tool. The full guide is
+[The Compiler Window](https://kpillai2017.github.io/jack-compiler/gui.html)
+([docs/gui.html](docs/gui.html)).
+
+![jackc-gui marking an undeclared variable under line 44 of SquareGame.jack, with a "did you mean" hint](docs/img/jackc-gui-errors.png)
 
 ```bash
 pip install -e ".[gui]"          # adds pygame

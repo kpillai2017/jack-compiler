@@ -35,20 +35,42 @@ jackc src_dir/
 
 This will generate `.vm` files in the same directory as the `.jack` files.
 
+### 5. Compile in a Window
+
+```bash
+pip install -e ".[gui]"     # once: adds pygame
+jackc-gui src_dir/
+```
+
+`jackc-gui` shows each `.jack` file next to the VM code it compiles to, with
+any errors and warnings marked under the line. See
+[The Compiler Window](docs/gui.html).
+
 ## Command Line Options
 
 ```
-usage: jackc [-h] [-o OUTPUT] [-r] [--clean] [-n] [-v] [--version] input
-
-Jack compiler for nand2tetris Hack computer
+usage: jackc [-h] [-o OUTPUT] [-r] [--clean] [-n] [-v] [-w] [--werror]
+             [--version]
+             input
 
 positional arguments:
-  input                 Input Jack file or directory
+  input                Input Jack file or directory
 
-optional arguments:
-  -h, --help            show this help message and exit
-  -o OUTPUT, --output OUTPUT
-                        Output VM file or directory (default: same as input)
+options:
+  -h, --help           show this help message and exit
+  -o, --output OUTPUT  Output VM file or directory (default: same as input)
+  -r, --recursive      Compile .jack files in sub-directories too, mirroring
+                       the directory structure under the output directory
+  --clean              Delete ALL existing .vm files in each output directory
+                       before compiling (for a single file: only its target).
+                       Combine with --dry-run to preview
+  -n, --dry-run        Show what would be cleaned and compiled without writing
+                       anything
+  -v, --verbose        Show full tracebacks for internal compiler errors
+  -w, --no-warnings    Do not print warnings (errors are always shown)
+  --werror             Treat warnings as errors: a file with warnings is not
+                       compiled
+  --version            show program's version number and exit
 ```
 
 ## Examples
@@ -272,8 +294,10 @@ class Strings {
 
 1. **Lexical Analysis**: ANTLR4 tokenizes the input
 2. **Syntax Analysis**: ANTLR4 parses tokens according to the grammar
-3. **Semantic Analysis**: Symbol table tracks variable definitions and scopes
-4. **Code Generation**: Converts parse tree to VM instructions
+3. **Semantic Checks**: `checker.py` looks for undeclared names, wrong argument
+   counts, missing `return`s and more, before any code is generated
+4. **Code Generation**: Converts the parse tree to VM instructions, using a
+   symbol table to track variable definitions and scopes
 
 ## Symbol Table Management
 
@@ -305,24 +329,30 @@ Solution: The generated parser is committed to the repo. If it was deleted, rege
 `java -jar antlr-4.13.0-complete.jar -Dlanguage=Python3 -visitor -o jack_compiler/antlr_generated grammar/Jack.g4`
 
 ### Syntax Errors
-The compiler reports every syntax error beneath the failing file as
-`file:line:col: message`, for example:
+The compiler prints each error the way C compilers do: `file:line:col:`, the
+message, the line itself with a `^` under the spot, and often a `help:` hint:
 
 ```
 ✗ COMPILATION FAILED: src/Main.jack
-  1 syntax error(s):
-  src/Main.jack:4:9: extraneous input 'return' expecting ';'
+src/Main.jack:3:18: error: expected ';' after 'x'
+ 3 |         var int x
+   |                  ^
+   = help: every statement and declaration ends with ';'
+1 error generated.
 ```
 
 Check your Jack code for:
-- Missing semicolons (reported at the *next* token)
-- Unmatched braces (`<EOF>` in the message usually means a missing `}`)
+- Missing semicolons (reported just after the token that needs one)
+- Unmatched braces (`unexpected end of file` usually means a missing `}`)
 - Keywords used as names
 - Invalid characters or unterminated strings
 
-See [ERROR_DETECTION.md](ERROR_DETECTION.md) for more examples.
+See [ERROR_DETECTION.md](ERROR_DETECTION.md) for every message, and use
+`jackc-gui` to step through them with Ctrl+E.
 
 ### Undefined Variable Errors
+The message names the variable and, if you probably misspelt one, suggests it:
+`error: 'cuont' is not declared` with `= help: did you mean 'count'?`.
 Ensure variables are declared before use in the appropriate scope:
 - Use `var` for local variables
 - Use `field` for instance variables
@@ -367,7 +397,8 @@ This tests:
 # Compile all Jack files in a directory
 jackc src/ -o compiled/
 
-# This will preserve the directory structure
+# Also compile sub-directories, keeping their structure under compiled/
+jackc -r src/ -o compiled/
 ```
 
 ### Using as a Library

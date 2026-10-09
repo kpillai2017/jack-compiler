@@ -211,6 +211,7 @@
         <nav>
             <a href="index.html">Home</a>
             <a href="getting-started.html">Getting Started</a>
+            <a href="gui.html">Compiler Window</a>
             <a href="how-it-works.html">How It Works</a>
             <a href="examples.html">Examples</a>
             <a href="faq.html">FAQ</a>
@@ -327,7 +328,9 @@
                 </div>
                 
                 <p>
-                    During this stage, we also check for errors like using undefined variables or type mismatches.
+                    Before this stage, a separate checker pass looks for mistakes such as undeclared
+                    variables, wrong argument counts or a missing <code>return</code>
+                    (see <a href="#error-handling">Error Handling</a> below).
                 </p>
                 
                 <h3>Stage 4: Code Generator (Translation to VM)</h3>
@@ -633,28 +636,57 @@ call Image.push 2      // call with 2 args (this + value)</pre>
             </div>
             
             <div class="section">
-                <h2>Error Handling</h2>
+                <h2 id="error-handling">Error Handling</h2>
                 
                 <p>
-                    The compiler detects and reports three categories of errors:
+                    The compiler finds mistakes in three stages, and reports every one it finds
+                    (it doesn't stop at the first). Each message is printed the way C compilers
+                    print them: <code>file:line:column</code>, the message, the line itself with a
+                    marker under the exact spot, and often a <code>help:</code> hint.
                 </p>
                 
                 <h3>1. Lexical Errors</h3>
-                <p>Invalid characters or malformed tokens</p>
+                <p>Invalid characters or malformed tokens, found by the ANTLR4 lexer</p>
+                <div class="card">
+                    <p>Example: a string without its closing quote</p>
+                    <pre>Main.jack:4:17: error: unterminated string
+ 4 |         let s = "Hello;
+   |                 ^~~~~~~
+   = help: a string must end with '"' on the same line</pre>
+                </div>
                 
                 <h3>2. Syntax Errors</h3>
-                <p>Grammar violations (detected by ANTLR4 parser)</p>
+                <p>Grammar violations, found by the ANTLR4 parser. ANTLR's own wording
+                (<em>mismatched input ... expecting {...}</em>) is rewritten into plain
+                English by <code>diagnostics.py</code>.</p>
                 <div class="card">
-                    <p>Example: Missing semicolon</p>
-                    <pre>Error: Expected ';' but found 'let'</pre>
+                    <p>Example: missing semicolon</p>
+                    <pre>Main.jack:3:18: error: expected ';' after 'x'
+ 3 |         var int x
+   |                  ^
+   = help: every statement and declaration ends with ';'</pre>
                 </div>
                 
-                <h3>3. Semantic Errors</h3>
-                <p>Logical issues (detected during code generation)</p>
+                <h3>3. Semantic Errors and Warnings</h3>
+                <p>Code that is grammatically fine but makes no sense. A separate pass,
+                <code>checker.py</code>, walks the parse tree <em>before</em> any VM code is
+                generated, so a file with errors never produces a half-written
+                <code>.vm</code> file.</p>
                 <div class="card">
-                    <p>Example: Using undefined variable</p>
-                    <pre>Error: Undefined variable: unknownVar</pre>
+                    <p>Example: using an undeclared (here, misspelt) variable</p>
+                    <pre>Main.jack:14:13: error: 'cuont' is not declared
+14 |         let cuont = 1;
+   |             ^~~~~
+   = help: did you mean 'count'?</pre>
                 </div>
+                <p>
+                    Warnings, such as unused variables or code after <code>return</code>, are
+                    printed too, but the file still compiles. Use <code>-w</code> to hide them or
+                    <code>--werror</code> to treat them as errors. The complete list of checks is
+                    in the <a href="error-detection.html">Error Detection guide</a>, and
+                    <a href="gui.html"><code>jackc-gui</code></a> shows the same messages in a
+                    window, under the line they belong to.
+                </p>
             </div>
         </div>
         

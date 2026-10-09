@@ -44,66 +44,63 @@
             </div>
         </div>
         <div class="content">
-            <h1>Jack Compiler Usage Guide</h1>
-
+<h1>Jack Compiler Usage Guide</h1>
 <h2>Quick Start</h2>
-
 <h3>1. Installation</h3>
-
-<pre><code class="language-bash">
-# Navigate to the jack-compiler directory
+<pre><code class="language-bash"># Navigate to the jack-compiler directory
 cd jack-compiler
 
 # Run setup script (downloads ANTLR4 and generates parser)
-pip install -e ".[dev]"
+pip install -e &quot;.[dev]&quot;
 
 # Or manually install dependencies
 pip install -r requirements.txt
 </code></pre>
-
 <h3>2. Compile a Single File</h3>
-
-<pre><code class="language-bash">
-jackc program.jack -o program.vm
+<pre><code class="language-bash">jackc program.jack -o program.vm
 </code></pre>
-
 <h3>3. Compile a Directory</h3>
-
-<pre><code class="language-bash">
-jackc src_dir/ -o bin_dir/
+<pre><code class="language-bash">jackc src_dir/ -o bin_dir/
 </code></pre>
-
 <h3>4. In-place Compilation</h3>
-
-<pre><code class="language-bash">
-jackc src_dir/
+<pre><code class="language-bash">jackc src_dir/
 </code></pre>
-
 <p>This will generate <code>.vm</code> files in the same directory as the <code>.jack</code> files.</p>
-
+<h3>5. Compile in a Window</h3>
+<pre><code class="language-bash">pip install -e &quot;.[gui]&quot;     # once: adds pygame
+jackc-gui src_dir/
+</code></pre>
+<p><code>jackc-gui</code> shows each <code>.jack</code> file next to the VM code it compiles to, with
+any errors and warnings marked under the line. See
+<a href="gui.html">The Compiler Window</a>.</p>
 <h2>Command Line Options</h2>
-
-<pre><code class="language-">
-usage: jackc [-h] [-o OUTPUT] [-r] [--clean] [-n] [-v] [--version] input
-
-Jack compiler for nand2tetris Hack computer
+<pre><code>usage: jackc [-h] [-o OUTPUT] [-r] [--clean] [-n] [-v] [-w] [--werror]
+             [--version]
+             input
 
 positional arguments:
-  input                 Input Jack file or directory
+  input                Input Jack file or directory
 
-optional arguments:
-  -h, --help            show this help message and exit
-  -o OUTPUT, --output OUTPUT
-                        Output VM file or directory (default: same as input)
+options:
+  -h, --help           show this help message and exit
+  -o, --output OUTPUT  Output VM file or directory (default: same as input)
+  -r, --recursive      Compile .jack files in sub-directories too, mirroring
+                       the directory structure under the output directory
+  --clean              Delete ALL existing .vm files in each output directory
+                       before compiling (for a single file: only its target).
+                       Combine with --dry-run to preview
+  -n, --dry-run        Show what would be cleaned and compiled without writing
+                       anything
+  -v, --verbose        Show full tracebacks for internal compiler errors
+  -w, --no-warnings    Do not print warnings (errors are always shown)
+  --werror             Treat warnings as errors: a file with warnings is not
+                       compiled
+  --version            show program's version number and exit
 </code></pre>
-
 <h2>Examples</h2>
-
 <h3>Example 1: Simple Function</h3>
-
 <p><strong>Input (main.jack):</strong></p>
-<pre><code class="language-jack">
-class Main {
+<pre><code class="language-jack">class Main {
     function void main() {
         var int x;
         let x = 5;
@@ -112,10 +109,8 @@ class Main {
     }
 }
 </code></pre>
-
 <p><strong>Output (main.vm):</strong></p>
-<pre><code class="language-vm">
-function Main.main 1
+<pre><code class="language-vm">function Main.main 1
 push constant 5
 pop local 0
 push local 0
@@ -124,12 +119,9 @@ pop temp 0
 push constant 0
 return
 </code></pre>
-
 <h3>Example 2: Variable Declaration and Arithmetic</h3>
-
 <p><strong>Input (calc.jack):</strong></p>
-<pre><code class="language-jack">
-class Calc {
+<pre><code class="language-jack">class Calc {
     function void main() {
         var int a, b, sum;
         let a = 10;
@@ -140,10 +132,8 @@ class Calc {
     }
 }
 </code></pre>
-
 <p><strong>Output (calc.vm):</strong></p>
-<pre><code class="language-vm">
-function Calc.main 3
+<pre><code class="language-vm">function Calc.main 3
 push constant 10
 pop local 0
 push constant 20
@@ -158,12 +148,9 @@ pop temp 0
 push constant 0
 return
 </code></pre>
-
 <h3>Example 3: Control Flow - While Loop</h3>
-
 <p><strong>Input (loop.jack):</strong></p>
-<pre><code class="language-jack">
-class Loop {
+<pre><code class="language-jack">class Loop {
     function void main() {
         var int i;
         let i = 0;
@@ -175,10 +162,8 @@ class Loop {
     }
 }
 </code></pre>
-
 <p><strong>Output (loop.vm):</strong></p>
-<pre><code class="language-vm">
-function Loop.main 1
+<pre><code class="language-vm">function Loop.main 1
 push constant 0
 pop local 0
 label WHILE$0
@@ -199,254 +184,221 @@ label ENDWHILE$1
 push constant 0
 return
 </code></pre>
-
 <h3>Example 4: Control Flow - If Statement</h3>
-
 <p><strong>Input (conditional.jack):</strong></p>
-<pre><code class="language-jack">
-class Conditional {
+<pre><code class="language-jack">class Conditional {
     function void main() {
         var int x;
         let x = 5;
         if (x &gt; 0) {
-            do Output.printString("positive");
+            do Output.printString(&quot;positive&quot;);
         } else {
-            do Output.printString("non-positive");
+            do Output.printString(&quot;non-positive&quot;);
         }
         return;
     }
 }
 </code></pre>
-
 <h3>Example 5: Class with Methods and Fields</h3>
-
 <p><strong>Input (point.jack):</strong></p>
-<pre><code class="language-jack">
-class Point {
+<pre><code class="language-jack">class Point {
     field int x, y;
-    
+
     constructor Point new(int px, int py) {
         let x = px;
         let y = py;
         return this;
     }
-    
+
     method void setX(int val) {
         let x = val;
         return;
     }
-    
+
     method int getX() {
         return x;
     }
 }
 </code></pre>
-
 <h3>Example 6: Arrays</h3>
-
 <p><strong>Input (array.jack):</strong></p>
-<pre><code class="language-jack">
-class Array {
+<pre><code class="language-jack">class Array {
     function void main() {
         var Array arr;
         var int i;
-        
+
         let arr = Array.new(10);
         let arr[0] = 42;
         let i = arr[0];
-        
+
         do Output.printInt(i);
         return;
     }
 }
 </code></pre>
-
 <h3>Example 7: String Literals</h3>
-
 <p><strong>Input (strings.jack):</strong></p>
-<pre><code class="language-jack">
-class Strings {
+<pre><code class="language-jack">class Strings {
     function void main() {
         var String msg;
-        let msg = "Hello, World!";
+        let msg = &quot;Hello, World!&quot;;
         do Output.printString(msg);
         do Output.println();
         return;
     }
 }
 </code></pre>
-
 <h2>Supported Jack Language Features</h2>
-
 <h3>Data Types</h3>
 <ul>
-<li>`int` - 16-bit integer</li>
-<li>`boolean` - true or false</li>
-<li>`String` - string literals</li>
+<li><code>int</code> - 16-bit integer</li>
+<li><code>boolean</code> - true or false</li>
+<li><code>String</code> - string literals</li>
 <li>Custom class types (user-defined classes)</li>
-
+</ul>
 <h3>Variable Kinds</h3>
-<li>`static` - class-level static variables</li>
-<li>`field` - instance variables</li>
-<li>`var` - local variables (in methods/functions)</li>
+<ul>
+<li><code>static</code> - class-level static variables</li>
+<li><code>field</code> - instance variables</li>
+<li><code>var</code> - local variables (in methods/functions)</li>
 <li>Implicit parameters for methods</li>
-
+</ul>
 <h3>Operators</h3>
-<li>Arithmetic: `+`, `-`, `*`, `/`</li>
-<li>Comparison: `<`, `>`, `=`</li>
-<li>Logical: `&`, `|`, `~`</li>
-<li>Unary: `-`, `~`</li>
-
+<ul>
+<li>Arithmetic: <code>+</code>, <code>-</code>, <code>*</code>, <code>/</code></li>
+<li>Comparison: <code>&lt;</code>, <code>&gt;</code>, <code>=</code></li>
+<li>Logical: <code>&amp;</code>, <code>|</code>, <code>~</code></li>
+<li>Unary: <code>-</code>, <code>~</code></li>
+</ul>
 <h3>Statements</h3>
-<li>`let` - variable assignment and array element assignment</li>
-<li>`if/else` - conditional execution</li>
-<li>`while` - loops</li>
-<li>`do` - subroutine calls (statements)</li>
-<li>`return` - function return</li>
-
+<ul>
+<li><code>let</code> - variable assignment and array element assignment</li>
+<li><code>if/else</code> - conditional execution</li>
+<li><code>while</code> - loops</li>
+<li><code>do</code> - subroutine calls (statements)</li>
+<li><code>return</code> - function return</li>
+</ul>
 <h3>Subroutines</h3>
-<li>`function` - static method (no implicit this)</li>
-<li>`method` - instance method (implicit this as first parameter)</li>
-<li>`constructor` - constructor method (returns new instance)</li>
-
+<ul>
+<li><code>function</code> - static method (no implicit this)</li>
+<li><code>method</code> - instance method (implicit this as first parameter)</li>
+<li><code>constructor</code> - constructor method (returns new instance)</li>
+</ul>
 <h3>Other Features</h3>
-<li>Single-dimensional arrays with `[]` notation</li>
+<ul>
+<li>Single-dimensional arrays with <code>[]</code> notation</li>
 <li>String literals with escape sequences (basic support)</li>
-<li>Comments: `//` and `/* */`</li>
+<li>Comments: <code>//</code> and <code>/* */</code></li>
 <li>Field and local variable declarations</li>
-
+</ul>
 <h2>Compilation Process</h2>
-
-</ul>
-<p>1. <strong>Lexical Analysis</strong>: ANTLR4 tokenizes the input</p>
-<p>2. <strong>Syntax Analysis</strong>: ANTLR4 parses tokens according to the grammar</p>
-<p>3. <strong>Semantic Analysis</strong>: Symbol table tracks variable definitions and scopes</p>
-<p>4. <strong>Code Generation</strong>: Converts parse tree to VM instructions</p>
-
+<ol>
+<li><strong>Lexical Analysis</strong>: ANTLR4 tokenizes the input</li>
+<li><strong>Syntax Analysis</strong>: ANTLR4 parses tokens according to the grammar</li>
+<li><strong>Semantic Checks</strong>: <code>checker.py</code> looks for undeclared names, wrong argument
+   counts, missing <code>return</code>s and more, before any code is generated</li>
+<li><strong>Code Generation</strong>: Converts the parse tree to VM instructions, using a
+   symbol table to track variable definitions and scopes</li>
+</ol>
 <h2>Symbol Table Management</h2>
-
-<p>The compiler maintains two symbol tables:</p>
-<ul>
-<li>**Class scope**: Static and field variables</li>
-<li>**Subroutine scope**: Local variables and parameters</li>
-
-</ul>
+<p>The compiler maintains two symbol tables:
+- <strong>Class scope</strong>: Static and field variables
+- <strong>Subroutine scope</strong>: Local variables and parameters</p>
 <p>When a new subroutine is encountered, the subroutine-level scope is reset while class-level scope persists.</p>
-
 <h2>VM Code Output Format</h2>
-
-<p>The generated VM code follows the Hack Virtual Machine specification:</p>
-<ul>
-<li>`push [segment] [index]` - Push value onto stack</li>
-<li>`pop [segment] [index]` - Pop stack into memory</li>
-<li>`add`, `sub`, `neg`, `mul`, `div` - Arithmetic</li>
-<li>`eq`, `lt`, `gt` - Comparisons</li>
-<li>`and`, `or`, `not` - Logical operations</li>
-<li>`label [name]` - Label definition</li>
-<li>`goto [label]` - Unconditional jump</li>
-<li>`if-goto [label]` - Conditional jump</li>
-<li>`call [function] [num_args]` - Subroutine call</li>
-<li>`return` - Function return</li>
-<li>`function [name] [num_locals]` - Function definition</li>
-
+<p>The generated VM code follows the Hack Virtual Machine specification:
+- <code>push [segment] [index]</code> - Push value onto stack
+- <code>pop [segment] [index]</code> - Pop stack into memory
+- <code>add</code>, <code>sub</code>, <code>neg</code>, <code>mul</code>, <code>div</code> - Arithmetic
+- <code>eq</code>, <code>lt</code>, <code>gt</code> - Comparisons
+- <code>and</code>, <code>or</code>, <code>not</code> - Logical operations
+- <code>label [name]</code> - Label definition
+- <code>goto [label]</code> - Unconditional jump
+- <code>if-goto [label]</code> - Conditional jump
+- <code>call [function] [num_args]</code> - Subroutine call
+- <code>return</code> - Function return
+- <code>function [name] [num_locals]</code> - Function definition</p>
 <h2>Troubleshooting</h2>
-
 <h3>"No module named jack_compiler.antlr_generated..."</h3>
-</ul>
-<p>Solution: The generated parser is committed to the repo. If it was deleted, regenerate it: <code>java -jar antlr-4.13.0-complete.jar -Dlanguage=Python3 -visitor -o jack_compiler/antlr_generated grammar/Jack.g4</code></p>
-
+<p>Solution: The generated parser is committed to the repo. If it was deleted, regenerate it:
+<code>java -jar antlr-4.13.0-complete.jar -Dlanguage=Python3 -visitor -o jack_compiler/antlr_generated grammar/Jack.g4</code></p>
 <h3>Syntax Errors</h3>
-<p>The compiler reports every syntax error beneath the failing file as <code>file:line:col: message</code>, for example:</p>
+<p>The compiler prints each error the way C compilers do: <code>file:line:col:</code>, the
+message, the line itself with a <code>^</code> under the spot, and often a <code>help:</code> hint:</p>
 <pre><code>✗ COMPILATION FAILED: src/Main.jack
-  1 syntax error(s):
-  src/Main.jack:4:9: extraneous input 'return' expecting ';'
+src/Main.jack:3:18: error: expected ';' after 'x'
+ 3 |         var int x
+   |                  ^
+   = help: every statement and declaration ends with ';'
+1 error generated.
 </code></pre>
-<p>Check your Jack code for:</p>
-<ul>
-<li>Missing semicolons (reported at the <em>next</em> token)</li>
-<li>Unmatched braces (<code>&lt;EOF&gt;</code> in the message usually means a missing <code>}</code>)</li>
-<li>Keywords used as names</li>
-<li>Invalid characters or unterminated strings</li>
-</ul>
-<p>See the <a href="error-detection.html">Error Detection &amp; Handling Guide</a> for more examples.</p>
-
+<p>Check your Jack code for:
+- Missing semicolons (reported just after the token that needs one)
+- Unmatched braces (<code>unexpected end of file</code> usually means a missing <code>}</code>)
+- Keywords used as names
+- Invalid characters or unterminated strings</p>
+<p>See <a href="error-detection.html">ERROR_DETECTION.md</a> for every message, and use
+<code>jackc-gui</code> to step through them with Ctrl+E.</p>
 <h3>Undefined Variable Errors</h3>
-<p>Ensure variables are declared before use in the appropriate scope:</p>
-<ul>
-<li>Use `var` for local variables</li>
-<li>Use `field` for instance variables</li>
-<li>Use `static` for class variables</li>
-
+<p>The message names the variable and, if you probably misspelt one, suggests it:
+<code>error: 'cuont' is not declared</code> with <code>= help: did you mean 'count'?</code>.
+Ensure variables are declared before use in the appropriate scope:
+- Use <code>var</code> for local variables
+- Use <code>field</code> for instance variables
+- Use <code>static</code> for class variables</p>
 <h3>File Not Found</h3>
-</ul>
 <p>Ensure the input file path is correct and the file exists</p>
-
 <h2>Testing</h2>
-
 <p>Run the included test suite:</p>
-
-<pre><code class="language-bash">
-pytest -v
+<pre><code class="language-bash">pytest -v
 </code></pre>
-
-<p>This tests:</p>
-<ul>
-<li>Symbol table operations</li>
-<li>Code generation</li>
-<li>Variable scoping</li>
-<li>Type tracking</li>
-
+<p>This tests:
+- Symbol table operations
+- Code generation
+- Variable scoping
+- Type tracking</p>
 <h2>Integration with Hack Emulator</h2>
-
-</ul>
-<p>1. Compile your Jack program to VM code:</p>
-<pre><code class="language-bash">
-   jackc myprogram.jack -o myprogram.vm
-</code></pre>
-
-<p>2. Use the Hack VM translator to convert VM code to machine code:</p>
-<pre><code class="language-bash">
-   java -jar VMTranslator.jar myprogram.vm
-</code></pre>
-
-<p>3. Load the resulting <code>.asm</code> file into the Hack Emulator and run</p>
-
+<ol>
+<li>
+<p>Compile your Jack program to VM code:
+   <code>bash
+   jackc myprogram.jack -o myprogram.vm</code></p>
+</li>
+<li>
+<p>Use the Hack VM translator to convert VM code to machine code:
+   <code>bash
+   java -jar VMTranslator.jar myprogram.vm</code></p>
+</li>
+<li>
+<p>Load the resulting <code>.asm</code> file into the Hack Emulator and run</p>
+</li>
+</ol>
 <h2>Advanced Usage</h2>
-
 <h3>Processing Multiple Files</h3>
-
-<pre><code class="language-bash">
-# Compile all Jack files in a directory
+<pre><code class="language-bash"># Compile all Jack files in a directory
 jackc src/ -o compiled/
 
-# This will preserve the directory structure
+# Also compile sub-directories, keeping their structure under compiled/
+jackc -r src/ -o compiled/
 </code></pre>
-
 <h3>Using as a Library</h3>
-
-<pre><code class="language-python">
-from jack_compiler import JackCompiler
+<pre><code class="language-python">from jack_compiler import JackCompiler
 
 compiler = JackCompiler()
-compiler.compile_file("input.jack", "output.vm")
+compiler.compile_file(&quot;input.jack&quot;, &quot;output.vm&quot;)
 </code></pre>
-
 <h2>References</h2>
-
 <ul>
 <li>nand2tetris Course: https://www.nand2tetris.org/</li>
 <li>Jack Language Specification: http://nand2tetris.org/chapters/chapter09.pdf</li>
 <li>Hack Virtual Machine: http://nand2tetris.org/chapters/chapter07.pdf</li>
 <li>ANTLR4 Documentation: https://www.antlr.org/</li>
-
-<h2>License</h2>
-
 </ul>
+<h2>License</h2>
 <p>This implementation is provided as-is for educational purposes in the nand2tetris course.</p>
-
         </div>
         <div class="footer">
-            <p>Jack Compiler Documentation | Generated 2025-11-27 19:27:15</p>
+            <p>Jack Compiler Documentation | Generated 2026-10-09</p>
         </div>
     </div>
 </body>

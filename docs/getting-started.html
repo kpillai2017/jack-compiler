@@ -205,6 +205,7 @@
         table tr:nth-child(even) {
             background: #f8f9fa;
         }
+        kbd { background: #f4f4f4; border: 1px solid #ccc; border-bottom-width: 2px; border-radius: 3px; padding: 1px 6px; font-family: monospace; font-size: 0.9em; }
     </style>
 </head>
 <body>
@@ -217,6 +218,7 @@
         <nav>
             <a href="index.html">Home</a>
             <a href="getting-started.html">Getting Started</a>
+            <a href="gui.html">Compiler Window</a>
             <a href="how-it-works.html">How It Works</a>
             <a href="examples.html">Examples</a>
             <a href="faq.html">FAQ</a>
@@ -263,6 +265,8 @@ pip install -e ".[dev]"</pre>
                         <li>pytest (for running the test suite)</li>
                     </ul>
                     <p>The generated parser is committed to the repository, so Java is only needed if you modify <code>grammar/Jack.g4</code>.</p>
+                    <p>Also want the <a href="gui.html">compiler window</a>? Add the <code>gui</code> extra, which installs pygame and the <code>jackc-gui</code> command:</p>
+                    <pre>pip install -e ".[dev,gui]"</pre>
                 </div>
                 
                 <div class="card success">
@@ -295,6 +299,12 @@ EOF</pre>
                     <h4><span class="step-number">3</span>Check the generated VM code</h4>
                     <pre>cat hello.vm</pre>
                     <p>You should see the Hack VM code with proper indentation and labels.</p>
+                </div>
+                
+                <div class="step">
+                    <h4><span class="step-number">4</span>Or see it in a window</h4>
+                    <pre>jackc-gui hello.jack</pre>
+                    <p>The Jack source and its VM code appear side by side. Try deleting the <code>return;</code> line, save, and press <kbd>Ctrl</kbd>+<kbd>R</kbd>: the error <code>function 'main' can reach its end without a 'return'</code> is marked where it happens. See <a href="gui.html">The Compiler Window</a>.</p>
                 </div>
             </div>
             
@@ -401,6 +411,8 @@ find src -type d -exec jackc {} \;</pre>
                 <div class="card info">
                     <p><strong>Ready to learn more?</strong> Check out these resources:</p>
                     <ol style="margin-left: 20px; margin-top: 10px;">
+                        <li><strong><a href="gui.html">The Compiler Window</a></strong> - Compile in a window, with Jack and VM code side by side</li>
+                        <li><strong><a href="error-detection.html">Error Detection</a></strong> - What the compiler checks, and how it reports mistakes</li>
                         <li><strong><a href="how-it-works.html">How It Works</a></strong> - Deep dive into compiler architecture</li>
                         <li><strong><a href="examples.html">Examples</a></strong> - Sample Jack programs and their compilation</li>
                         <li><strong><a href="faq.html">FAQ</a></strong> - Common questions and troubleshooting</li>

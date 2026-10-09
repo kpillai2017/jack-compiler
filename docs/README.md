@@ -17,7 +17,14 @@ Welcome to the comprehensive documentation for the Jack Compiler - a complete im
    - Command-line reference
    - Troubleshooting common setup issues
 
-### 3. **how-it-works.html** - Deep Dive into Compiler Architecture
+### 3. **gui.html** - The Compiler Window (`jackc-gui`)
+   - Installing and starting it; command-line options
+   - Choosing a file or folder in the picker
+   - A tour of the window: Jack and VM side by side, STATUS / FILES / PROBLEMS / OUTPUT
+   - Finding and fixing mistakes (Ctrl+E, Ctrl+I, Ctrl+R)
+   - Keyboard and mouse reference, quitting, troubleshooting
+
+### 4. **how-it-works.html** - Deep Dive into Compiler Architecture
    - Understanding compilers (beginner-friendly)
    - The compilation pipeline (Lexer → Parser → Code Gen)
    - Introduction to ANTLR4
@@ -27,7 +34,7 @@ Welcome to the comprehensive documentation for the Jack Compiler - a complete im
    - Complete examples with code walkthrough
    - Error handling
 
-### 4. **examples.html** - Real-World Code Samples
+### 5. **examples.html** - Real-World Code Samples
    - 5 complete examples:
      1. Hello World (string output)
      2. Variables and arithmetic
@@ -37,7 +44,7 @@ Welcome to the comprehensive documentation for the Jack Compiler - a complete im
    - Side-by-side Jack source and VM output
    - Key points explained for each example
 
-### 5. **faq.html** - Frequently Asked Questions
+### 6. **faq.html** - Frequently Asked Questions
    - General questions about the compiler
    - Installation troubleshooting
    - Common errors and solutions
@@ -79,6 +86,7 @@ Welcome to the comprehensive documentation for the Jack Compiler - a complete im
 2. Follow [getting-started.html](getting-started.html) to install
 3. Read [how-it-works.html](how-it-works.html) "The Big Picture" section
 4. Look at [examples.html](examples.html) Examples 1-2
+5. Open an example in [jackc-gui](gui.html) to see Jack and VM code side by side
 
 ### For Understanding the Architecture:
 1. Read [how-it-works.html](how-it-works.html) completely
@@ -114,6 +122,9 @@ jack-compiler/
 ├── docs/                    # This documentation
 │   ├── index.html          # Main documentation index
 │   ├── getting-started.html
+│   ├── gui.html            # The compiler window (jackc-gui)
+│   ├── error-detection.html
+│   ├── img/                # Screenshots
 │   ├── how-it-works.html
 │   ├── examples.html
 │   ├── faq.html
@@ -123,7 +134,7 @@ jack-compiler/
 ├── jack_compiler/          # Python implementation
 ├── examples/               # Sample Jack programs
 ├── tests/                  # Test suite
-└── pyproject.toml         # Package configuration (jackc CLI)
+└── pyproject.toml         # Package configuration (jackc and jackc-gui)
 ```
 
 ## 🔗 Related Resources
@@ -142,6 +153,8 @@ jack-compiler/
 ✅ Error detection and reporting  
 ✅ 100% compatible with nand2tetris tools  
 ✅ Batch compilation support  
+✅ Compiler-style error messages with "did you mean" hints  
+✅ A compiler window (`jackc-gui`) with Jack and VM code side by side  
 ✅ Well-documented and educational  
 
 ## 📝 License

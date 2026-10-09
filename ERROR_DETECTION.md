@@ -297,6 +297,7 @@ errs/Missing.jack:1:1: error: unexpected end of file: expected 'class'
 4. **Compile the one file** to focus on it: `jackc src/game/Broken.jack`.
 5. **Use `--clean`** so a failed file can't leave an old `.vm` behind that the VM Emulator would still load.
 6. **Use `-v`** if you see `✗ COMPILATION ERROR` with an unexpected message, and include the traceback in a bug report.
+7. **Use `jackc-gui`** to work through many errors: it opens on the first one, Ctrl+E jumps to the next, and Ctrl+R recompiles after you save. See the [compiler window guide](docs/gui.html).
 
 ## Integration with Build Systems
 
@@ -375,11 +376,21 @@ A: Yes: `jackc --werror src/` treats every warning as an error. `jackc -w` hides
 
 **Q: Where do the messages come from?**
 A: Lexical and syntax errors come from the ANTLR4-generated lexer and parser
-(`grammar/Jack.g4`); semantic errors come from the code-generating visitor.
+(`grammar/Jack.g4`), turned into friendlier wording by
+`jack_compiler/diagnostics.py`. Semantic errors and warnings come from the
+checker (`jack_compiler/checker.py`), which runs before any VM code is
+generated.
+
+**Q: Can I see the errors in a window?**
+A: Yes: `jackc-gui src/` shows each file with its errors and warnings marked
+under the line, the same way `jackc` prints them. Ctrl+E jumps from one to the
+next and Ctrl+R recompiles. See the [compiler window guide](docs/gui.html).
 
 ## See Also
 
 - [Batch Compilation Guide](docs/batch-compilation.html)
 - [Batch Compilation Examples](docs/batch-examples.html)
+- [The Compiler Window (`jackc-gui`)](docs/gui.html)
+- [Quick Reference](QUICK_REFERENCE.md)
 - [Usage Guide](USAGE.md)
 - [README](README.md)
