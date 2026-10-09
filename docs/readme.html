@@ -45,14 +45,16 @@
             </div>
         </div>
         <div class="content">
-<h1>Jack Compiler for nand2tetris</h1>
+<h1 id="jack-compiler-for-nand2tetris">Jack Compiler for nand2tetris</h1>
 <p><a href="https://github.com/kpillai2017/jack-compiler/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/kpillai2017/jack-compiler/actions/workflows/ci.yml/badge.svg" /></a>
 <a href="https://github.com/kpillai2017/jack-compiler/blob/main/LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-yellow.svg" /></a>
 <a href="https://www.python.org/"><img alt="Python 3.8+" src="https://img.shields.io/badge/python-3.8%2B-blue.svg" /></a>
 <a href="https://kpillai2017.github.io/jack-compiler/"><img alt="Docs" src="https://img.shields.io/badge/docs-GitHub%20Pages-blue.svg" /></a></p>
 <p>📖 <strong>Documentation:</strong> <a href="https://kpillai2017.github.io/jack-compiler/">https://kpillai2017.github.io/jack-compiler/</a></p>
+<p>🎮 <strong>Run what you compile:</strong> <a href="https://github.com/kpillai2017/jackvm-py">jackvm-py</a>, the companion
+Jack VM with a game window and memory debugger. See <a href="#using-it-with-jackvm">Using it with JackVM</a>.</p>
 <p>A complete, production-ready Jack compiler implementation using ANTLR4 that translates Jack source code to Hack Virtual Machine (VM) code.</p>
-<h2>Overview</h2>
+<h2 id="overview">Overview</h2>
 <p>This compiler implements the full Jack language specification from the nand2tetris course. It is built with Terence Parr's ANTLR4 parser generator and includes:</p>
 <ul>
 <li><strong>Lexical Analysis</strong>: Tokenization with full comment and string literal support</li>
@@ -61,7 +63,7 @@
 <li><strong>Code Generation</strong>: Translation to Hack VM bytecode format</li>
 <li><strong>Comprehensive Testing</strong>: Unit tests plus end-to-end golden-file tests, run on every push via GitHub Actions</li>
 </ul>
-<h2>Features</h2>
+<h2 id="features">Features</h2>
 <p>✅ <strong>Language Support</strong>
 - Variables: static, field, local, and parameter variables
 - Data Types: int, boolean, String, and custom class types
@@ -81,7 +83,7 @@
 - Single file and batch directory compilation
 - Example programs demonstrating all language features
 - Detailed documentation and usage guide</p>
-<h2>Project Structure</h2>
+<h2 id="project-structure">Project Structure</h2>
 <pre><code>jack-compiler/
 ├── .github/workflows/ci.yml     # GitHub Actions: tests + grammar drift check
 ├── .gitignore / .gitattributes
@@ -116,7 +118,7 @@
 │   └── expected/                # Golden VM output for the examples
 └── docs/                        # HTML documentation site (published via GitHub Pages)
 </code></pre>
-<h2>Quick Start</h2>
+<h2 id="quick-start">Quick Start</h2>
 <pre><code class="language-bash">git clone https://github.com/kpillai2017/jack-compiler.git
 cd jack-compiler
 python3 -m venv venv &amp;&amp; source venv/bin/activate   # Windows: venv\Scripts\activate
@@ -128,19 +130,19 @@ jackc examples/ -o output/                # compile a whole directory
 pytest                                    # run the test suite
 </code></pre>
 <p>No Java is required to <em>use</em> the compiler — the generated parser is committed.</p>
-<h2>Installation Details</h2>
-<h3>Prerequisites</h3>
+<h2 id="installation-details">Installation Details</h2>
+<h3 id="prerequisites">Prerequisites</h3>
 <ul>
 <li><strong>Python</strong> 3.8 or higher</li>
 <li><strong>pip</strong> 21.3+ (for editable installs from <code>pyproject.toml</code>)</li>
 <li><strong>Java</strong> JDK 11+ — <em>only</em> if you modify <code>grammar/Jack.g4</code></li>
 </ul>
-<h3>Install options</h3>
+<h3 id="install-options">Install options</h3>
 <pre><code class="language-bash">pip install -e &quot;.[dev]&quot;     # editable install + pytest (recommended for development)
 pip install .               # regular install
 pip install -r requirements.txt &amp;&amp; python -m jack_compiler ...   # no install, run from repo root
 </code></pre>
-<h3>Regenerating the Parser and Lexer</h3>
+<h3 id="regenerating-the-parser-and-lexer">Regenerating the Parser and Lexer</h3>
 <p>Only needed after editing <code>grammar/Jack.g4</code>:</p>
 <pre><code class="language-bash">java -jar antlr-4.13.0-complete.jar \
     -Dlanguage=Python3 \
@@ -150,22 +152,22 @@ pip install -r requirements.txt &amp;&amp; python -m jack_compiler ...   # no in
 </code></pre>
 <p>Generated files are written to <code>jack_compiler/antlr_generated/grammar/</code>. Commit them —
 CI regenerates the parser and fails if the committed files are out of date.</p>
-<h3>Troubleshooting</h3>
-<h4>"jackc: command not found"</h4>
+<h3 id="troubleshooting">Troubleshooting</h3>
+<h4 id="jackc-command-not-found">"jackc: command not found"</h4>
 <p>Activate your virtual environment and run <code>pip install -e .</code>, or use <code>python -m jack_compiler</code> from the repository root.</p>
-<h4>"ModuleNotFoundError: No module named 'antlr4'"</h4>
+<h4 id="modulenotfounderror-no-module-named-antlr4">"ModuleNotFoundError: No module named 'antlr4'"</h4>
 <pre><code class="language-bash">pip install -r requirements.txt
 </code></pre>
-<h4>"editable mode currently requires a setuptools-based build"</h4>
+<h4 id="editable-mode-currently-requires-a-setuptools-based-build">"editable mode currently requires a setuptools-based build"</h4>
 <p>Your pip is too old for <code>pyproject.toml</code> editable installs: <code>pip install --upgrade pip</code>.</p>
-<h4>"Java not found" (only when regenerating the parser)</h4>
+<h4 id="java-not-found-only-when-regenerating-the-parser">"Java not found" (only when regenerating the parser)</h4>
 <ul>
 <li><strong>macOS</strong>: <code>brew install openjdk</code></li>
 <li><strong>Ubuntu/Debian</strong>: <code>sudo apt-get install openjdk-17-jdk</code></li>
 <li><strong>Windows</strong>: <code>choco install openjdk</code> or download from <a href="https://adoptium.net/">adoptium.net</a></li>
 </ul>
-<h2>Example Programs</h2>
-<h3>Example 1: Hello World</h3>
+<h2 id="example-programs">Example Programs</h2>
+<h3 id="example-1-hello-world">Example 1: Hello World</h3>
 <pre><code class="language-jack">class HelloWorld {
     function void main() {
         do Output.printString(&quot;Hello, World!&quot;);
@@ -174,7 +176,7 @@ CI regenerates the parser and fails if the committed files are out of date.</p>
     }
 }
 </code></pre>
-<h3>Example 2: Arithmetic &amp; Variables</h3>
+<h3 id="example-2-arithmetic-variables">Example 2: Arithmetic &amp; Variables</h3>
 <pre><code class="language-jack">class Math {
     function void main() {
         var int x, y, sum;
@@ -186,7 +188,7 @@ CI regenerates the parser and fails if the committed files are out of date.</p>
     }
 }
 </code></pre>
-<h3>Example 3: Loops</h3>
+<h3 id="example-3-loops">Example 3: Loops</h3>
 <pre><code class="language-jack">class Loop {
     function void main() {
         var int i, sum;
@@ -201,7 +203,7 @@ CI regenerates the parser and fails if the committed files are out of date.</p>
     }
 }
 </code></pre>
-<h3>Example 4: Object-Oriented Programming</h3>
+<h3 id="example-4-object-oriented-programming">Example 4: Object-Oriented Programming</h3>
 <pre><code class="language-jack">class Point {
     field int x, y;
 
@@ -222,8 +224,8 @@ CI regenerates the parser and fails if the committed files are out of date.</p>
 }
 </code></pre>
 <p>See <code>USAGE.md</code> for more detailed examples and advanced usage.</p>
-<h2>Architecture</h2>
-<h3>Compilation Pipeline</h3>
+<h2 id="architecture">Architecture</h2>
+<h3 id="compilation-pipeline">Compilation Pipeline</h3>
 <pre><code>Jack Source Code
        ↓
 [Lexer] (ANTLR4 generated)
@@ -240,14 +242,14 @@ Parse Tree
        ↓
 Hack VM Code
 </code></pre>
-<h3>Symbol Table Design</h3>
+<h3 id="symbol-table-design">Symbol Table Design</h3>
 <p>Two-level scoping:
 - <strong>Class Scope</strong>: Static and field variables (persistent across all subroutines)
 - <strong>Subroutine Scope</strong>: Local variables and parameters (reset for each subroutine)</p>
 <p>Variables are tracked with:
 - Name, type, kind (static/field/local/arg), and index
 - Proper handling of implicit 'this' pointer for methods</p>
-<h3>Code Generation Strategy</h3>
+<h3 id="code-generation-strategy">Code Generation Strategy</h3>
 <ul>
 <li>Stack-based VM architecture</li>
 <li>Direct instruction emission for each language construct</li>
@@ -255,7 +257,7 @@ Hack VM Code
 <li>Proper handling of method calls with implicit 'this'</li>
 <li>String literal generation through character appending</li>
 </ul>
-<h2>Testing</h2>
+<h2 id="testing">Testing</h2>
 <pre><code class="language-bash">pytest -v
 </code></pre>
 <p>Tests cover:
@@ -266,7 +268,7 @@ Hack VM Code
 <p>If you intentionally change code generation, regenerate the golden files:</p>
 <pre><code class="language-bash">for f in examples/*.jack; do jackc &quot;$f&quot; -o &quot;tests/expected/$(basename &quot;${f%.jack}&quot;).vm&quot;; done
 </code></pre>
-<h2>Command-Line Usage</h2>
+<h2 id="command-line-usage">Command-Line Usage</h2>
 <pre><code class="language-bash">jackc [-h] [-o OUTPUT] [-r] [--clean] [-n] [-v] [--version] input
 # or: python -m jack_compiler ...
 
@@ -283,7 +285,7 @@ Arguments:
   --version             Show version and exit
   -h, --help            Show help message
 </code></pre>
-<h3>Batch compilation</h3>
+<h3 id="batch-compilation">Batch compilation</h3>
 <pre><code class="language-bash">jackc src/                         # every .jack in src/ (not sub-directories)
 jackc -r projects/                 # whole tree, .vm written next to each .jack
 jackc -r projects/ -o build/       # whole tree, mirrored under build/
@@ -295,7 +297,7 @@ directories that receive output, but removes <em>every</em> <code>.vm</code> fil
 <code>--dry-run</code> first if those directories contain hand-written VM code.
 Exit status is non-zero if any file fails; a summary lists the failed files.</p>
 <p>Coloured output is disabled automatically when stdout is not a terminal or when <code>NO_COLOR</code> is set.</p>
-<h3>Python API</h3>
+<h3 id="python-api">Python API</h3>
 <pre><code class="language-python">from jack_compiler import JackCompiler, JackSyntaxError
 
 JackCompiler().compile_file(&quot;Main.jack&quot;, &quot;Main.vm&quot;)      # returns True/False
@@ -316,7 +318,7 @@ except JackSyntaxError as e:
 methods called without an object, wrong argument counts, missing <code>return</code>s and
 more, and warns about unused variables and unreachable code. See
 <a href="error-detection.html">ERROR_DETECTION.md</a>.</p>
-<h2>Graphical Interface (<code>jackc-gui</code>)</h2>
+<h2 id="graphical-interface-jackc-gui">Graphical Interface (<code>jackc-gui</code>)</h2>
 <p>A pygame window for compiling and browsing the result, styled like the
 <a href="https://github.com/kpillai2017/jackvm-py">jackvm-py</a> player, so the compiler and the
 VM feel like one tool. The full guide is
@@ -372,6 +374,10 @@ STATUS / FILES / PROBLEMS / OUTPUT boxes, and under them a SHORTCUTS box.
 <td>Recompile (re-reads the files, so edit in your editor and press Ctrl+R)</td>
 </tr>
 <tr>
+<td>Ctrl+J</td>
+<td>Run the program in <a href="https://github.com/kpillai2017/jackvm-py">JackVM</a>, if it's installed (<a href="#using-it-with-jackvm">details</a>)</td>
+</tr>
+<tr>
 <td>Ctrl+O</td>
 <td>Open another file or folder</td>
 </tr>
@@ -389,8 +395,54 @@ STATUS / FILES / PROBLEMS / OUTPUT boxes, and under them a SHORTCUTS box.
 </tr>
 </tbody>
 </table>
-<h2>Supported Jack Language Constructs</h2>
-<h3>Statements</h3>
+<h2 id="using-it-with-jackvm">Using it with JackVM</h2>
+<p><a href="https://github.com/kpillai2017/jackvm-py"><strong>jackvm-py</strong></a> is a companion
+project in its own repository: a Jack virtual machine with a game window and
+a live memory debugger. The two are cloned and installed separately, and
+neither one needs the other. When both are installed, each one adds a shortcut
+to the other:</p>
+<table>
+<thead>
+<tr>
+<th>From</th>
+<th>What you get</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>jackc-gui</code></td>
+<td><strong>Ctrl+J</strong> runs the program you're looking at in a JackVM window. "The program" is every <code>.jack</code> file in the selected tab's folder, and all of them must compile without errors. The VM code goes to a temporary folder, so it works with <code>--no-write</code> too. Press Ctrl+J again to restart it with your latest changes.</td>
+</tr>
+<tr>
+<td><code>jackvm</code></td>
+<td><code>jackvm path/to/MyGame/</code> runs <strong>Jack source</strong>: it calls <code>jackc</code> first. The file picker offers <code>[compile+play]</code> for <code>.jack</code> folders. If the code has a mistake, <strong>Ctrl+J</strong> opens it in <code>jackc-gui</code>.</td>
+</tr>
+</tbody>
+</table>
+<p>Set it up once, side by side:</p>
+<pre><code class="language-bash">git clone https://github.com/kpillai2017/jack-compiler.git
+git clone https://github.com/kpillai2017/jackvm-py.git
+python3 -m venv .venv &amp;&amp; source .venv/bin/activate
+pip install -e &quot;./jack-compiler[gui]&quot; -e ./jackvm-py   # one environment: found automatically
+</code></pre>
+<p>How each app finds the other (the first match wins; see
+<a href="https://github.com/kpillai2017/jack-compiler/blob/main/jack_compiler/integrations.py"><code>jack_compiler/integrations.py</code></a>):</p>
+<ol>
+<li><strong>An environment variable</strong>: <code>JACKVM</code> (and <code>JACKC</code> / <code>JACKC_GUI</code> for the
+   other direction) holds the command to run, e.g.
+   <code>JACKVM="/path/to/jackvm-py/.venv/bin/jackvm"</code>. Set it to <code>off</code> to hide the
+   shortcut.</li>
+<li><strong>The same Python environment</strong>: each package registers itself in the
+   <code>jack_tools</code> entry-point group, so <code>pip install -e</code> is all you need.</li>
+<li><strong>The <code>PATH</code></strong>: a <code>jackvm</code> command installed elsewhere (another
+   virtual environment, <code>pipx install</code>, ...).</li>
+</ol>
+<p>If JackVM isn't found, the SHORTCUTS box shows <code>Ctrl+J JackVM (not installed)</code>,
+and pressing it shows the install command. The apps only run each other's
+command-line tools and never import each other's code. That way either repo
+can change its internals without breaking the other.</p>
+<h2 id="supported-jack-language-constructs">Supported Jack Language Constructs</h2>
+<h3 id="statements">Statements</h3>
 <ul>
 <li><code>let</code> - Variable assignment (including array elements)</li>
 <li><code>if/else</code> - Conditional execution</li>
@@ -398,31 +450,31 @@ STATUS / FILES / PROBLEMS / OUTPUT boxes, and under them a SHORTCUTS box.
 <li><code>do</code> - Subroutine call statements</li>
 <li><code>return</code> - Function return</li>
 </ul>
-<h3>Expressions</h3>
+<h3 id="expressions">Expressions</h3>
 <ul>
 <li>Arithmetic: <code>+</code> <code>-</code> <code>*</code> <code>/</code></li>
 <li>Relational: <code>&lt;</code> <code>&gt;</code> <code>=</code></li>
 <li>Logical: <code>&amp;</code> <code>|</code> <code>~</code></li>
 <li>Unary: <code>-</code> <code>~</code></li>
 </ul>
-<h3>Declarations</h3>
+<h3 id="declarations">Declarations</h3>
 <ul>
 <li>Class-level: <code>static</code>, <code>field</code></li>
 <li>Subroutine-level: <code>var</code></li>
 <li>Parameters: implicit for methods</li>
 </ul>
-<h3>Types</h3>
+<h3 id="types">Types</h3>
 <ul>
 <li>Primitive: <code>int</code>, <code>boolean</code>, <code>String</code></li>
 <li>User-defined: class names</li>
 </ul>
-<h3>Subroutine Types</h3>
+<h3 id="subroutine-types">Subroutine Types</h3>
 <ul>
 <li><code>function</code> - Static method (no 'this')</li>
 <li><code>method</code> - Instance method (implicit 'this')</li>
 <li><code>constructor</code> - Constructor (returns 'this')</li>
 </ul>
-<h2>VM Output Format</h2>
+<h2 id="vm-output-format">VM Output Format</h2>
 <p>Generated code follows the Hack VM specification:
 - Memory segments: local, argument, static, this, that, constant, pointer, temp
 - Arithmetic: add, sub, neg, mul, div
@@ -430,14 +482,17 @@ STATUS / FILES / PROBLEMS / OUTPUT boxes, and under them a SHORTCUTS box.
 - Logical: and, or, not
 - Control flow: label, goto, if-goto
 - Functions: function, call, return</p>
-<h2>Performance Characteristics</h2>
+<h2 id="performance-characteristics">Performance Characteristics</h2>
 <ul>
 <li><strong>Single Pass Compilation</strong>: Parse tree traversal in one pass</li>
 <li><strong>Memory Efficient</strong>: Symbol table uses minimal memory</li>
 <li><strong>Fast Generation</strong>: Direct instruction emission</li>
 <li><strong>Scalability</strong>: Successfully compiles complex programs with multiple classes and methods</li>
 </ul>
-<h2>Integration with Nand2Tetris</h2>
+<h2 id="integration-with-nand2tetris">Integration with Nand2Tetris</h2>
+<p>To run the compiled program straight away, use
+<a href="https://github.com/kpillai2017/jackvm-py">jackvm-py</a> (see
+<a href="#using-it-with-jackvm">Using it with JackVM</a>). Or use the course's own tools:</p>
 <ol>
 <li>
 <p>Compile Jack to VM:
@@ -455,7 +510,7 @@ STATUS / FILES / PROBLEMS / OUTPUT boxes, and under them a SHORTCUTS box.
    - Run simulation</p>
 </li>
 </ol>
-<h2>References</h2>
+<h2 id="references">References</h2>
 <ul>
 <li><strong>nand2tetris Course</strong>: https://www.nand2tetris.org/</li>
 <li><strong>Jack Language Spec</strong>: http://nand2tetris.org/chapters/chapter09.pdf</li>
@@ -463,10 +518,10 @@ STATUS / FILES / PROBLEMS / OUTPUT boxes, and under them a SHORTCUTS box.
 <li><strong>ANTLR4 Documentation</strong>: https://www.antlr.org/</li>
 <li><strong>Terence Parr's ANTLR</strong>: Language implementation with ANTLR4</li>
 </ul>
-<h2>License</h2>
+<h2 id="license">License</h2>
 <p>Released under the <a href="https://github.com/kpillai2017/jack-compiler/blob/main/LICENSE">MIT License</a>. Built for educational use with the
 <a href="https://www.nand2tetris.org/">nand2tetris</a> curriculum.</p>
-<h2>Contributing</h2>
+<h2 id="contributing">Contributing</h2>
 <p>Issues and pull requests are welcome at
 <a href="https://github.com/kpillai2017/jack-compiler">https://github.com/kpillai2017/jack-compiler</a>.</p>
 <ol>
