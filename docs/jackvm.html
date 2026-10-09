@@ -95,6 +95,12 @@ jackc = ~/src/jack-compiler      ; jackc-gui is found there too
 # jackc-gui = /full/path/to/jackc-gui   ; a command works as well
 # jackvm = off                          ; hide the shortcut
 </code></pre>
+<p>Both repositories include a commented template with every setting,
+<a href="https://github.com/kpillai2017/jack-compiler/blob/main/config.example.ini"><code>config.example.ini</code></a>.
+Copy it into place and uncomment the lines you need:</p>
+<pre><code>mkdir -p ~/.config/jack-tools
+cp config.example.ini ~/.config/jack-tools/config.ini
+</code></pre>
 <p>Each app also looks for the other on your <code>PATH</code>, or you can point
 to it with an environment variable, which beats the config file:</p>
 <pre><code># tell the compiler where JackVM is
