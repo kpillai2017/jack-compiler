@@ -20,22 +20,66 @@ builds alike.
 ### 2. Lexical and syntax errors (while parsing)
 
 The ANTLR4 lexer and parser report every problem they find in a file — invalid
-characters, unterminated strings, missing or unexpected tokens. All of them are
-collected and printed beneath the failing file as:
+characters, unterminated strings, missing or unexpected tokens. Their raw
+messages are rewritten in plain English, and each one is printed the way GCC,
+Clang and rustc do it:
 
 ```
-<file>:<line>:<column>: <message>
+<file>:<line>:<column>: error: <message>
+ <line> | <the source line>
+        |        ^~~~
+        = help: <a suggestion, when there is one>
 ```
 
 Lines and columns are 1-based, so most editors and terminals can jump straight
-to the location.
+to the location. A forgotten `;`, `)` or `]` is reported **just after the
+token it should follow**, where it was forgotten, not at the start of the next
+line. A bad character or unterminated string is reported once; the knock-on
+parser errors it causes on the same line are dropped.
 
-### 3. Semantic errors (while generating code)
+### 3. Semantic errors and warnings (after parsing, before generating code)
 
-Some errors are only found while generating VM code — for example using a
-variable that was never declared. These are reported as
-`✗ COMPILATION ERROR` with a short message. Add `-v` to also print a Python
-traceback, which is useful when reporting a compiler bug.
+A file can be grammatically fine and still make no sense. A semantic pass
+(`jack_compiler/checker.py`) checks every file before any VM code is generated.
+
+**Errors** stop the file from being compiled:
+
+| Problem | Message |
+|---------|---------|
+| Undeclared variable | `'cuont' is not declared` + `help: did you mean 'count'?` |
+| Declared twice in one scope | `'x' is already declared in this subroutine` + `note: 'x' was first declared here` |
+| Two subroutines with one name | `subroutine 'bump' is already defined in class 'Sem'` + note |
+| `this` in a function | `'this' can't be used in function 'main'` |
+| A field in a function | `field 'count' can't be used in function 'main'` |
+| Method called without an object | `can't call method 'draw' from function 'main'` |
+| Method called on the class | `'bump' is a method, so it needs an object` |
+| Function called like a method | `'helper' is a function, so call it as 'Main.helper(...)'` |
+| Unknown subroutine in this class | `class 'Sem' has no subroutine named 'nope'` |
+| Wrong number of arguments | `'helper' takes 1 argument but 2 were given` + `note: 'helper' is declared here` |
+| Method call on a primitive | `'flag' is a boolean, which has no methods` |
+| Integer too big | `integer constant 40000 is too large` + `help: the largest Jack integer is 32767` |
+| No `return` at the end | `function 'main' can reach its end without a 'return'` |
+
+**Warnings** are printed but the file still compiles (`-w` hides them,
+`--werror` turns them into errors):
+
+| Problem | Message |
+|---------|---------|
+| Local never used | `unused variable 'y'` |
+| Code after `return` | `this code will never run: it comes after 'return'` |
+| Void subroutine returns a value | `void method 'bump' returns a value` |
+| Non-void subroutine returns nothing | `function 'f' should return a int` |
+| Constructor doesn't return `this` | `constructor 'new' should 'return this;'` |
+| Class name ≠ file name | `class 'Foo' is in a file named 'Bar.jack'` |
+| Class named like an OS class | `class 'Math' has the same name as a Jack OS class` |
+| `lowercase.f()` and `lowercase` isn't a variable | `'output' is not a variable, so this calls a class named 'output'` |
+
+Only what one file can decide is checked. Calls into *other* classes
+(including the Jack OS) are trusted, because those classes are compiled
+separately.
+
+Internal compiler bugs are reported as `✗ COMPILATION ERROR`; add `-v` for a
+Python traceback to include in a bug report.
 
 ### 4. Reporting (after compiling)
 
@@ -50,10 +94,30 @@ traceback, which is useful when reporting a compiler bug.
 
 ```
 [2/4] ✗ COMPILATION FAILED: src/game/Broken.jack
-  2 syntax error(s):
-  src/game/Broken.jack:3:17: mismatched input ';' expecting {'true', 'false', 'null', 'this', '-', '~', '(', INTEGER, STRING_LITERAL, IDENTIFIER}
-  src/game/Broken.jack:5:5: mismatched input '}' expecting {'true', 'false', 'null', 'this', '-', '~', ';', '(', INTEGER, STRING_LITERAL, IDENTIFIER}
+src/game/Broken.jack:3:17: error: expected an expression, found ';'
+ 3 |         let x = ;
+   |                 ^
+src/game/Broken.jack:5:15: error: expected ';' after 'return'
+ 5 |         return
+   |               ^
+   = help: every statement and declaration ends with ';'
+2 errors generated.
 ```
+
+A file that compiles with warnings says so, and lists them:
+
+```
+✓ SUCCESS (1 warning): src/Main.jack
+  → src/Main.vm
+src/Main.jack:3:20: warning: unused variable 'y'
+ 3 |         var int x, y;
+   |                    ^
+1 warning generated.
+```
+
+On a terminal, errors are red, warnings yellow, notes cyan and the `^~~~`
+marker green, as in GCC. Colour is off when output is redirected or
+`NO_COLOR` is set.
 
 ### Summary
 
@@ -95,19 +159,20 @@ echo $?        # 0 = success, non-zero = failure
 |----------|-------------|---------------|
 | Input | `✗ ERROR: Input path not found` | Typo in the path |
 | Input | `⚠ WARNING: No .jack files found` | Wrong directory, or forgot `-r` |
-| Lexical | `token recognition error at: ...` | `@`, `#`, unterminated string |
-| Syntax | `mismatched input ...`, `missing ... at ...`, `extraneous input ...` | Missing `;`, `(`, `}`; keyword used as a name |
-| Semantic | `✗ COMPILATION ERROR` + message | Undeclared variable |
+| Lexical | `error: invalid character '@' in program`, `error: unterminated string` | `@`, `#`, a string without its closing `"` |
+| Syntax | `error: expected ';' after ')'`, `error: expected an expression, found ';'`, `error: unexpected end of file` | Missing `;`, `(`, `}`; keyword used as a name |
+| Semantic | `error: 'y' is not declared`, `error: can't call method ...` | See the tables above |
+| Warning | `warning: unused variable 'y'` | See the tables above |
 | Internal | `✗ COMPILATION ERROR` + message (`-v` for traceback) | Compiler bug |
 
 ### What is *not* detected
 
-`jackc` follows the Jack grammar, which does not require every subroutine to end
-with `return`. A missing `return` therefore compiles, and only fails when the
-program runs in the VM Emulator. Type mismatches are likewise not checked —
-Jack is weakly typed.
+Jack is weakly typed, so type mismatches (`let x = "text";` for an `int x`)
+are not errors. Calls into other classes aren't checked either: they are
+compiled separately, so a wrong name or argument count there shows up when
+the program runs in the VM.
 
-## Common Jack Syntax Errors
+## Common Jack Errors
 
 All messages below are real `jackc` output.
 
@@ -119,10 +184,11 @@ return;
 ```
 
 ```
-errs/MissingSemi.jack:4:9: extraneous input 'return' expecting ';'
+errs/MissingSemi.jack:4:30: error: expected ';' after ')'
+ 4 |         do Output.printInt(1)
+   |                              ^
+   = help: every statement and declaration ends with ';'
 ```
-
-The error is reported at the *next* token, so look at the end of the previous line.
 
 ### Missing parentheses around a condition
 
@@ -131,65 +197,106 @@ if x { let x = 1; }
 ```
 
 ```
-errs/IfNoParens.jack:4:12: missing '(' at 'x'
-errs/IfNoParens.jack:4:14: missing ')' at '{'
+errs/IfNoParens.jack:4:11: error: expected '(' after 'if'
+ 4 |         if x { let x = 1; }
+   |           ^
+errs/IfNoParens.jack:4:13: error: expected ')' after 'x'
+ 4 |         if x { let x = 1; }
+   |             ^
 ```
 
 ### Unclosed class or subroutine body
 
 ```
-errs/Unclosed.jack:5:1: extraneous input '<EOF>' expecting {'constructor', 'function', 'method', '}'}
+errs/Unclosed.jack:4:6: error: unexpected end of file: expected '}' or a subroutine declaration
+ 4 |     }
+   |      ^
+   = help: check that every '{' has a matching '}'
+errs/Unclosed.jack:1:16: note: this '{' is never closed
+ 1 | class Unclosed {
+   |                ^
 ```
-
-`<EOF>` (end of file) in a message usually means a missing `}`.
 
 ### Keyword used as a name
 
-```jack
-var int class;
 ```
-
-```
-errs/KeywordName.jack:3:17: mismatched input 'class' expecting IDENTIFIER
+errs/KeywordName.jack:4:17: error: expected a name, found 'class'
+ 4 |         var int class;
+   |                 ^~~~~
 ```
 
 ### Unterminated string
 
-```jack
-do Output.printString("oops);
+```
+errs/BadString.jack:4:31: error: unterminated string
+ 4 |         do Output.printString("oops);
+   |                               ^~~~~~~
+   = help: a string must end with '"' on the same line
 ```
 
-```
-errs/BadString.jack:3:31: token recognition error at: '"oops);\n'
-errs/BadString.jack:4:9: mismatched input 'return' expecting {...}
-```
-
-Fix the first error first — later ones are often a knock-on effect.
-
-### Undeclared variable
-
-```jack
-let y = 1;     // y was never declared with var/field/static
-```
+### Undeclared variable (with a suggestion)
 
 ```
-✗ COMPILATION ERROR: errs/Undeclared.jack
-  Undefined variable: y
+errs/Sem.jack:14:13: error: 'cuont' is not declared
+ 14 |         let cuont = 1;
+    |             ^~~~~
+    = help: did you mean 'count'?
+```
+
+### Declared twice
+
+```
+errs/Sem.jack:12:17: error: 'x' is already declared in this subroutine
+ 12 |         var int x;
+    |                 ^
+errs/Sem.jack:11:17: note: 'x' was first declared here
+ 11 |         var int x, y;
+    |                 ^
+```
+
+### Calling a method from a function
+
+```
+errs/Calls.jack:4:12: error: can't call method 'draw' from function 'main'
+ 4 |         do draw(5);
+   |            ^~~~
+   = help: a function has no object; call it on one, e.g. 'obj.draw(...)'
+```
+
+### Wrong number of arguments
+
+```
+errs/Sem.jack:18:16: error: 'helper' takes 1 argument but 2 were given
+ 18 |         do Sem.helper(1, 2);
+    |                ^~~~~~
+errs/Sem.jack:27:18: note: 'helper' is declared here
+ 27 |     function int helper(int a) {
+    |                  ^~~~~~
+```
+
+### Missing return
+
+```
+errs/Sem.jack:29:5: error: function 'helper' can reach its end without a 'return'
+ 29 |     }
+    |     ^
+    = help: every Jack subroutine must end with 'return' (use 'return;' in a void one)
 ```
 
 ### Empty file
 
 ```
-errs/Missing.jack:1:1: mismatched input '<EOF>' expecting 'class'
+errs/Missing.jack:1:1: error: unexpected end of file: expected 'class'
 ```
 
 ## Troubleshooting Errors
 
 1. **Read the first error for each file first.** Later errors are often caused by it.
-2. **Check the line before** the reported position for missing `;` or `)`.
-3. **Compile the one file** to focus on it: `jackc src/game/Broken.jack`.
-4. **Use `--clean`** so a failed file can't leave an old `.vm` behind that the VM Emulator would still load.
-5. **Use `-v`** if you see `✗ COMPILATION ERROR` with an unexpected message, and include the traceback in a bug report.
+2. **Follow the `help:` and `note:` lines**: they point at the fix, or at the other place involved (e.g. the first declaration).
+3. **Missing `;` or `)`** is reported right after the token it should follow.
+4. **Compile the one file** to focus on it: `jackc src/game/Broken.jack`.
+5. **Use `--clean`** so a failed file can't leave an old `.vm` behind that the VM Emulator would still load.
+6. **Use `-v`** if you see `✗ COMPILATION ERROR` with an unexpected message, and include the traceback in a bug report.
 
 ## Integration with Build Systems
 
@@ -250,14 +357,21 @@ fi
 A: Yes:
 
 ```python
-from jack_compiler import JackCompiler, JackSyntaxError
+from jack_compiler import JackCompiler, JackSyntaxError, render_diagnostic
 
+compiler = JackCompiler()
 try:
-    vm_code = JackCompiler().compile_source("Main.jack")
-except JackSyntaxError as e:
-    for err in e.errors:          # "file:line:col: message"
+    vm_code = compiler.compile_source("Main.jack")
+    warnings = compiler.diagnostics           # warnings from a successful compile
+except JackSyntaxError as e:                  # also catches JackSemanticError
+    for err in e.errors:                      # "file:line:col: error: message"
         print(err)
+    for d in e.diagnostics:                   # Diagnostic: .line .column .severity .message .help .notes
+        print(render_diagnostic(d, open("Main.jack").read().splitlines()))
 ```
+
+**Q: Can warnings fail the build?**
+A: Yes: `jackc --werror src/` treats every warning as an error. `jackc -w` hides warnings instead.
 
 **Q: Where do the messages come from?**
 A: Lexical and syntax errors come from the ANTLR4-generated lexer and parser

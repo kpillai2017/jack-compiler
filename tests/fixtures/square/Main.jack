@@ -1,0 +1,11 @@
+// The nand2tetris "Square" sample program (project 9), used by the tests as
+// a realistic multi-class program that must compile with no diagnostics.
+class Main {
+    function void main() {
+        var SquareGame game;
+        let game = SquareGame.new();
+        do game.run();
+        do game.dispose();
+        return;
+    }
+}

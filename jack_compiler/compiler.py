@@ -14,39 +14,152 @@ import os
 import sys
 import traceback
 from pathlib import Path
-from typing import List, Tuple
+from typing import List, Optional, Sequence, Tuple, Union
 
-from antlr4 import CommonTokenStream, FileStream
+from antlr4 import CommonTokenStream, FileStream, Token
 from antlr4.error.ErrorListener import ErrorListener
 
 from .antlr_generated.grammar.JackLexer import JackLexer
 from .antlr_generated.grammar.JackParser import JackParser
+from .checker import check as check_semantics
 from .compiler_visitor import JackCompilerVisitor
+from .diagnostics import ERROR, WARNING, Diagnostic, Note, friendly_syntax_error, render, summary
 
 
 class JackSyntaxError(SyntaxError):
-    """Raised when a Jack source file has lexical or syntax errors."""
+    """
+    Raised when a Jack source file has lexical or syntax errors.
 
-    def __init__(self, source: str, errors: List[str]):
-        super().__init__(f"{len(errors)} syntax error(s) in {source}")
+    ``.diagnostics`` holds every :class:`Diagnostic` (errors, plus any
+    warnings found alongside them); ``.errors`` holds the errors' one-line
+    ``file:line:col: error: message`` forms.
+    """
+
+    kind = "syntax"
+
+    def __init__(self, source: str, diagnostics: Sequence[Union[Diagnostic, str]]):
+        self.diagnostics: List[Diagnostic] = [
+            d if isinstance(d, Diagnostic) else Diagnostic(source, 0, 0, str(d)) for d in diagnostics
+        ]
+        self.errors: List[str] = [str(d) for d in self.diagnostics if d.is_error]
+        super().__init__(f"{len(self.errors)} {self.kind} error(s) in {source}")
         self.source = source
-        self.errors = errors
+
+
+class JackSemanticError(JackSyntaxError):
+    """
+    Raised when a file parses but makes no sense: an undeclared variable,
+    a method called from a function, a missing return, ... (see checker.py).
+    A subclass of JackSyntaxError, so ``except JackSyntaxError`` catches both.
+    """
+
+    kind = "semantic"
 
 
 class CollectingErrorListener(ErrorListener):
     """
-    Collects ANTLR lexer/parser errors as ``file:line:col: message`` strings
-    instead of printing them to stderr, so they can be reported alongside
-    the file they belong to. Columns are 1-based.
+    Collects ANTLR lexer/parser errors as :class:`Diagnostic` objects instead
+    of printing them to stderr. ANTLR's messages are rewritten into plain
+    English, and a missing ';' (or ')' ...) is reported just after the token
+    it should follow - where it was forgotten - like GCC and Clang do.
+    Columns are 1-based.
     """
 
     def __init__(self, source: str):
         super().__init__()
         self.source = source
-        self.errors: List[str] = []
+        self.lexer_diagnostics: List[Diagnostic] = []
+        self.parser_diagnostics: List[Diagnostic] = []
+        self.lexer_lines = set()
+
+    @property
+    def errors(self) -> List[str]:
+        return [str(d) for d in self.diagnostics]
 
     def syntaxError(self, recognizer, offendingSymbol, line, column, msg, e):
-        self.errors.append(f"{self.source}:{line}:{column + 1}: {msg}")
+        previous = self._previous_token(recognizer, offendingSymbol)
+        same_line = previous is None or offendingSymbol is None or previous.line == offendingSymbol.line
+        friendly = friendly_syntax_error(msg, f"'{previous.text}'" if previous is not None else None, same_line)
+
+        length = 1
+        if offendingSymbol is not None and offendingSymbol.text and offendingSymbol.text != "<EOF>":
+            length = len(offendingSymbol.text)
+        elif offendingSymbol is None:  # a lexer error: underline the bad text
+            length = max(1, len(msg.rsplit(": ", 1)[-1].strip("'")))
+        if friendly.after_previous and previous is not None:
+            line, column, length = previous.line, previous.column + len(previous.text), 1
+        notes = ()
+        if offendingSymbol is not None and offendingSymbol.type == Token.EOF:
+            brace = self._unclosed_brace(recognizer)
+            if brace is not None:
+                notes = (Note(brace.line, brace.column + 1, "this '{' is never closed"),)
+        diagnostic = Diagnostic(self.source, line, column + 1, friendly.message, ERROR, length, friendly.help, notes)
+        if offendingSymbol is None:
+            self.lexer_lines.add(line)
+            self.lexer_diagnostics.append(diagnostic)
+        else:
+            self.parser_diagnostics.append(diagnostic)
+
+    @property
+    def diagnostics(self) -> List[Diagnostic]:
+        """
+        Every problem, in source order. A bad character or an unterminated
+        string also confuses the parser; those knock-on parser errors on the
+        same line are dropped so only the real cause is reported.
+        """
+        kept = [d for d in self.parser_diagnostics if d.line not in self.lexer_lines]
+        return sorted(self.lexer_diagnostics + kept, key=Diagnostic.sort_key)
+
+    @staticmethod
+    def _unclosed_brace(recognizer):
+        """The innermost '{' that has no matching '}' (for 'unexpected end of file')."""
+        if not hasattr(recognizer, "getTokenStream"):
+            return None
+        stream = recognizer.getTokenStream()
+        stream.fill()
+        open_braces = []
+        for token in stream.tokens:
+            if token.type == JackLexer.LBRACE:
+                open_braces.append(token)
+            elif token.type == JackLexer.RBRACE and open_braces:
+                open_braces.pop()
+        return open_braces[-1] if open_braces else None
+
+    @staticmethod
+    def _previous_token(recognizer, offending):
+        """The real token just before the offending one (comments/spaces are skipped)."""
+        if offending is None or not hasattr(recognizer, "getTokenStream"):
+            return None
+        index = getattr(offending, "tokenIndex", -1)
+        if index <= 0:
+            return None
+        try:
+            return recognizer.getTokenStream().get(index - 1)
+        except Exception:  # pragma: no cover - defensive
+            return None
+
+
+def read_source_lines(path: str) -> List[str]:
+    """A file's lines, for showing source snippets in error messages."""
+    try:
+        return Path(path).read_text(encoding="utf-8", errors="replace").splitlines()
+    except OSError:
+        return []
+
+
+def _terminal_colour(kind: str, text: str) -> str:
+    """Colours for diagnostics, as GCC/Clang use them."""
+    if kind == ERROR:
+        return Colors.bold(Colors.red(text))
+    if kind == WARNING:
+        return Colors.bold(Colors.yellow(text))
+    if kind == "note":
+        return Colors.bold(Colors.cyan(text))
+    if kind == "caret":
+        return Colors.green(text)
+    if kind in ("location", "help"):
+        return Colors.bold(text)
+    return text
 
 
 def _colors_enabled() -> bool:
@@ -98,15 +211,21 @@ class Colors:
 class JackCompiler:
     """Main compiler class."""
 
-    def __init__(self, verbose: bool = False):
+    def __init__(self, verbose: bool = False, warnings: bool = True, werror: bool = False):
         """
         Initialize the compiler.
 
         Args:
             verbose: Print a full traceback on unexpected internal errors.
+            warnings: Print warnings (they never stop compilation by themselves).
+            werror: Treat warnings as errors (like ``gcc -Werror``).
         """
         self.visitor = JackCompilerVisitor()
         self.verbose = verbose
+        self.show_warnings = warnings
+        self.werror = werror
+        # Diagnostics (warnings) from the most recent successful compile_source().
+        self.diagnostics: List[Diagnostic] = []
 
     def compile_source(self, input_path: str) -> str:
         """
@@ -115,8 +234,14 @@ class JackCompiler:
         Raises:
             FileNotFoundError: If the input file does not exist.
             JackSyntaxError: If the source contains lexical or syntax errors;
-                ``.errors`` holds ``file:line:col: message`` strings.
+                ``.errors`` holds ``file:line:col: error: message`` strings
+                and ``.diagnostics`` the full :class:`Diagnostic` objects.
+            JackSemanticError: (a JackSyntaxError) if it parses but has
+                semantic errors, e.g. an undeclared variable.
+
+        Warnings from a successful compile are left in ``self.diagnostics``.
         """
+        self.diagnostics = []
         input_stream = FileStream(input_path, encoding='utf-8')
         listener = CollectingErrorListener(input_path)
 
@@ -130,8 +255,19 @@ class JackCompiler:
 
         tree = parser.program()
 
-        if listener.errors:
-            raise JackSyntaxError(input_path, listener.errors)
+        if listener.diagnostics:
+            raise JackSyntaxError(input_path, listener.diagnostics)
+
+        diagnostics = check_semantics(tree, input_path)
+        if self.werror:
+            diagnostics = [
+                Diagnostic(d.file, d.line, d.column, d.message + " [-Werror]", ERROR, d.length, d.help, d.notes)
+                if d.severity == WARNING else d
+                for d in diagnostics
+            ]
+        if any(d.is_error for d in diagnostics):
+            raise JackSemanticError(input_path, diagnostics)
+        self.diagnostics = diagnostics
 
         # Visitor generates both the AST and the VM code.
         self.visitor.compile_program(tree)
@@ -155,8 +291,11 @@ class JackCompiler:
             out.parent.mkdir(parents=True, exist_ok=True)
             out.write_text(vm_code, encoding='utf-8')
 
-            print(f"{Colors.green('✓ SUCCESS')}: {input_path}")
+            warnings = self.diagnostics if self.show_warnings else []
+            note = f" ({summary(warnings)[:-len(' generated.')]})" if warnings else ""
+            print(f"{Colors.green('✓ SUCCESS')}{note}: {input_path}")
             print(f"  {Colors.cyan('→')} {output_path}")
+            self.print_diagnostics(warnings, input_path)
             return True
 
         except FileNotFoundError:
@@ -164,9 +303,8 @@ class JackCompiler:
             return False
         except JackSyntaxError as e:
             print(f"{Colors.red('✗ COMPILATION FAILED')}: {input_path}")
-            print(f"  {Colors.red(f'{len(e.errors)} syntax error(s):')}")
-            for err in e.errors:
-                print(f"  {err}")
+            shown = [d for d in e.diagnostics if d.is_error or self.show_warnings]
+            self.print_diagnostics(shown, input_path)
             return False
         except Exception as e:  # pragma: no cover - defensive
             print(f"{Colors.red('✗ COMPILATION ERROR')}: {input_path}")
@@ -174,6 +312,16 @@ class JackCompiler:
             if self.verbose:
                 traceback.print_exc()
             return False
+
+    def print_diagnostics(self, diagnostics: Sequence[Diagnostic], path: str) -> None:
+        """Print diagnostics GCC-style: location, message, source line, ^~~~."""
+        if not diagnostics:
+            return
+        lines = read_source_lines(path)
+        for diagnostic in diagnostics:
+            print(render(diagnostic, lines, colour=_terminal_colour))
+        totals = summary(diagnostics)
+        print(Colors.red(totals) if any(d.is_error for d in diagnostics) else Colors.yellow(totals))
 
     def compile_directory(self, input_dir: str, output_dir: str,
                           recursive: bool = False, clean: bool = False,
@@ -377,6 +525,14 @@ Examples:
         help='Show full tracebacks for internal compiler errors',
     )
     parser.add_argument(
+        '-w', '--no-warnings', action='store_true',
+        help='Do not print warnings (errors are always shown)',
+    )
+    parser.add_argument(
+        '--werror', action='store_true',
+        help='Treat warnings as errors: a file with warnings is not compiled',
+    )
+    parser.add_argument(
         '--version', action='version', version=f'%(prog)s {__version__}'
     )
     return parser
@@ -392,7 +548,7 @@ def main(argv=None):
         print(f"{Colors.red('✗ ERROR')}: Input path not found: {args.input}")
         sys.exit(1)
 
-    compiler = JackCompiler(verbose=args.verbose)
+    compiler = JackCompiler(verbose=args.verbose, warnings=not args.no_warnings, werror=args.werror)
 
     if input_path.is_file():
         if args.recursive:

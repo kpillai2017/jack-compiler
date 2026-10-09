@@ -354,16 +354,23 @@ pointer     - Pointer 0 (this), Pointer 1 (that)
 ## Common Errors
 
 ```
-✗ COMPILATION ERROR ... Undefined variable: x
-→ Declare the variable with var, field, or static
+File.jack:LINE:COL: error: expected ';' after ')'
+ LINE |         do Output.printInt(1)
+      |                              ^
+→ The ^ marks the exact spot; add the missing ';' there
 
-✗ COMPILATION FAILED ... N syntax error(s):
-  File.jack:LINE:COL: <message>
-→ Go to LINE:COL (or the line before it); check braces, semicolons, keywords
+File.jack:LINE:COL: error: 'x' is not declared
+      = help: did you mean 'y'?
+→ Declare the variable with var, field, or static (or fix the typo)
 
-token recognition error at: '@'
+File.jack:LINE:COL: error: invalid character '@' in program / unterminated string
 → Remove the invalid character / close the string literal
+
+File.jack:LINE:COL: warning: unused variable 'y'
+→ Compiles anyway; -w hides warnings, --werror makes them errors
 ```
+
+See ERROR_DETECTION.md for every error and warning.
 
 Not detected at compile time (Jack is weakly typed and calls are resolved by
 the VM): undefined subroutines, wrong argument counts, type mismatches and a
