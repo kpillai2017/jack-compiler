@@ -45,6 +45,13 @@ Welcome to the comprehensive documentation for the Jack Compiler - a complete im
    - Output compatibility
    - Learning resources
 
+### 6. **jackvm.html** - Using the Compiler with JackVM
+   - Setting up jack-compiler and jackvm-py side by side
+   - Ctrl+J: run the compiled program in JackVM
+   - Running .jack source from JackVM, and opening mistakes in the compiler
+   - How each app finds the other (environment variable, same environment, PATH)
+   - Troubleshooting
+
 ## 🚀 Quick Start
 
 1. **Setup**: Read [getting-started.html](getting-started.html)
@@ -122,6 +129,7 @@ jack-compiler/
 ## 🔗 Related Resources
 
 - **nand2tetris course**: https://www.nand2tetris.org/
+- **jackvm-py** (companion Jack VM): https://github.com/kpillai2017/jackvm-py
 - **ANTLR4 documentation**: https://www.antlr.org/
 - **Jack Language Specification**: http://nand2tetris.org/chapters/chapter09.pdf
 

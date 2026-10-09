@@ -24,6 +24,17 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e ".[dev,gui]"
 
+      - name: Fetch jackvm-py (to check the shared integrations.py matches)
+        shell: bash
+        run: |
+          # The branch with the same name as this one, if jackvm-py has it; else main.
+          branch="${GITHUB_HEAD_REF:-$GITHUB_REF_NAME}"
+          dest="$RUNNER_TEMP/jackvm-py"
+          git clone --quiet --depth 1 --branch "$branch" https://github.com/kpillai2017/jackvm-py.git "$dest" 2>/dev/null \
+            || git clone --quiet --depth 1 https://github.com/kpillai2017/jackvm-py.git "$dest"
+          echo "JACK_TOOLS_COMPANION=$dest" >> "$GITHUB_ENV"
+          echo "Comparing with jackvm-py @ $(git -C "$dest" rev-parse --abbrev-ref HEAD) $(git -C "$dest" rev-parse --short HEAD)"
+
       - name: Run tests
         run: pytest -v
         env:
