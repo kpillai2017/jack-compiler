@@ -53,12 +53,22 @@ A file can be grammatically fine and still make no sense. A semantic pass
 | A field in a function | `field 'count' can't be used in function 'main'` |
 | Method called without an object | `can't call method 'draw' from function 'main'` |
 | Method called on the class | `'bump' is a method, so it needs an object` |
-| Function called like a method | `'helper' is a function, so call it as 'Main.helper(...)'` |
+| Function called like a method (`helper()` or `obj.helper()`) | `'helper' is a function, so call it as 'Main.helper(...)'` |
 | Unknown subroutine in this class | `class 'Sem' has no subroutine named 'nope'` |
-| Wrong number of arguments | `'helper' takes 1 argument but 2 were given` + `note: 'helper' is declared here` |
+| Unknown Jack OS subroutine | `the Jack OS class 'Output' has no subroutine named 'printSting'` + `help: did you mean 'printString'?` |
+| Wrong number of arguments | `'helper' takes 1 argument but 2 were given` + `note: 'helper' is declared here` (for the OS: `help: the Jack OS declares it as '...'`) |
 | Method call on a primitive | `'flag' is a boolean, which has no methods` |
 | Integer too big | `integer constant 40000 is too large` + `help: the largest Jack integer is 32767` |
 | No `return` at the end | `function 'main' can reach its end without a 'return'` |
+
+The call checks cover this class's own subroutines and the Jack OS (the API
+in the book; private helpers of a particular OS, such as `Output.initMap`,
+aren't part of it). If the folder has its own `Output.jack`, `Math.jack` etc.
+(project 12), that class replaces the OS's and calls into it aren't checked.
+
+A `while` loop whose condition is always true (`true`, `~false`, `~0`, `-1`)
+never ends except by `return`, since Jack has no `break`, so nothing is
+needed after it: `function void halt() { while (true) {} }` is fine.
 
 **Warnings** are printed but the file still compiles (`-w` hides them,
 `--werror` turns them into errors):
@@ -76,8 +86,8 @@ A file can be grammatically fine and still make no sense. A semantic pass
 | Unknown class name | `there is no class named 'Outptu' in this program` + `help: did you mean 'Output'?` |
 
 A class name (in a type, or before `.` in a call) is known if it is a Jack OS
-class or there is a matching `.jack` file in the same folder. Beyond that,
-calls into *other* classes are trusted: their subroutine names and argument
+class or there is a matching `.jack` file in the same folder. Calls into the
+program's *other* classes are trusted: their subroutine names and argument
 counts aren't checked, because those classes are compiled separately.
 
 Internal compiler bugs are reported as `✗ COMPILATION ERROR`; add `-v` for a
@@ -171,9 +181,10 @@ echo $?        # 0 = success, non-zero = failure
 
 Jack is weakly typed, so type mismatches (`let x = "text";` for an `int x`)
 are not errors. Class names are checked against the folder and the Jack OS,
-but subroutines in other classes aren't: they are compiled separately, so a
-wrong subroutine name or argument count there (`Output.printSting`) shows up
-when the program runs in the VM.
+and calls against this class and the Jack OS API, but calls into the
+program's other classes aren't: they are compiled separately, so a wrong
+subroutine name or argument count there (`Game.strat()`) shows up when the
+program runs in the VM.
 
 ## Common Jack Errors
 
@@ -275,6 +286,19 @@ errs/Sem.jack:18:16: error: 'helper' takes 1 argument but 2 were given
 errs/Sem.jack:27:18: note: 'helper' is declared here
  27 |     function int helper(int a) {
     |                  ^~~~~~
+```
+
+### Calling the Jack OS wrongly
+
+```
+Main.jack:3:19: error: the Jack OS class 'Output' has no subroutine named 'printSting'
+ 3 |         do Output.printSting("Hi");
+   |                   ^~~~~~~~~~
+   = help: did you mean 'printString'?
+Main.jack:4:19: error: 'drawLine' takes 4 arguments but 3 were given
+ 4 |         do Screen.drawLine(0, 0, 10);
+   |                   ^~~~~~~~
+   = help: the Jack OS declares it as 'function void Screen.drawLine(int x1, int y1, int x2, int y2)'
 ```
 
 ### Missing return

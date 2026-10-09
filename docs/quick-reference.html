@@ -393,10 +393,11 @@ File.jack:LINE:COL: warning: unused variable 'y'
 → Compiles anyway; -w hides warnings, --werror makes them errors
 </code></pre>
 <p>See ERROR_DETECTION.md for every error and warning.</p>
-<p>Not detected at compile time (Jack is weakly typed and calls are resolved by
-the VM): undefined subroutines, wrong argument counts, type mismatches and a
-missing <code>return</code>. These surface when the program runs in the VM Emulator.
-See <a href="error-detection.html">ERROR_DETECTION.md</a>.</p>
+<p>Not detected at compile time (Jack is weakly typed, and the program's other
+classes are compiled separately): type mismatches, and wrong subroutine names
+or argument counts in calls to the program's <em>other</em> classes. Calls within a
+class and calls into the Jack OS are checked. The rest surface when the
+program runs in the VM Emulator. See <a href="error-detection.html">ERROR_DETECTION.md</a>.</p>
 <h2 id="file-organization">File Organization</h2>
 <pre><code>project/
 ├── Main.jack          // Entry point

@@ -455,8 +455,10 @@ pop that 0              // Store in array
 
 <p>1. <strong>Lexical Errors</strong>: Invalid characters (handled by ANTLR4)</p>
 <p>2. <strong>Syntax Errors</strong>: Invalid grammar (detected by ANTLR4 parser)</p>
-<p>3. <strong>Semantic Errors</strong>: Undefined variables, type mismatches (detected during visiting)</p>
+<p>3. <strong>Semantic Errors and Warnings</strong>: Undeclared names, bad calls, missing <code>return</code>s and more (<code>checker.py</code>, before any code is generated)</p>
 <p>4. <strong>I/O Errors</strong>: File not found, write permission denied</p>
+
+<p>The semantic checker checks calls within a class and calls into the Jack OS (against its API), but not types, nor calls into the program's other classes: those are compiled separately and resolved by the VM at run time. See <a href="error-detection.html">Error Detection</a>.</p>
 
 <h2>Performance Considerations</h2>
 

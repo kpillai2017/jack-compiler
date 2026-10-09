@@ -315,9 +315,9 @@ except JackSyntaxError as e:
     = help: did you mean 'count'?
 </code></pre>
 <p>Besides syntax errors, a semantic pass catches undeclared or duplicate names,
-methods called without an object, wrong argument counts, missing <code>return</code>s and
-more, and warns about unused variables and unreachable code. See
-<a href="error-detection.html">ERROR_DETECTION.md</a>.</p>
+methods called without an object, wrong argument counts, misspelt Jack OS
+calls (<code>Output.printSting</code>), missing <code>return</code>s and more, and warns about
+unused variables and unreachable code. See <a href="error-detection.html">ERROR_DETECTION.md</a>.</p>
 <h2 id="graphical-interface-jackc-gui">Graphical Interface (<code>jackc-gui</code>)</h2>
 <p>A pygame window for compiling and browsing the result, styled like the
 <a href="https://github.com/kpillai2017/jackvm-py">jackvm-py</a> player, so the compiler and the

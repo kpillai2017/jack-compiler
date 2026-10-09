@@ -396,10 +396,11 @@ File.jack:LINE:COL: warning: unused variable 'y'
 
 See ERROR_DETECTION.md for every error and warning.
 
-Not detected at compile time (Jack is weakly typed and calls are resolved by
-the VM): undefined subroutines, wrong argument counts, type mismatches and a
-missing `return`. These surface when the program runs in the VM Emulator.
-See [ERROR_DETECTION.md](ERROR_DETECTION.md).
+Not detected at compile time (Jack is weakly typed, and the program's other
+classes are compiled separately): type mismatches, and wrong subroutine names
+or argument counts in calls to the program's *other* classes. Calls within a
+class and calls into the Jack OS are checked. The rest surface when the
+program runs in the VM Emulator. See [ERROR_DETECTION.md](ERROR_DETECTION.md).
 
 ## File Organization
 

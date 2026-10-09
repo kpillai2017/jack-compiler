@@ -116,7 +116,7 @@ parser errors it causes on the same line are dropped.</p>
 <td><code>'bump' is a method, so it needs an object</code></td>
 </tr>
 <tr>
-<td>Function called like a method</td>
+<td>Function called like a method (<code>helper()</code> or <code>obj.helper()</code>)</td>
 <td><code>'helper' is a function, so call it as 'Main.helper(...)'</code></td>
 </tr>
 <tr>
@@ -124,8 +124,12 @@ parser errors it causes on the same line are dropped.</p>
 <td><code>class 'Sem' has no subroutine named 'nope'</code></td>
 </tr>
 <tr>
+<td>Unknown Jack OS subroutine</td>
+<td><code>the Jack OS class 'Output' has no subroutine named 'printSting'</code> + <code>help: did you mean 'printString'?</code></td>
+</tr>
+<tr>
 <td>Wrong number of arguments</td>
-<td><code>'helper' takes 1 argument but 2 were given</code> + <code>note: 'helper' is declared here</code></td>
+<td><code>'helper' takes 1 argument but 2 were given</code> + <code>note: 'helper' is declared here</code> (for the OS: <code>help: the Jack OS declares it as '...'</code>)</td>
 </tr>
 <tr>
 <td>Method call on a primitive</td>
@@ -141,6 +145,13 @@ parser errors it causes on the same line are dropped.</p>
 </tr>
 </tbody>
 </table>
+<p>The call checks cover this class's own subroutines and the Jack OS (the API
+in the book; private helpers of a particular OS, such as <code>Output.initMap</code>,
+aren't part of it). If the folder has its own <code>Output.jack</code>, <code>Math.jack</code> etc.
+(project 12), that class replaces the OS's and calls into it aren't checked.</p>
+<p>A <code>while</code> loop whose condition is always true (<code>true</code>, <code>~false</code>, <code>~0</code>, <code>-1</code>)
+never ends except by <code>return</code>, since Jack has no <code>break</code>, so nothing is
+needed after it: <code>function void halt() { while (true) {} }</code> is fine.</p>
 <p><strong>Warnings</strong> are printed but the file still compiles (<code>-w</code> hides them,
 <code>--werror</code> turns them into errors):</p>
 <table>
@@ -190,8 +201,8 @@ parser errors it causes on the same line are dropped.</p>
 </tbody>
 </table>
 <p>A class name (in a type, or before <code>.</code> in a call) is known if it is a Jack OS
-class or there is a matching <code>.jack</code> file in the same folder. Beyond that,
-calls into <em>other</em> classes are trusted: their subroutine names and argument
+class or there is a matching <code>.jack</code> file in the same folder. Calls into the
+program's <em>other</em> classes are trusted: their subroutine names and argument
 counts aren't checked, because those classes are compiled separately.</p>
 <p>Internal compiler bugs are reported as <code>✗ COMPILATION ERROR</code>; add <code>-v</code> for a
 Python traceback to include in a bug report.</p>
@@ -315,9 +326,10 @@ echo $?        # 0 = success, non-zero = failure
 <h3 id="what-is-not-detected">What is <em>not</em> detected</h3>
 <p>Jack is weakly typed, so type mismatches (<code>let x = "text";</code> for an <code>int x</code>)
 are not errors. Class names are checked against the folder and the Jack OS,
-but subroutines in other classes aren't: they are compiled separately, so a
-wrong subroutine name or argument count there (<code>Output.printSting</code>) shows up
-when the program runs in the VM.</p>
+and calls against this class and the Jack OS API, but calls into the
+program's other classes aren't: they are compiled separately, so a wrong
+subroutine name or argument count there (<code>Game.strat()</code>) shows up when the
+program runs in the VM.</p>
 <h2 id="common-jack-errors">Common Jack Errors</h2>
 <p>All messages below are real <code>jackc</code> output.</p>
 <h3 id="missing-semicolon">Missing semicolon</h3>
@@ -386,6 +398,16 @@ errs/Sem.jack:11:17: note: 'x' was first declared here
 errs/Sem.jack:27:18: note: 'helper' is declared here
  27 |     function int helper(int a) {
     |                  ^~~~~~
+</code></pre>
+<h3 id="calling-the-jack-os-wrongly">Calling the Jack OS wrongly</h3>
+<pre><code>Main.jack:3:19: error: the Jack OS class 'Output' has no subroutine named 'printSting'
+ 3 |         do Output.printSting(&quot;Hi&quot;);
+   |                   ^~~~~~~~~~
+   = help: did you mean 'printString'?
+Main.jack:4:19: error: 'drawLine' takes 4 arguments but 3 were given
+ 4 |         do Screen.drawLine(0, 0, 10);
+   |                   ^~~~~~~~
+   = help: the Jack OS declares it as 'function void Screen.drawLine(int x1, int y1, int x2, int y2)'
 </code></pre>
 <h3 id="missing-return">Missing return</h3>
 <pre><code>errs/Sem.jack:29:5: error: function 'helper' can reach its end without a 'return'

@@ -336,9 +336,9 @@ Main.jack:14:13: error: 'cuont' is not declared
 ```
 
 Besides syntax errors, a semantic pass catches undeclared or duplicate names,
-methods called without an object, wrong argument counts, missing `return`s and
-more, and warns about unused variables and unreachable code. See
-[ERROR_DETECTION.md](ERROR_DETECTION.md).
+methods called without an object, wrong argument counts, misspelt Jack OS
+calls (`Output.printSting`), missing `return`s and more, and warns about
+unused variables and unreachable code. See [ERROR_DETECTION.md](ERROR_DETECTION.md).
 
 ## Graphical Interface (`jackc-gui`)
 
