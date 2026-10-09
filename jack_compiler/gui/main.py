@@ -51,6 +51,20 @@ def build_argument_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def pygame_missing_message(executable: str = sys.executable) -> str:
+    """
+    What to say when pygame isn't installed. jack-compiler isn't on PyPI,
+    so the fix is the [gui] extra of the checkout this code runs from (when
+    it does), installed into THIS Python - often a fresh, empty venv.
+    """
+    root = Path(__file__).resolve().parent.parent.parent
+    if (root / "pyproject.toml").is_file():
+        fix = f'pip install -e "{root}[gui]"   (or just: pip install pygame)'
+    else:
+        fix = "pip install pygame"
+    return f"jackc-gui needs pygame, which this Python ({executable}) doesn't have.\nInstall it with:  {fix}"
+
+
 def main(argv: Optional[Sequence[str]] = None) -> int:
     parser = build_argument_parser()
     args = parser.parse_args(argv)
@@ -59,7 +73,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     try:
         import pygame  # noqa: F401
     except ImportError:
-        print("jackc-gui needs pygame:  pip install 'jack-compiler[gui]'  (or: pip install pygame)", file=sys.stderr)
+        print(pygame_missing_message(), file=sys.stderr)
         return 1
 
     from .session import CompileSession

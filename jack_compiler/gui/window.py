@@ -63,6 +63,9 @@ import pygame
 
 from . import theme
 from .file_picker import CHOSEN, QUIT, FilePicker
+from ..integrations import JACKVM, can_configure
+from ..locate_app import QUIT as LOCATE_QUIT
+from ..locate_app import locate
 from .run_in_vm import VMLauncher
 from .panel import InfoPanel, build_sections, display_name, largest_sections
 from .session import COMPILING, FAILED, IDLE, OK, PENDING, CompileSession
@@ -195,7 +198,10 @@ class CompilerWindow:
 
         # The shortcuts box lines up with the outside edges of the frame.
         frame = self.code_rect.inflate(2 * FRAME_EXTENT, 2 * FRAME_EXTENT)
-        jackvm = "Ctrl+J run in JackVM" if self.launcher.available else "Ctrl+J JackVM (not installed)"
+        if self.launcher.available:
+            jackvm = "Ctrl+J run in JackVM"
+        else:
+            jackvm = "Ctrl+J find JackVM..." if can_configure(JACKVM) else "Ctrl+J JackVM (not installed)"
         self.shortcuts = self.panel.shortcuts_section(frame.width, [jackvm])
         self.shortcuts_rect = pygame.Rect(
             frame.left, frame.bottom + InfoPanel.GAP + 4,
@@ -320,6 +326,8 @@ class CompilerWindow:
             self.show_panel = not self.show_panel
             self._resize_window()
         elif key == pygame.K_j:
+            if not self.launcher.available and can_configure(JACKVM):
+                return self.locate_jackvm()  # (it runs the program if JackVM is found)
             self.run_in_vm()
         elif key == pygame.K_o:
             return self._open_something_else()
@@ -410,6 +418,28 @@ class CompilerWindow:
         started, message = self.launcher.launch(self.session, self.selected)
         self.notify(message, "normal" if started else "error")
         return started
+
+    def locate_jackvm(self) -> bool:
+        """
+        Ctrl+J when JackVM isn't found: ask where it is (locate_app.py), save
+        that in the config file, and run the program. Returns False if the
+        user quit from the chooser (Ctrl+Q / closed the window).
+        """
+        self._esc_pressed_at = None
+        width, height = self.window.get_size()
+        if width < 800 or height < 560:
+            self.window = pygame.display.set_mode((max(width, 800), max(height, 560)))
+        outcome, companion, message = locate(self.window, JACKVM)
+        self._esc_needs_release = bool(pygame.key.get_pressed()[pygame.K_ESCAPE])
+        if outcome == LOCATE_QUIT:
+            return False
+        if companion is not None:
+            self.launcher.companion = companion
+        self._resize_window()  # back to our own size (and the SHORTCUTS box may change)
+        if companion is not None:
+            self.notify(message)
+            self.run_in_vm()
+        return True
 
     def notify(self, text: str, colour: str = "normal") -> None:
         """

@@ -23,7 +23,7 @@ jackc src_dir/
 ## Compiler Window (`jackc-gui`)
 
 ```bash
-pip install -e ".[gui]"          # adds pygame
+pip install -e ".[gui]"          # adds pygame (once per virtual environment)
 jackc-gui                        # pick a file or folder in a window
 jackc-gui src_dir/               # compile and show Jack + VM side by side
 jackc-gui --no-write src_dir/    # preview only
@@ -37,7 +37,7 @@ jackc-gui --no-write src_dir/    # preview only
 | Ctrl+W | Warnings count as errors (`--werror`) on / off |
 | Ctrl+Tab, 1–9, click a tab | Switch file |
 | Tab | Switch pane (Jack / VM) |
-| Ctrl+J | Run the program in JackVM ([jackvm-py](https://github.com/kpillai2017/jackvm-py), if installed) |
+| Ctrl+J | Run the program in JackVM ([jackvm-py](https://github.com/kpillai2017/jackvm-py)); asks where it is the first time |
 | Ctrl+O | Open something else |
 | Ctrl+D | Show / hide info panel |
 | Esc (hold 1 s while compiling) | Back to the file picker |
@@ -45,8 +45,9 @@ jackc-gui --no-write src_dir/    # preview only
 
 Full guide: [docs/gui.html](docs/gui.html)
 
-So Ctrl+J finds JackVM from any folder, name its folder in
-`~/.config/jack-tools/config.ini` (Windows: `%APPDATA%\jack-tools\config.ini`):
+The first Ctrl+J asks where jackvm-py is and saves your answer in
+`~/.config/jack-tools/config.ini` (Windows: `%APPDATA%\jack-tools\config.ini`),
+so it's found from any folder. You can also write it yourself:
 
 ```ini
 [apps]

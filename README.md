@@ -91,14 +91,17 @@ git clone https://github.com/kpillai2017/jack-compiler.git
 cd jack-compiler
 python3 -m venv venv && source venv/bin/activate   # Windows: venv\Scripts\activate
 pip install --upgrade pip
-pip install -e ".[dev]"
+pip install -e ".[dev,gui]"               # jackc, jackc-gui (the window) and pytest
 
 jackc examples/HelloWorld.jack            # writes examples/HelloWorld.vm
 jackc examples/ -o output/                # compile a whole directory
+jackc-gui examples/                       # see the Jack and VM code side by side
 pytest                                    # run the test suite
 ```
 
 No Java is required to *use* the compiler — the generated parser is committed.
+Every new virtual environment starts empty, so run the `pip install` line once
+in each one (see [Troubleshooting](#troubleshooting) if a command isn't found).
 
 ## Installation Details
 
@@ -111,7 +114,8 @@ No Java is required to *use* the compiler — the generated parser is committed.
 ### Install options
 
 ```bash
-pip install -e ".[dev]"     # editable install + pytest (recommended for development)
+pip install -e ".[dev,gui]" # editable install + pygame (jackc-gui) + pytest (recommended)
+pip install -e ".[dev]"     # the same without the window
 pip install .               # regular install
 pip install -r requirements.txt && python -m jack_compiler ...   # no install, run from repo root
 ```
@@ -133,8 +137,23 @@ CI regenerates the parser and fails if the committed files are out of date.
 
 ### Troubleshooting
 
-#### "jackc: command not found"
-Activate your virtual environment and run `pip install -e .`, or use `python -m jack_compiler` from the repository root.
+#### "jackc: command not found" / "jackc-gui: command not found"
+The commands only exist in a virtual environment the package was installed into.
+
+- **A new environment is empty.** `python3 -m venv`, and direnv's `layout python`
+  (in an `.envrc`), both create a fresh one with nothing in it. Install into it
+  once: `pip install -e ".[dev,gui]"`.
+- **Is the right one active?** `which python` (Windows: `where python`) should
+  point inside it, and `pip show jack-compiler` should find the package.
+- **`jackc` works but not `jackc-gui`?** It was installed without the window:
+  run `pip install -e ".[gui]"`.
+- **No install at all:** `python -m jack_compiler` and `python -m jack_compiler.gui`
+  work from the repository root after `pip install -r requirements.txt`
+  (plus `pip install pygame` for the window).
+
+#### "jackc-gui needs pygame"
+pygame isn't installed in the Python that's running. The message names that
+Python, and the command to fix it: `pip install -e "<this checkout>[gui]"`.
 
 #### "ModuleNotFoundError: No module named 'antlr4'"
 ```bash
@@ -379,7 +398,7 @@ STATUS / FILES / PROBLEMS / OUTPUT boxes, and under them a SHORTCUTS box.
 | Ctrl+I | Show / hide the compiler messages under the code |
 | Ctrl+R | Recompile (re-reads the files, so edit in your editor and press Ctrl+R) |
 | Ctrl+W | Warnings count as errors (like `--werror`), or back again; recompiles. STATUS shows which |
-| Ctrl+J | Run the program in [JackVM](https://github.com/kpillai2017/jackvm-py), if it's installed ([details](#using-it-with-jackvm)) |
+| Ctrl+J | Run the program in [JackVM](https://github.com/kpillai2017/jackvm-py). If JackVM isn't found yet, it asks where it is ([details](#using-it-with-jackvm)) |
 | Ctrl+O | Open another file or folder |
 | Ctrl+D | Show / hide the info panel |
 | **Esc** | **Go back** to the file picker, where you can open something else. The rules are the same as the jackvm player: **a single press** once the compilation has finished, but **hold for 1 s** while it's still running (a progress bar appears after 0.25 s; letting go cancels). In the picker, Esc goes back to what you had open, or quits if nothing is open yet. |
@@ -435,10 +454,21 @@ How each app finds the other (the first match wins; see
 4. **The `PATH`**: a `jackvm` command installed elsewhere (another
    virtual environment, `pipx install`, ...).
 
-If JackVM isn't found, the SHORTCUTS box shows `Ctrl+J JackVM (not installed)`,
-and pressing it says what to put in the config file (or, if the folder you
-configured has no `jackvm` in it, where it looked). The full text is printed in
-the terminal too. The apps only run each other's
+**The easiest way to set it up:** if JackVM isn't found, the SHORTCUTS box shows
+`Ctrl+J find JackVM...`. Press it, open your `jackvm-py` folder in the chooser
+(folders where JackVM can run are marked `[use]`), and press **Use this folder**.
+That saves `jackvm = <the folder>` in the config file and runs the program;
+from then on both apps find it from any folder. jackvm-py's own Ctrl+J does the
+same for the compiler.
+
+A folder works when JackVM is installed in a virtual environment inside it
+(`pip install -e .`), or when that environment only has its requirements
+(`pip install -r requirements.txt`): then its source is run with that
+environment's Python.
+
+If the lookup is switched off (`JACKVM=off`, or `off` in the config file), the
+shortcut reads `Ctrl+J JackVM (not installed)` and pressing it says so. The
+apps only run each other's
 command-line tools and never import each other's code. That way either repo
 can change its internals without breaking the other.
 
