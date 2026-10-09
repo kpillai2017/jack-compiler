@@ -26,10 +26,13 @@ Warnings (the file still compiles)
     * a constructor that doesn't 'return this'
     * a class whose name doesn't match its file name (the VM looks functions up by it)
     * 'name.f()' where 'name' isn't a variable and doesn't look like a class name
+    * a class name that isn't part of the program: not this class, not a
+      Jack OS class, and not another .jack file in the same folder ("did you
+      mean ...?"). In nand2tetris one folder is one program.
 
-Only things that can be decided from ONE file are checked: other classes
-(including the Jack OS) are compiled separately, so calls into them are
-trusted.
+Apart from which classes exist, only things that can be decided from ONE file
+are checked: other classes (including the Jack OS) are compiled separately,
+so the subroutines called in them, and their arguments, are trusted.
 """
 
 from __future__ import annotations
@@ -37,7 +40,7 @@ from __future__ import annotations
 import difflib
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, Iterable, List, Optional
+from typing import Dict, Iterable, List, Optional, Set
 
 from .diagnostics import ERROR, WARNING, Diagnostic, Note
 
@@ -47,6 +50,18 @@ PRIMITIVE_TYPES = {"int", "char", "boolean"}
 # subroutines with the OS's (e.g. examples/Array.jack calls the OS's
 # Array.new), so qualified calls into it can't be checked.
 OS_CLASSES = {"Array", "Keyboard", "Math", "Memory", "Output", "Screen", "String", "Sys"}
+
+
+def program_classes(file: str) -> Set[str]:
+    """
+    The classes of the program `file` belongs to: one per .jack file in its
+    folder (nand2tetris names each file after its class). Empty if the
+    folder can't be read.
+    """
+    try:
+        return {p.stem for p in Path(file).parent.iterdir() if p.suffix.lower() == ".jack" and p.is_file()}
+    except OSError:
+        return set()
 
 
 @dataclass
@@ -83,8 +98,13 @@ def _plural(count: int, word: str) -> str:
 class SemanticChecker:
     """Run with `check(tree)`; returns every Diagnostic found, sorted by position."""
 
-    def __init__(self, file: str) -> None:
+    def __init__(self, file: str, known_classes: Optional[Iterable[str]] = None) -> None:
         self.file = file
+        # Class names that exist: the Jack OS, plus the program's own classes
+        # (by default, the .jack files next to this one). This class is added
+        # once its name is known.
+        program = program_classes(file) if known_classes is None else set(known_classes)
+        self.known_classes: Set[str] = OS_CLASSES | program
         self.diagnostics: List[Diagnostic] = []
         self.class_name = ""
         self.class_scope: Dict[str, Declared] = {}
@@ -114,6 +134,7 @@ class SemanticChecker:
     def check(self, program_ctx) -> List[Diagnostic]:
         cls = program_ctx.classDeclaration()
         self.class_name = cls.className().getText()
+        self.known_classes.add(self.class_name)
         stem = Path(self.file).stem
         if stem and stem != self.class_name:
             self.warning(
@@ -124,6 +145,9 @@ class SemanticChecker:
 
         if self.class_name in OS_CLASSES:
             self.shares_os_name = True
+            # Writing the OS (project 12): Sys.init calls Main.main, and Main
+            # belongs to whichever program the OS is later used with.
+            self.known_classes.add("Main")
             self.warning(
                 cls.className(), f"class '{self.class_name}' has the same name as a Jack OS class",
                 help=f"its subroutines will clash with the OS's {self.class_name} class; consider another name",
@@ -131,7 +155,7 @@ class SemanticChecker:
 
         for var_decl in cls.classVarDeclaration():
             kind = "static" if var_decl.STATIC() else "field"
-            type_name = var_decl.type_().getText()
+            type_name = self._check_type(var_decl.type_())
             for name_ctx in var_decl.varName():
                 self._declare(self.class_scope, name_ctx, kind, type_name, "in this class")
 
@@ -161,6 +185,22 @@ class SemanticChecker:
     def _return_type(self, sub) -> str:
         return "void" if sub.VOID() else sub.type_().getText()
 
+    def _check_type(self, type_ctx) -> str:
+        """Warn if a declared type is a class that isn't in the program. Returns the type's name."""
+        type_name = type_ctx.getText()
+        if type_name not in PRIMITIVE_TYPES:
+            self._check_class_name(type_ctx, type_name)
+        return type_name
+
+    def _check_class_name(self, ctx, name: str) -> bool:
+        """Warn if `name` (used as a class) isn't a known class. Returns True if it's known."""
+        if name in self.known_classes:
+            return True
+        self.warning(ctx, f"there is no class named '{name}' in this program",
+                     help=self._did_you_mean(name, self.known_classes)
+                     or f"no {name}.jack in this folder, and it isn't a Jack OS class")  # fmt: skip
+        return False
+
     def _declare(self, scope: Dict[str, Declared], name_ctx, kind: str, type_name: str, where: str) -> None:
         name = name_ctx.getText()
         line, column, length = _where(name_ctx)
@@ -178,16 +218,18 @@ class SemanticChecker:
         kind = sub.getChild(0).getText()
         name = sub.subroutineName().getText()
         self.current = _Subroutine(kind, name, self._return_type(sub))
+        if not sub.VOID():
+            self._check_type(sub.type_())
         scope = self.current.scope
 
         params = sub.parameterList()
         if params:
             types = params.type_()
             for type_ctx, name_ctx in zip(types, params.varName()):
-                self._declare(scope, name_ctx, "argument", type_ctx.getText(), "in this subroutine")
+                self._declare(scope, name_ctx, "argument", self._check_type(type_ctx), "in this subroutine")
         body = sub.subroutineBody()
         for var_decl in body.varDeclaration():
-            type_name = var_decl.type_().getText()
+            type_name = self._check_type(var_decl.type_())
             for name_ctx in var_decl.varName():
                 self._declare(scope, name_ctx, "local", type_name, "in this subroutine")
 
@@ -363,10 +405,15 @@ class SemanticChecker:
                            help=f"call it on an object of class {self.class_name}, not on the class")  # fmt: skip
             else:
                 self._check_argument_count(name_ctx, target, argument_count)
+        elif receiver in self.known_classes:
+            pass  # another class of the program, or the OS: compiled separately, so trusted
         elif receiver[:1].islower():
             visible = list(self.class_scope) + (list(self.current.scope) if self.current else [])
             self.warning(receiver_ctx, f"'{receiver}' is not a variable, so this calls a class named '{receiver}'",
-                         help=self._did_you_mean(receiver, visible) or "class names usually start with a capital letter")  # fmt: skip
+                         help=self._did_you_mean(receiver, [*visible, *self.known_classes])
+                         or "class names usually start with a capital letter")  # fmt: skip
+        else:
+            self._check_class_name(receiver_ctx, receiver)
 
     def _no_such_subroutine(self, name_ctx, name: str) -> None:
         if self.shares_os_name:
@@ -383,6 +430,9 @@ class SemanticChecker:
             )
 
 
-def check(tree, file: str) -> List[Diagnostic]:
-    """Run every semantic check on a parsed program."""
-    return SemanticChecker(file).check(tree)
+def check(tree, file: str, known_classes: Optional[Iterable[str]] = None) -> List[Diagnostic]:
+    """
+    Run every semantic check on a parsed program. `known_classes` are the
+    program's classes; by default, the .jack files in `file`'s folder.
+    """
+    return SemanticChecker(file, known_classes).check(tree)
