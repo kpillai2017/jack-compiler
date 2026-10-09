@@ -397,3 +397,67 @@ def test_known_classes_can_be_given_explicitly(tmp_path):
     file = str(tmp_path / "Main.jack")  # the folder is empty: by default 'Game' is unknown
     assert [d.message for d in check(tree, file)] == ["there is no class named 'Game' in this program"] * 2
     assert check(tree, file, known_classes={"Game"}) == []
+
+
+# --- calls into the Jack OS ----------------------------------------------------------
+@pytest.mark.parametrize(
+    "body, message, help",
+    [
+        ('        do Output.printSting("hi");', "the Jack OS class 'Output' has no subroutine named 'printSting'",
+         "did you mean 'printString'?"),
+        ("        do Screen.drawLine(0, 0, 10);", "'drawLine' takes 4 arguments but 3 were given",
+         "the Jack OS declares it as 'function void Screen.drawLine(int x1, int y1, int x2, int y2)'"),
+        ("        var String s;\n        let s = String.new(3);\n        do s.appendChar();",
+         "'appendChar' takes 1 argument but 0 were given",
+         "the Jack OS declares it as 'method String String.appendChar(char c)'"),
+        ("        do String.length();", "'length' is a method, so it needs an object",
+         "call it on an object of class String, not on the class"),
+        ("        var String s;\n        let s = s.new(3);", "'new' is a constructor, so call it as 'String.new(...)'",
+         "calling it on an object would pass the object as an extra argument"),
+        ("        do Output.initMap();", "the Jack OS class 'Output' has no subroutine named 'initMap'",
+         "did you mean 'init'?"),
+    ],
+)
+def test_calls_into_the_os_are_checked_against_its_api(tmp_path, body, message, help):
+    error = only(diagnose(tmp_path, in_main(body))[1])
+    assert (error.message, error.help, tuple(error.notes)) == (message, help, ())
+
+
+def test_correct_os_calls_are_accepted(tmp_path):
+    body = """        var String s;
+        var Array a;
+        let s = String.new(Math.max(1, Math.sqrt(Memory.peek(0))));
+        do s.appendChar(String.newLine());
+        let a = Array.new(s.length());
+        do Output.printString(Keyboard.readLine("? "));
+        do Screen.drawCircle(1, 2, 3);
+        do a.dispose();
+        do Sys.wait(1);"""
+    vm, diagnostics = diagnose(tmp_path, in_main(body))
+    assert vm is not None and diagnostics == []
+
+
+def test_a_folder_with_its_own_os_class_replaces_the_os_api(tmp_path):
+    (tmp_path / "Output.jack").write_text("class Output {\n}\n")
+    vm, diagnostics = diagnose(tmp_path, in_main("        do Output.printHex(255, 2);"))
+    assert vm is not None and diagnostics == []
+
+
+def test_calling_a_function_on_an_object_of_this_class(tmp_path):
+    source = METHODS.replace("function void main() {", "function void main() {\n        var Main m;") % "do m.twice(1);"
+    assert only(diagnose(tmp_path, source)[1]).message == "'twice' is a function, so call it as 'Main.twice(...)'"
+
+
+# --- loops that never end ------------------------------------------------------------
+@pytest.mark.parametrize("condition", ["true", "~false", "~0", "-1", "(true)", "~(false)"])
+def test_nothing_after_an_endless_loop_needs_a_return(tmp_path, condition):
+    source = f"class Main {{\n    function void halt() {{\n        while ({condition}) {{}}\n    }}\n" \
+             f"    function int f() {{\n        while ({condition}) {{ return 1; }}\n    }}\n}}\n"  # fmt: skip
+    vm, diagnostics = diagnose(tmp_path, source)
+    assert vm is not None and diagnostics == []
+
+
+@pytest.mark.parametrize("condition", ["false", "1", "x", "~x"])
+def test_a_loop_that_can_end_still_needs_a_return(tmp_path, condition):
+    source = f"class Main {{\n    function void f(int x) {{\n        while ({condition}) {{}}\n    }}\n}}\n"
+    assert only(diagnose(tmp_path, source)[1]).message == "function 'f' can reach its end without a 'return'"

@@ -12,11 +12,13 @@ Errors (the file is not compiled)
     * two subroutines with the same name
     * 'this', or a field, used inside a function        (functions have no object)
     * calling a method from a function without an object
-    * calling a subroutine this class doesn't have      ("did you mean ...?")
-    * calling one of this class's subroutines with the wrong number of arguments
+    * calling a subroutine this class, or a Jack OS class, doesn't have ("did you mean ...?")
+    * calling one of those with the wrong number of arguments
+    * calling a method on a class, or a function/constructor on an object
     * calling a method on an int / char / boolean variable
     * an integer constant bigger than 32767
-    * a subroutine that can reach its end without 'return'
+    * a subroutine that can reach its end without 'return' (a 'while (true)'
+      loop doesn't reach the code after it: Jack has no 'break')
 
 Warnings (the file still compiles)
     * a local variable that is never used (parameters aren't reported: like
@@ -30,9 +32,10 @@ Warnings (the file still compiles)
       Jack OS class, and not another .jack file in the same folder ("did you
       mean ...?"). In nand2tetris one folder is one program.
 
-Apart from which classes exist, only things that can be decided from ONE file
-are checked: other classes (including the Jack OS) are compiled separately,
-so the subroutines called in them, and their arguments, are trusted.
+Calls into the Jack OS are checked against its API (OS_API), unless the folder
+has its own copy of that class (project 12). The program's other classes are
+compiled separately, so the subroutines called in them, and their arguments,
+are trusted.
 """
 
 from __future__ import annotations
@@ -46,10 +49,39 @@ from .diagnostics import ERROR, WARNING, Diagnostic, Note
 
 MAX_INT = 32767
 PRIMITIVE_TYPES = {"int", "char", "boolean"}
-# The Jack OS classes. A program class with one of these names mixes its own
-# subroutines with the OS's (e.g. examples/Array.jack calls the OS's
-# Array.new), so qualified calls into it can't be checked.
-OS_CLASSES = {"Array", "Keyboard", "Math", "Memory", "Output", "Screen", "String", "Sys"}
+# The Jack OS API, as the book specifies it. Calls into these classes are
+# checked against it. Private helpers of a particular OS implementation (such
+# as Output.initMap) aren't part of the API, so calling one is reported.
+OS_API = {
+    "Array": ("function Array new(int size)", "method void dispose()"),
+    "Keyboard": ("function void init()", "function char keyPressed()", "function char readChar()",
+                 "function String readLine(String message)", "function int readInt(String message)"),
+    "Math": ("function void init()", "function int abs(int x)", "function int multiply(int x, int y)",
+             "function int divide(int x, int y)", "function int min(int x, int y)",
+             "function int max(int x, int y)", "function int sqrt(int x)"),
+    "Memory": ("function void init()", "function int peek(int address)", "function void poke(int address, int value)",
+               "function Array alloc(int size)", "function void deAlloc(Array o)"),
+    "Output": ("function void init()", "function void moveCursor(int i, int j)", "function void printChar(char c)",
+               "function void printString(String s)", "function void printInt(int i)", "function void println()",
+               "function void backSpace()"),
+    "Screen": ("function void init()", "function void clearScreen()", "function void setColor(boolean b)",
+               "function void drawPixel(int x, int y)", "function void drawLine(int x1, int y1, int x2, int y2)",
+               "function void drawRectangle(int x1, int y1, int x2, int y2)",
+               "function void drawCircle(int x, int y, int r)"),
+    "String": ("constructor String new(int maxLength)", "method void dispose()", "method int length()",
+               "method char charAt(int j)", "method void setCharAt(int j, char c)",
+               "method String appendChar(char c)", "method void eraseLastChar()", "method int intValue()",
+               "method void setInt(int j)", "function char backSpace()", "function char doubleQuote()",
+               "function char newLine()"),
+    "Sys": ("function void init()", "function void halt()", "function void error(int errorCode)",
+            "function void wait(int duration)"),
+}  # fmt: skip
+# A program class with one of these names mixes its own subroutines with the
+# OS's (e.g. examples/Array.jack calls the OS's Array.new), so qualified calls
+# into it can't be checked.
+OS_CLASSES = set(OS_API)
+# Conditions that are always true (-1 in the VM), so 'while (...)' never ends.
+ALWAYS_TRUE = {"true", "~false", "~0", "-1"}
 
 
 def program_classes(file: str) -> Set[str]:
@@ -75,6 +107,22 @@ class Declared:
     column: int
     used: bool = False
     parameter_count: int = 0  # subroutines only
+    signature: str = ""  # Jack OS subroutines only: they have no source to point at
+
+
+def _os_subroutines(cls: str) -> Dict[str, Declared]:
+    """Parse OS_API's declarations for `cls` into Declared subroutines."""
+    result = {}
+    for declaration in OS_API[cls]:
+        head, params = declaration.rstrip(")").split("(")
+        kind, return_type, name = head.split()
+        count = len([p for p in params.split(",") if p.strip()])
+        result[name] = Declared(name, kind, return_type, 0, 0, parameter_count=count,
+                                signature=f"{kind} {return_type} {cls}.{name}({params})")  # fmt: skip
+    return result
+
+
+OS_SUBROUTINES = {cls: _os_subroutines(cls) for cls in OS_API}
 
 
 @dataclass
@@ -103,8 +151,8 @@ class SemanticChecker:
         # Class names that exist: the Jack OS, plus the program's own classes
         # (by default, the .jack files next to this one). This class is added
         # once its name is known.
-        program = program_classes(file) if known_classes is None else set(known_classes)
-        self.known_classes: Set[str] = OS_CLASSES | program
+        self.program = program_classes(file) if known_classes is None else set(known_classes)
+        self.known_classes: Set[str] = OS_CLASSES | self.program
         self.diagnostics: List[Diagnostic] = []
         self.class_name = ""
         self.class_scope: Dict[str, Declared] = {}
@@ -263,6 +311,13 @@ class SemanticChecker:
         if node is not None and node.ELSE():
             then_branch, else_branch = node.statements()
             return self._always_returns(then_branch) and self._always_returns(else_branch)
+        node = statement.whileStatement()
+        if node is not None:
+            # Jack has no 'break', so a loop whose condition is always true only
+            # ends by returning: the code after it can't be reached.
+            # (Brackets can't change these, so '(~(false))' counts too.)
+            condition = node.expression().getText().replace("(", "").replace(")", "")
+            return condition in ALWAYS_TRUE
         return False
 
     def _check_statements(self, statements_ctx) -> None:
@@ -383,51 +438,69 @@ class SemanticChecker:
         receiver = receiver_ctx.getText()
         variable = self._lookup(receiver)
         if variable is not None:
+            # object.subroutine(...)
             self._use_variable(receiver_ctx)
             if variable.type in PRIMITIVE_TYPES:
                 self.error(receiver_ctx, f"'{receiver}' is a {variable.type}, which has no methods",
                            help=f"'{receiver}.{name}(...)' needs '{receiver}' to be an object")  # fmt: skip
-            elif variable.type == self.class_name:
-                target = self.subroutines.get(name)
-                if target is None:
-                    self._no_such_subroutine(name_ctx, name)
-                elif target.kind == "method":
-                    self._check_argument_count(name_ctx, target, argument_count)
+            else:
+                self._check_qualified_call(name_ctx, variable.type, argument_count, on_object=True)
             return
 
         # ClassName.subroutine(...)
-        if receiver == self.class_name:
-            target = self.subroutines.get(name)
-            if target is None:
-                self._no_such_subroutine(name_ctx, name)
-            elif target.kind == "method":
-                self.error(name_ctx, f"'{name}' is a method, so it needs an object",
-                           help=f"call it on an object of class {self.class_name}, not on the class")  # fmt: skip
-            else:
-                self._check_argument_count(name_ctx, target, argument_count)
-        elif receiver in self.known_classes:
-            pass  # another class of the program, or the OS: compiled separately, so trusted
-        elif receiver[:1].islower():
+        if receiver[:1].islower() and receiver not in self.known_classes:
             visible = list(self.class_scope) + (list(self.current.scope) if self.current else [])
             self.warning(receiver_ctx, f"'{receiver}' is not a variable, so this calls a class named '{receiver}'",
                          help=self._did_you_mean(receiver, [*visible, *self.known_classes])
                          or "class names usually start with a capital letter")  # fmt: skip
-        else:
-            self._check_class_name(receiver_ctx, receiver)
+        elif self._check_class_name(receiver_ctx, receiver):
+            self._check_qualified_call(name_ctx, receiver, argument_count, on_object=False)
 
-    def _no_such_subroutine(self, name_ctx, name: str) -> None:
-        if self.shares_os_name:
-            return  # probably the OS class's subroutine, e.g. Array.new
-        self.error(name_ctx, f"class '{self.class_name}' has no subroutine named '{name}'",
-                   help=self._did_you_mean(name, self.subroutines))  # fmt: skip
+    def _subroutines_of(self, cls: str) -> Optional[Dict[str, Declared]]:
+        """The subroutines class `cls` has, or None if they can't be known from here."""
+        if cls == self.class_name:
+            return self.subroutines
+        if cls in OS_SUBROUTINES and cls not in self.program:
+            return OS_SUBROUTINES[cls]  # (a program with its own Output.jack etc. replaces the OS's)
+        return None  # another class of the program: compiled separately, so trusted
+
+    def _check_qualified_call(self, name_ctx, cls: str, given: int, on_object: bool) -> None:
+        """Check 'cls.name(...)' (on_object=False) or 'obj.name(...)' with obj of class cls."""
+        subroutines = self._subroutines_of(cls)
+        if subroutines is None:
+            return
+        name = name_ctx.getText()
+        target = subroutines.get(name)
+        if target is None:
+            self._no_such_subroutine(name_ctx, cls, name, subroutines)
+        elif on_object and target.kind != "method":
+            self.error(name_ctx, f"'{name}' is a {target.kind}, so call it as '{cls}.{name}(...)'",
+                       help="calling it on an object would pass the object as an extra argument")  # fmt: skip
+        elif not on_object and target.kind == "method":
+            self.error(name_ctx, f"'{name}' is a method, so it needs an object",
+                       help=f"call it on an object of class {cls}, not on the class")  # fmt: skip
+        else:
+            self._check_argument_count(name_ctx, target, given)
+
+    def _no_such_subroutine(self, name_ctx, cls: str, name: str, subroutines: Dict[str, Declared]) -> None:
+        if cls != self.class_name:
+            self.error(name_ctx, f"the Jack OS class '{cls}' has no subroutine named '{name}'",
+                       help=self._did_you_mean(name, subroutines)
+                       or f"it has: {', '.join(sorted(subroutines))}")  # fmt: skip
+        elif not self.shares_os_name:  # if it does, it's probably the OS class's subroutine, e.g. Array.new
+            self.error(name_ctx, f"class '{cls}' has no subroutine named '{name}'",
+                       help=self._did_you_mean(name, subroutines))  # fmt: skip
 
     def _check_argument_count(self, name_ctx, target: Declared, given: int) -> None:
-        if given != target.parameter_count:
-            self.error(
-                name_ctx,
-                f"'{target.name}' takes {_plural(target.parameter_count, 'argument')} but {given} {'was' if given == 1 else 'were'} given",
-                notes=[Note(target.line, target.column, f"'{target.name}' is declared here", len(target.name))],
-            )
+        if given == target.parameter_count:
+            return
+        message = (f"'{target.name}' takes {_plural(target.parameter_count, 'argument')}"
+                   f" but {given} {'was' if given == 1 else 'were'} given")  # fmt: skip
+        if target.signature:
+            self.error(name_ctx, message, help=f"the Jack OS declares it as '{target.signature}'")
+        else:
+            self.error(name_ctx, message,
+                       notes=[Note(target.line, target.column, f"'{target.name}' is declared here", len(target.name))])  # fmt: skip
 
 
 def check(tree, file: str, known_classes: Optional[Iterable[str]] = None) -> List[Diagnostic]:

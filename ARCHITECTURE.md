@@ -405,16 +405,19 @@ The compiler handles errors at multiple levels:
 
 1. **Lexical Errors**: Invalid characters, unterminated strings (ANTLR4 lexer)
 2. **Syntax Errors**: Invalid grammar (ANTLR4 parser)
-3. **Semantic Errors**: Undefined variables (detected while visiting)
+3. **Semantic Errors and Warnings**: Undeclared names, bad calls, missing `return`s and more
+   (`checker.py`, before any code is generated)
 4. **I/O Errors**: File not found, write permission denied
 
 Lexer and parser errors are captured by `CollectingErrorListener`
 (`jack_compiler/compiler.py`) rather than ANTLR's default console listener,
 and raised as `JackSyntaxError`, whose `.errors` list holds
 `file:line:col: message` strings (1-based). The driver prints them beneath the
-failing file, and no `.vm` file is written for it. Types, subroutine names and
-argument counts are not checked — as in the reference Jack compiler, those
-are resolved by the VM at run time. See [ERROR_DETECTION.md](ERROR_DETECTION.md).
+failing file, and no `.vm` file is written for it. The semantic checker
+(`jack_compiler/checker.py`) checks calls within a class and calls into the
+Jack OS (against its API), but not types, nor calls into the program's other
+classes: those are compiled separately and resolved by the VM at run time.
+See [ERROR_DETECTION.md](ERROR_DETECTION.md).
 
 ## Performance Considerations
 
@@ -444,7 +447,7 @@ The compiler can be extended with:
 1. **Additional operators**: Add to grammar and visitor
 2. **New built-in types**: Modify symbol table type checking
 3. **Optimizations**: Post-processing on generated VM code
-4. **More semantic checks**: e.g. warn on a missing `return` or unknown subroutine
+4. **More semantic checks**: e.g. check calls between the program's own classes
 
 ## References
 
