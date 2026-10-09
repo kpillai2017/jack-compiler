@@ -238,8 +238,11 @@ as the selected tab, and all of them must compile. Otherwise the window says
 <li>The VM code goes to a temporary folder, so it works with <code>--no-write</code> too.</li>
 <li>Edit, <kbd>Ctrl</kbd>+<kbd>R</kbd>, then <kbd>Ctrl</kbd>+<kbd>J</kbd> again: the old JackVM
 window closes and a new one starts with your changes.</li>
-<li>If JackVM isn't found, SHORTCUTS shows <code>Ctrl+J JackVM (not installed)</code>,
-and pressing it tells you how to install it.</li>
+<li>If JackVM isn't found, SHORTCUTS shows <code>Ctrl+J find JackVM...</code>.
+Press it and a folder chooser asks where your <code>jackvm-py</code> folder is.
+Folders where JackVM can run are marked <code>[use]</code>. Choose one and the
+program starts. Your answer is saved in the
+<a href="jackvm.html#config">config file</a>, so both apps find it from then on.</li>
 </ul>
 <p>Setting it up, and running Jack source from JackVM's side, is covered in
 <a href="jackvm.html">Using the Compiler with JackVM</a>.</p>
@@ -295,11 +298,12 @@ in the picker too.</li>
 <table>
 <thead><tr><th>You see</th><th>What to do</th></tr></thead>
 <tbody>
-<tr><td><code>jackc-gui needs pygame</code></td><td>Install the extra: <code>pip install -e ".[gui]"</code> (or <code>pip install pygame</code>).</td></tr>
-<tr><td><code>jackc-gui: command not found</code></td><td>Activate the virtual environment you installed into, or run <code>python -m jack_compiler.gui</code>.</td></tr>
+<tr><td><code>jackc-gui needs pygame</code></td><td>The Python that's running (the message names it) doesn't have pygame. Install the extra into it: <code>pip install -e ".[gui]"</code> from the checkout (or <code>pip install pygame</code>).</td></tr>
+<tr><td><code>jackc-gui: command not found</code></td><td>A new virtual environment is empty, including the one direnv's <code>layout python</code> makes. Run <code>pip install -e ".[gui]"</code> in it once. Check with <code>which python</code> and <code>pip show jack-compiler</code>. Without installing: <code>python -m jack_compiler.gui</code> from the repository root.</td></tr>
 <tr><td><code>No .jack files found in ...</code></td><td>The folder has no <code>.jack</code> files directly inside it. Add <code>-r</code> to look in sub-folders.</td></tr>
 <tr><td>The window is taller than the screen</td><td>Show fewer lines, use smaller text, or both: <code>--rows 20 --font-size 11</code>. <kbd>Ctrl</kbd>+<kbd>D</kbd> hides the info boxes to make it narrower.</td></tr>
-<tr><td><code>Ctrl+J JackVM (not installed)</code></td><td>Install <a href="https://github.com/kpillai2017/jackvm-py">jackvm-py</a> in the same environment (<code>pip install -e ../jackvm-py</code>), or set <code>JACKVM</code> to its command. See <a href="jackvm.html">Using the Compiler with JackVM</a>.</td></tr>
+<tr><td><code>Ctrl+J find JackVM...</code></td><td>Press it and choose your <a href="https://github.com/kpillai2017/jackvm-py">jackvm-py</a> folder. No folder is marked <code>[use]</code>? JackVM isn't installed there yet: <code>python3 -m venv .venv &amp;&amp; .venv/bin/pip install -e .</code> in that folder. See <a href="jackvm.html">Using the Compiler with JackVM</a>.</td></tr>
+<tr><td><code>Ctrl+J JackVM (not installed)</code></td><td>It's switched off: <code>JACKVM=off</code>, or <code>jackvm = off</code> in the config file.</td></tr>
 <tr><td>Your change doesn't show</td><td>The window doesn't watch the files. Save in your editor, then press <kbd>Ctrl</kbd>+<kbd>R</kbd>.</td></tr>
 <tr><td>A file you fixed still has no <code>.vm</code> file</td><td>Check STATUS for <em>preview only</em>: you started with <code>--no-write</code>.</td></tr>
 </tbody>

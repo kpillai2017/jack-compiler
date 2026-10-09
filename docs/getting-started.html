@@ -257,16 +257,18 @@ python3 -m venv venv &amp;&amp; source venv/bin/activate</pre>
                 <div class="step">
                     <h4><span class="step-number">2</span>Install the package</h4>
                     <pre>pip install --upgrade pip
-pip install -e ".[dev]"</pre>
+pip install -e ".[dev,gui]"</pre>
                     <p>This installs:</p>
                     <ul style="margin-left: 20px; margin-top: 10px;">
                         <li>The ANTLR4 Python runtime</li>
                         <li>The <code>jackc</code> command-line tool</li>
+                        <li>pygame and the <code>jackc-gui</code> command (the <a href="gui.html">compiler window</a>)</li>
                         <li>pytest (for running the test suite)</li>
                     </ul>
+                    <p>A new virtual environment starts empty, so run this once in each one you make
+                    (direnv's <code>layout python</code> makes one too).</p>
                     <p>The generated parser is committed to the repository, so Java is only needed if you modify <code>grammar/Jack.g4</code>.</p>
-                    <p>Also want the <a href="gui.html">compiler window</a>? Add the <code>gui</code> extra, which installs pygame and the <code>jackc-gui</code> command:</p>
-                    <pre>pip install -e ".[dev,gui]"</pre>
+                    <p>Don't want the window? <code>pip install -e ".[dev]"</code> leaves out pygame and <code>jackc-gui</code>.</p>
                 </div>
                 
                 <div class="card success">
@@ -435,9 +437,9 @@ find src -type d -exec jackc {} \;</pre>
                     (e.g., <code>brew install openjdk</code> on macOS).</p>
                 </div>
                 
-                <h3>"jackc: command not found"</h3>
+                <h3>"jackc: command not found" or "jackc-gui: command not found"</h3>
                 <div class="card warning">
-                    <p><strong>Solution:</strong> Activate your virtual environment and run <code>pip install -e .</code>, or use <code>python -m jack_compiler</code> from the repository root.</p>
+                    <p><strong>Solution:</strong> The commands only exist in a virtual environment the package was installed into, and a new one is empty. Activate it and run <code>pip install -e ".[dev,gui]"</code> once. <code>which python</code> should point inside it, and <code>pip show jack-compiler</code> should find the package. Or use <code>python -m jack_compiler</code> (and <code>python -m jack_compiler.gui</code>) from the repository root.</p>
                 </div>
                 
                 <p>For more help, see the <a href="faq.html">FAQ section</a>.</p>

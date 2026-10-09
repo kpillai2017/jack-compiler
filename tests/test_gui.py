@@ -663,3 +663,14 @@ def test_jackc_gui_werror_option(warning_project, monkeypatch):
     assert opened[0].werror is True
     assert gui_main.main(["--no-write", str(warning_project)]) == 0
     assert opened[1].werror is False
+
+
+def test_without_pygame_it_says_how_to_install_it_into_this_python(monkeypatch, capsys):
+    from jack_compiler.gui import main as gui_main
+
+    monkeypatch.setitem(sys.modules, "pygame", None)  # "import pygame" now fails
+    assert gui_main.main([]) == 1
+    said = capsys.readouterr().err
+    root = Path(gui_main.__file__).resolve().parent.parent.parent
+    assert "jackc-gui needs pygame" in said and sys.executable in said
+    assert f'pip install -e "{root}[gui]"' in said  # this checkout's extra - jack-compiler isn't on PyPI

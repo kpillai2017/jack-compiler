@@ -275,3 +275,39 @@ def test_window_shortcut_and_notice(tmp_path, fake_vm):
     assert not plain.run_in_vm() and plain._notice[1] == "error"
     plain._draw()  # a long notice is cut to fit
     pygame.quit()
+
+
+def test_ctrl_j_asks_where_jackvm_is_then_runs_it(tmp_path, fake_vm, monkeypatch):
+    import jack_compiler.gui.window as window_module
+    from jack_compiler.gui.window import CompilerWindow
+    from jack_compiler.locate_app import CANCEL, FOUND, QUIT
+
+    monkeypatch.delenv("JACKVM")  # not switched off: the chooser is offered
+    (tmp_path / "Main.jack").write_text(GOOD)
+    w = CompilerWindow(finished(tmp_path), code_rows=10, launcher=VMLauncher(lambda: None))
+    w._open_window()
+    assert any("Ctrl+J find JackVM..." in row for row, _ in w.shortcuts.rows)
+
+    answers = [(CANCEL, None, ""), (FOUND, fake_vm[0], "Found JackVM - saved in config.ini"), (QUIT, None, "")]
+    asked = []
+
+    def fake_locate(surface, app):
+        asked.append(app)
+        return answers[len(asked) - 1]
+
+    monkeypatch.setattr(window_module, "locate", fake_locate)
+
+    def ctrl_j():
+        pygame.event.post(pygame.event.Event(pygame.KEYDOWN, key=pygame.K_j, mod=pygame.KMOD_CTRL, unicode=""))
+        return w._handle_events()
+
+    assert ctrl_j() and not w.launcher.available  # Back: nothing changes
+    assert ctrl_j() and w.launcher.available  # found: saved, and it runs
+    assert w._notice[0] == "Running 1 file in JackVM"
+    assert any("Ctrl+J run in JackVM" in row for row, _ in w.shortcuts.rows)
+    w.launcher.process.wait(timeout=30)
+    w.launcher.stop()
+    w.launcher.companion = None
+    assert ctrl_j() is False  # Ctrl+Q in the chooser quits
+    assert asked == [JACKVM] * 3
+    pygame.quit()

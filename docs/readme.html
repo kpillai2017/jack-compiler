@@ -123,13 +123,16 @@ Jack VM with a game window and memory debugger. See <a href="#using-it-with-jack
 cd jack-compiler
 python3 -m venv venv &amp;&amp; source venv/bin/activate   # Windows: venv\Scripts\activate
 pip install --upgrade pip
-pip install -e &quot;.[dev]&quot;
+pip install -e &quot;.[dev,gui]&quot;               # jackc, jackc-gui (the window) and pytest
 
 jackc examples/HelloWorld.jack            # writes examples/HelloWorld.vm
 jackc examples/ -o output/                # compile a whole directory
+jackc-gui examples/                       # see the Jack and VM code side by side
 pytest                                    # run the test suite
 </code></pre>
-<p>No Java is required to <em>use</em> the compiler — the generated parser is committed.</p>
+<p>No Java is required to <em>use</em> the compiler — the generated parser is committed.
+Every new virtual environment starts empty, so run the <code>pip install</code> line once
+in each one (see <a href="#troubleshooting">Troubleshooting</a> if a command isn't found).</p>
 <h2 id="installation-details">Installation Details</h2>
 <h3 id="prerequisites">Prerequisites</h3>
 <ul>
@@ -138,7 +141,8 @@ pytest                                    # run the test suite
 <li><strong>Java</strong> JDK 11+ — <em>only</em> if you modify <code>grammar/Jack.g4</code></li>
 </ul>
 <h3 id="install-options">Install options</h3>
-<pre><code class="language-bash">pip install -e &quot;.[dev]&quot;     # editable install + pytest (recommended for development)
+<pre><code class="language-bash">pip install -e &quot;.[dev,gui]&quot; # editable install + pygame (jackc-gui) + pytest (recommended)
+pip install -e &quot;.[dev]&quot;     # the same without the window
 pip install .               # regular install
 pip install -r requirements.txt &amp;&amp; python -m jack_compiler ...   # no install, run from repo root
 </code></pre>
@@ -153,8 +157,23 @@ pip install -r requirements.txt &amp;&amp; python -m jack_compiler ...   # no in
 <p>Generated files are written to <code>jack_compiler/antlr_generated/grammar/</code>. Commit them —
 CI regenerates the parser and fails if the committed files are out of date.</p>
 <h3 id="troubleshooting">Troubleshooting</h3>
-<h4 id="jackc-command-not-found">"jackc: command not found"</h4>
-<p>Activate your virtual environment and run <code>pip install -e .</code>, or use <code>python -m jack_compiler</code> from the repository root.</p>
+<h4 id="jackc-command-not-found-jackc-gui-command-not-found">"jackc: command not found" / "jackc-gui: command not found"</h4>
+<p>The commands only exist in a virtual environment the package was installed into.</p>
+<ul>
+<li><strong>A new environment is empty.</strong> <code>python3 -m venv</code>, and direnv's <code>layout python</code>
+  (in an <code>.envrc</code>), both create a fresh one with nothing in it. Install into it
+  once: <code>pip install -e ".[dev,gui]"</code>.</li>
+<li><strong>Is the right one active?</strong> <code>which python</code> (Windows: <code>where python</code>) should
+  point inside it, and <code>pip show jack-compiler</code> should find the package.</li>
+<li><strong><code>jackc</code> works but not <code>jackc-gui</code>?</strong> It was installed without the window:
+  run <code>pip install -e ".[gui]"</code>.</li>
+<li><strong>No install at all:</strong> <code>python -m jack_compiler</code> and <code>python -m jack_compiler.gui</code>
+  work from the repository root after <code>pip install -r requirements.txt</code>
+  (plus <code>pip install pygame</code> for the window).</li>
+</ul>
+<h4 id="jackc-gui-needs-pygame">"jackc-gui needs pygame"</h4>
+<p>pygame isn't installed in the Python that's running. The message names that
+Python, and the command to fix it: <code>pip install -e "&lt;this checkout&gt;[gui]"</code>.</p>
 <h4 id="modulenotfounderror-no-module-named-antlr4">"ModuleNotFoundError: No module named 'antlr4'"</h4>
 <pre><code class="language-bash">pip install -r requirements.txt
 </code></pre>
@@ -380,7 +399,7 @@ STATUS / FILES / PROBLEMS / OUTPUT boxes, and under them a SHORTCUTS box.
 </tr>
 <tr>
 <td>Ctrl+J</td>
-<td>Run the program in <a href="https://github.com/kpillai2017/jackvm-py">JackVM</a>, if it's installed (<a href="#using-it-with-jackvm">details</a>)</td>
+<td>Run the program in <a href="https://github.com/kpillai2017/jackvm-py">JackVM</a>. If JackVM isn't found yet, it asks where it is (<a href="#using-it-with-jackvm">details</a>)</td>
 </tr>
 <tr>
 <td>Ctrl+O</td>
@@ -455,10 +474,19 @@ pip install -e &quot;./jack-compiler[gui]&quot; -e ./jackvm-py   # one environme
    <code>jack_tools</code> entry-point group, so <code>pip install -e</code> is all you need.
 4. <strong>The <code>PATH</code></strong>: a <code>jackvm</code> command installed elsewhere (another
    virtual environment, <code>pipx install</code>, ...).</p>
-<p>If JackVM isn't found, the SHORTCUTS box shows <code>Ctrl+J JackVM (not installed)</code>,
-and pressing it says what to put in the config file (or, if the folder you
-configured has no <code>jackvm</code> in it, where it looked). The full text is printed in
-the terminal too. The apps only run each other's
+<p><strong>The easiest way to set it up:</strong> if JackVM isn't found, the SHORTCUTS box shows
+<code>Ctrl+J find JackVM...</code>. Press it, open your <code>jackvm-py</code> folder in the chooser
+(folders where JackVM can run are marked <code>[use]</code>), and press <strong>Use this folder</strong>.
+That saves <code>jackvm = &lt;the folder&gt;</code> in the config file and runs the program;
+from then on both apps find it from any folder. jackvm-py's own Ctrl+J does the
+same for the compiler.</p>
+<p>A folder works when JackVM is installed in a virtual environment inside it
+(<code>pip install -e .</code>), or when that environment only has its requirements
+(<code>pip install -r requirements.txt</code>): then its source is run with that
+environment's Python.</p>
+<p>If the lookup is switched off (<code>JACKVM=off</code>, or <code>off</code> in the config file), the
+shortcut reads <code>Ctrl+J JackVM (not installed)</code> and pressing it says so. The
+apps only run each other's
 command-line tools and never import each other's code. That way either repo
 can change its internals without breaking the other.</p>
 <h2 id="supported-jack-language-constructs">Supported Jack Language Constructs</h2>

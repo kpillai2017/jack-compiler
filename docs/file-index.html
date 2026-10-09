@@ -107,6 +107,10 @@ jack_compiler/
 │   Finds jackvm-py (env var -> config file -> same Python environment -> PATH);
 │   an identical copy lives in jackvm-py (tests/test_shared_files.py checks)
 │
+├── locate_app.py
+│   "Where is JackVM?": the folder chooser Ctrl+J opens when it isn't found;
+│   saves the answer in the config file (also shared with jackvm-py)
+│
 ├── __init__.py
 │   Package initialization and exports
 │
@@ -194,8 +198,11 @@ tests/
 ├── test_integrations.py
 │   Finding JackVM (incl. the config file), and the Ctrl+J launcher (with a fake VM)
 │
+├── test_locate_app.py
+│   Running a checkout from source, saving the config file, the folder chooser
+│
 ├── test_shared_files.py
-│   integrations.py must match the copy in jackvm-py
+│   integrations.py and locate_app.py must match the copies in jackvm-py
 │
 └── fixtures/square/
     The nand2tetris Square program: must compile with no diagnostics
