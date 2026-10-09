@@ -62,17 +62,134 @@ builds alike.</p>
 </ul>
 <h3>2. Lexical and syntax errors (while parsing)</h3>
 <p>The ANTLR4 lexer and parser report every problem they find in a file — invalid
-characters, unterminated strings, missing or unexpected tokens. All of them are
-collected and printed beneath the failing file as:</p>
-<pre><code>&lt;file&gt;:&lt;line&gt;:&lt;column&gt;: &lt;message&gt;
+characters, unterminated strings, missing or unexpected tokens. Their raw
+messages are rewritten in plain English, and each one is printed the way GCC,
+Clang and rustc do it:</p>
+<pre><code>&lt;file&gt;:&lt;line&gt;:&lt;column&gt;: error: &lt;message&gt;
+ &lt;line&gt; | &lt;the source line&gt;
+        |        ^~~~
+        = help: &lt;a suggestion, when there is one&gt;
 </code></pre>
 <p>Lines and columns are 1-based, so most editors and terminals can jump straight
-to the location.</p>
-<h3>3. Semantic errors (while generating code)</h3>
-<p>Some errors are only found while generating VM code — for example using a
-variable that was never declared. These are reported as
-<code>✗ COMPILATION ERROR</code> with a short message. Add <code>-v</code> to also print a Python
-traceback, which is useful when reporting a compiler bug.</p>
+to the location. A forgotten <code>;</code>, <code>)</code> or <code>]</code> is reported <strong>just after the
+token it should follow</strong>, where it was forgotten, not at the start of the next
+line. A bad character or unterminated string is reported once; the knock-on
+parser errors it causes on the same line are dropped.</p>
+<h3>3. Semantic errors and warnings (after parsing, before generating code)</h3>
+<p>A file can be grammatically fine and still make no sense. A semantic pass
+(<code>jack_compiler/checker.py</code>) checks every file before any VM code is generated.</p>
+<p><strong>Errors</strong> stop the file from being compiled:</p>
+<table>
+<thead>
+<tr>
+<th>Problem</th>
+<th>Message</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Undeclared variable</td>
+<td><code>'cuont' is not declared</code> + <code>help: did you mean 'count'?</code></td>
+</tr>
+<tr>
+<td>Declared twice in one scope</td>
+<td><code>'x' is already declared in this subroutine</code> + <code>note: 'x' was first declared here</code></td>
+</tr>
+<tr>
+<td>Two subroutines with one name</td>
+<td><code>subroutine 'bump' is already defined in class 'Sem'</code> + note</td>
+</tr>
+<tr>
+<td><code>this</code> in a function</td>
+<td><code>'this' can't be used in function 'main'</code></td>
+</tr>
+<tr>
+<td>A field in a function</td>
+<td><code>field 'count' can't be used in function 'main'</code></td>
+</tr>
+<tr>
+<td>Method called without an object</td>
+<td><code>can't call method 'draw' from function 'main'</code></td>
+</tr>
+<tr>
+<td>Method called on the class</td>
+<td><code>'bump' is a method, so it needs an object</code></td>
+</tr>
+<tr>
+<td>Function called like a method</td>
+<td><code>'helper' is a function, so call it as 'Main.helper(...)'</code></td>
+</tr>
+<tr>
+<td>Unknown subroutine in this class</td>
+<td><code>class 'Sem' has no subroutine named 'nope'</code></td>
+</tr>
+<tr>
+<td>Wrong number of arguments</td>
+<td><code>'helper' takes 1 argument but 2 were given</code> + <code>note: 'helper' is declared here</code></td>
+</tr>
+<tr>
+<td>Method call on a primitive</td>
+<td><code>'flag' is a boolean, which has no methods</code></td>
+</tr>
+<tr>
+<td>Integer too big</td>
+<td><code>integer constant 40000 is too large</code> + <code>help: the largest Jack integer is 32767</code></td>
+</tr>
+<tr>
+<td>No <code>return</code> at the end</td>
+<td><code>function 'main' can reach its end without a 'return'</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Warnings</strong> are printed but the file still compiles (<code>-w</code> hides them,
+<code>--werror</code> turns them into errors):</p>
+<table>
+<thead>
+<tr>
+<th>Problem</th>
+<th>Message</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Local never used</td>
+<td><code>unused variable 'y'</code></td>
+</tr>
+<tr>
+<td>Code after <code>return</code></td>
+<td><code>this code will never run: it comes after 'return'</code></td>
+</tr>
+<tr>
+<td>Void subroutine returns a value</td>
+<td><code>void method 'bump' returns a value</code></td>
+</tr>
+<tr>
+<td>Non-void subroutine returns nothing</td>
+<td><code>function 'f' should return a int</code></td>
+</tr>
+<tr>
+<td>Constructor doesn't return <code>this</code></td>
+<td><code>constructor 'new' should 'return this;'</code></td>
+</tr>
+<tr>
+<td>Class name ≠ file name</td>
+<td><code>class 'Foo' is in a file named 'Bar.jack'</code></td>
+</tr>
+<tr>
+<td>Class named like an OS class</td>
+<td><code>class 'Math' has the same name as a Jack OS class</code></td>
+</tr>
+<tr>
+<td><code>lowercase.f()</code> and <code>lowercase</code> isn't a variable</td>
+<td><code>'output' is not a variable, so this calls a class named 'output'</code></td>
+</tr>
+</tbody>
+</table>
+<p>Only what one file can decide is checked. Calls into <em>other</em> classes
+(including the Jack OS) are trusted, because those classes are compiled
+separately.</p>
+<p>Internal compiler bugs are reported as <code>✗ COMPILATION ERROR</code>; add <code>-v</code> for a
+Python traceback to include in a bug report.</p>
 <h3>4. Reporting (after compiling)</h3>
 <ul>
 <li>Every file is attempted — one failure does not stop the build</li>
@@ -83,10 +200,26 @@ traceback, which is useful when reporting a compiler bug.</p>
 <h2>How You'll Know If There Are Errors</h2>
 <h3>Per-file result</h3>
 <pre><code>[2/4] ✗ COMPILATION FAILED: src/game/Broken.jack
-  2 syntax error(s):
-  src/game/Broken.jack:3:17: mismatched input ';' expecting {'true', 'false', 'null', 'this', '-', '~', '(', INTEGER, STRING_LITERAL, IDENTIFIER}
-  src/game/Broken.jack:5:5: mismatched input '}' expecting {'true', 'false', 'null', 'this', '-', '~', ';', '(', INTEGER, STRING_LITERAL, IDENTIFIER}
+src/game/Broken.jack:3:17: error: expected an expression, found ';'
+ 3 |         let x = ;
+   |                 ^
+src/game/Broken.jack:5:15: error: expected ';' after 'return'
+ 5 |         return
+   |               ^
+   = help: every statement and declaration ends with ';'
+2 errors generated.
 </code></pre>
+<p>A file that compiles with warnings says so, and lists them:</p>
+<pre><code>✓ SUCCESS (1 warning): src/Main.jack
+  → src/Main.vm
+src/Main.jack:3:20: warning: unused variable 'y'
+ 3 |         var int x, y;
+   |                    ^
+1 warning generated.
+</code></pre>
+<p>On a terminal, errors are red, warnings yellow, notes cyan and the <code>^~~~</code>
+marker green, as in GCC. Colour is off when output is redirected or
+<code>NO_COLOR</code> is set.</p>
 <h3>Summary</h3>
 <p><strong>All files compiled:</strong></p>
 <pre><code>────────────────────────────────────────────────────────────
@@ -149,18 +282,23 @@ echo $?        # 0 = success, non-zero = failure
 </tr>
 <tr>
 <td>Lexical</td>
-<td><code>token recognition error at: ...</code></td>
-<td><code>@</code>, <code>#</code>, unterminated string</td>
+<td><code>error: invalid character '@' in program</code>, <code>error: unterminated string</code></td>
+<td><code>@</code>, <code>#</code>, a string without its closing <code>"</code></td>
 </tr>
 <tr>
 <td>Syntax</td>
-<td><code>mismatched input ...</code>, <code>missing ... at ...</code>, <code>extraneous input ...</code></td>
+<td><code>error: expected ';' after ')'</code>, <code>error: expected an expression, found ';'</code>, <code>error: unexpected end of file</code></td>
 <td>Missing <code>;</code>, <code>(</code>, <code>}</code>; keyword used as a name</td>
 </tr>
 <tr>
 <td>Semantic</td>
-<td><code>✗ COMPILATION ERROR</code> + message</td>
-<td>Undeclared variable</td>
+<td><code>error: 'y' is not declared</code>, <code>error: can't call method ...</code></td>
+<td>See the tables above</td>
+</tr>
+<tr>
+<td>Warning</td>
+<td><code>warning: unused variable 'y'</code></td>
+<td>See the tables above</td>
 </tr>
 <tr>
 <td>Internal</td>
@@ -170,57 +308,97 @@ echo $?        # 0 = success, non-zero = failure
 </tbody>
 </table>
 <h3>What is <em>not</em> detected</h3>
-<p><code>jackc</code> follows the Jack grammar, which does not require every subroutine to end
-with <code>return</code>. A missing <code>return</code> therefore compiles, and only fails when the
-program runs in the VM Emulator. Type mismatches are likewise not checked —
-Jack is weakly typed.</p>
-<h2>Common Jack Syntax Errors</h2>
+<p>Jack is weakly typed, so type mismatches (<code>let x = "text";</code> for an <code>int x</code>)
+are not errors. Calls into other classes aren't checked either: they are
+compiled separately, so a wrong name or argument count there shows up when
+the program runs in the VM.</p>
+<h2>Common Jack Errors</h2>
 <p>All messages below are real <code>jackc</code> output.</p>
 <h3>Missing semicolon</h3>
 <pre><code class="language-jack">do Output.printInt(1)
 return;
 </code></pre>
-<pre><code>errs/MissingSemi.jack:4:9: extraneous input 'return' expecting ';'
+<pre><code>errs/MissingSemi.jack:4:30: error: expected ';' after ')'
+ 4 |         do Output.printInt(1)
+   |                              ^
+   = help: every statement and declaration ends with ';'
 </code></pre>
-<p>The error is reported at the <em>next</em> token, so look at the end of the previous line.</p>
 <h3>Missing parentheses around a condition</h3>
 <pre><code class="language-jack">if x { let x = 1; }
 </code></pre>
-<pre><code>errs/IfNoParens.jack:4:12: missing '(' at 'x'
-errs/IfNoParens.jack:4:14: missing ')' at '{'
+<pre><code>errs/IfNoParens.jack:4:11: error: expected '(' after 'if'
+ 4 |         if x { let x = 1; }
+   |           ^
+errs/IfNoParens.jack:4:13: error: expected ')' after 'x'
+ 4 |         if x { let x = 1; }
+   |             ^
 </code></pre>
 <h3>Unclosed class or subroutine body</h3>
-<pre><code>errs/Unclosed.jack:5:1: extraneous input '&lt;EOF&gt;' expecting {'constructor', 'function', 'method', '}'}
+<pre><code>errs/Unclosed.jack:4:6: error: unexpected end of file: expected '}' or a subroutine declaration
+ 4 |     }
+   |      ^
+   = help: check that every '{' has a matching '}'
+errs/Unclosed.jack:1:16: note: this '{' is never closed
+ 1 | class Unclosed {
+   |                ^
 </code></pre>
-<p><code>&lt;EOF&gt;</code> (end of file) in a message usually means a missing <code>}</code>.</p>
 <h3>Keyword used as a name</h3>
-<pre><code class="language-jack">var int class;
-</code></pre>
-<pre><code>errs/KeywordName.jack:3:17: mismatched input 'class' expecting IDENTIFIER
+<pre><code>errs/KeywordName.jack:4:17: error: expected a name, found 'class'
+ 4 |         var int class;
+   |                 ^~~~~
 </code></pre>
 <h3>Unterminated string</h3>
-<pre><code class="language-jack">do Output.printString(&quot;oops);
+<pre><code>errs/BadString.jack:4:31: error: unterminated string
+ 4 |         do Output.printString(&quot;oops);
+   |                               ^~~~~~~
+   = help: a string must end with '&quot;' on the same line
 </code></pre>
-<pre><code>errs/BadString.jack:3:31: token recognition error at: '&quot;oops);\n'
-errs/BadString.jack:4:9: mismatched input 'return' expecting {...}
+<h3>Undeclared variable (with a suggestion)</h3>
+<pre><code>errs/Sem.jack:14:13: error: 'cuont' is not declared
+ 14 |         let cuont = 1;
+    |             ^~~~~
+    = help: did you mean 'count'?
 </code></pre>
-<p>Fix the first error first — later ones are often a knock-on effect.</p>
-<h3>Undeclared variable</h3>
-<pre><code class="language-jack">let y = 1;     // y was never declared with var/field/static
+<h3>Declared twice</h3>
+<pre><code>errs/Sem.jack:12:17: error: 'x' is already declared in this subroutine
+ 12 |         var int x;
+    |                 ^
+errs/Sem.jack:11:17: note: 'x' was first declared here
+ 11 |         var int x, y;
+    |                 ^
 </code></pre>
-<pre><code>✗ COMPILATION ERROR: errs/Undeclared.jack
-  Undefined variable: y
+<h3>Calling a method from a function</h3>
+<pre><code>errs/Calls.jack:4:12: error: can't call method 'draw' from function 'main'
+ 4 |         do draw(5);
+   |            ^~~~
+   = help: a function has no object; call it on one, e.g. 'obj.draw(...)'
+</code></pre>
+<h3>Wrong number of arguments</h3>
+<pre><code>errs/Sem.jack:18:16: error: 'helper' takes 1 argument but 2 were given
+ 18 |         do Sem.helper(1, 2);
+    |                ^~~~~~
+errs/Sem.jack:27:18: note: 'helper' is declared here
+ 27 |     function int helper(int a) {
+    |                  ^~~~~~
+</code></pre>
+<h3>Missing return</h3>
+<pre><code>errs/Sem.jack:29:5: error: function 'helper' can reach its end without a 'return'
+ 29 |     }
+    |     ^
+    = help: every Jack subroutine must end with 'return' (use 'return;' in a void one)
 </code></pre>
 <h3>Empty file</h3>
-<pre><code>errs/Missing.jack:1:1: mismatched input '&lt;EOF&gt;' expecting 'class'
+<pre><code>errs/Missing.jack:1:1: error: unexpected end of file: expected 'class'
 </code></pre>
 <h2>Troubleshooting Errors</h2>
 <ol>
 <li><strong>Read the first error for each file first.</strong> Later errors are often caused by it.</li>
-<li><strong>Check the line before</strong> the reported position for missing <code>;</code> or <code>)</code>.</li>
+<li><strong>Follow the <code>help:</code> and <code>note:</code> lines</strong>: they point at the fix, or at the other place involved (e.g. the first declaration).</li>
+<li><strong>Missing <code>;</code> or <code>)</code></strong> is reported right after the token it should follow.</li>
 <li><strong>Compile the one file</strong> to focus on it: <code>jackc src/game/Broken.jack</code>.</li>
 <li><strong>Use <code>--clean</code></strong> so a failed file can't leave an old <code>.vm</code> behind that the VM Emulator would still load.</li>
 <li><strong>Use <code>-v</code></strong> if you see <code>✗ COMPILATION ERROR</code> with an unexpected message, and include the traceback in a bug report.</li>
+<li><strong>Use <code>jackc-gui</code></strong> to work through many errors: it opens on the first one, Ctrl+E jumps to the next, and Ctrl+R recompiles after you save. See the <a href="gui.html">compiler window guide</a>.</li>
 </ol>
 <h2>Integration with Build Systems</h2>
 <p>Because <code>jackc</code> exits non-zero on any failure, no extra checks are needed.</p>
@@ -258,27 +436,42 @@ fi
 </code></pre>
 <p><strong>Q: Can I use the compiler from Python and get the errors?</strong>
 A: Yes:</p>
-<pre><code class="language-python">from jack_compiler import JackCompiler, JackSyntaxError
+<pre><code class="language-python">from jack_compiler import JackCompiler, JackSyntaxError, render_diagnostic
 
+compiler = JackCompiler()
 try:
-    vm_code = JackCompiler().compile_source(&quot;Main.jack&quot;)
-except JackSyntaxError as e:
-    for err in e.errors:          # &quot;file:line:col: message&quot;
+    vm_code = compiler.compile_source(&quot;Main.jack&quot;)
+    warnings = compiler.diagnostics           # warnings from a successful compile
+except JackSyntaxError as e:                  # also catches JackSemanticError
+    for err in e.errors:                      # &quot;file:line:col: error: message&quot;
         print(err)
+    for d in e.diagnostics:                   # Diagnostic: .line .column .severity .message .help .notes
+        print(render_diagnostic(d, open(&quot;Main.jack&quot;).read().splitlines()))
 </code></pre>
+<p><strong>Q: Can warnings fail the build?</strong>
+A: Yes: <code>jackc --werror src/</code> treats every warning as an error. <code>jackc -w</code> hides warnings instead.</p>
 <p><strong>Q: Where do the messages come from?</strong>
 A: Lexical and syntax errors come from the ANTLR4-generated lexer and parser
-(<code>grammar/Jack.g4</code>); semantic errors come from the code-generating visitor.</p>
+(<code>grammar/Jack.g4</code>), turned into friendlier wording by
+<code>jack_compiler/diagnostics.py</code>. Semantic errors and warnings come from the
+checker (<code>jack_compiler/checker.py</code>), which runs before any VM code is
+generated.</p>
+<p><strong>Q: Can I see the errors in a window?</strong>
+A: Yes: <code>jackc-gui src/</code> shows each file with its errors and warnings marked
+under the line, the same way <code>jackc</code> prints them. Ctrl+E jumps from one to the
+next and Ctrl+R recompiles. See the <a href="gui.html">compiler window guide</a>.</p>
 <h2>See Also</h2>
 <ul>
 <li><a href="batch-compilation.html">Batch Compilation Guide</a></li>
 <li><a href="batch-examples.html">Batch Compilation Examples</a></li>
+<li><a href="gui.html">The Compiler Window (<code>jackc-gui</code>)</a></li>
+<li><a href="quick-reference.html">Quick Reference</a></li>
 <li><a href="usage.html">Usage Guide</a></li>
 <li><a href="readme.html">README</a></li>
 </ul>
         </div>
         <div class="footer">
-            <p>Jack Compiler Documentation | Generated 2026-10-07 13:38:21</p>
+            <p>Jack Compiler Documentation | Generated 2026-10-09</p>
         </div>
     </div>
 </body>

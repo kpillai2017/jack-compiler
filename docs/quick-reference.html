@@ -44,19 +44,13 @@
             </div>
         </div>
         <div class="content">
-            <h1>Jack Compiler - Quick Reference</h1>
-
+<h1>Jack Compiler - Quick Reference</h1>
 <h2>Installation</h2>
-
-<pre><code class="language-bash">
-cd jack-compiler
-pip install -e ".[dev]"
+<pre><code class="language-bash">cd jack-compiler
+pip install -e &quot;.[dev]&quot;
 </code></pre>
-
 <h2>Basic Usage</h2>
-
-<pre><code class="language-bash">
-# Compile single file
+<pre><code class="language-bash"># Compile single file
 jackc input.jack -o output.vm
 
 # Compile directory
@@ -65,19 +59,61 @@ jackc src_dir/ -o out_dir/
 # In-place compilation
 jackc src_dir/
 </code></pre>
-
-<h2>Run Tests</h2>
-
-<pre><code class="language-bash">
-pytest -v
+<h2>Compiler Window (<code>jackc-gui</code>)</h2>
+<pre><code class="language-bash">pip install -e &quot;.[gui]&quot;          # adds pygame
+jackc-gui                        # pick a file or folder in a window
+jackc-gui src_dir/               # compile and show Jack + VM side by side
+jackc-gui --no-write src_dir/    # preview only
 </code></pre>
-
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ctrl+E</td>
+<td>Next error or warning</td>
+</tr>
+<tr>
+<td>Ctrl+R</td>
+<td>Recompile (after saving in your editor)</td>
+</tr>
+<tr>
+<td>Ctrl+I</td>
+<td>Show / hide messages under the code</td>
+</tr>
+<tr>
+<td>Ctrl+Tab, 1–9, click a tab</td>
+<td>Switch file</td>
+</tr>
+<tr>
+<td>Tab</td>
+<td>Switch pane (Jack / VM)</td>
+</tr>
+<tr>
+<td>Ctrl+O</td>
+<td>Open something else</td>
+</tr>
+<tr>
+<td>Ctrl+D</td>
+<td>Show / hide info panel</td>
+</tr>
+<tr>
+<td>Ctrl+Q, or Esc (hold 1 s while compiling)</td>
+<td>Quit</td>
+</tr>
+</tbody>
+</table>
+<p>Full guide: <a href="gui.html">docs/gui.html</a></p>
+<h2>Run Tests</h2>
+<pre><code class="language-bash">pytest -v
+</code></pre>
 <h2>Jack Language Syntax</h2>
-
 <h3>Variable Declaration</h3>
-
-<pre><code class="language-jack">
-var int x;              // Local variable
+<pre><code class="language-jack">var int x;              // Local variable
 var int x, y, z;        // Multiple declaration
 
 field int x;            // Instance variable
@@ -86,26 +122,20 @@ field String name;      // Field with type
 static int count;       // Class variable
 static boolean flag;    // Static variable
 </code></pre>
-
 <h3>Data Types</h3>
-
-<pre><code class="language-jack">
-int         // 16-bit integer
+<pre><code class="language-jack">int         // 16-bit integer
 boolean     // true or false
 String      // String literal
 ClassName   // Custom class type
 </code></pre>
-
 <h3>Statements</h3>
-
-<pre><code class="language-jack">
-let x = 5;                      // Assignment
+<pre><code class="language-jack">let x = 5;                      // Assignment
 let arr[i] = x + 1;             // Array assignment
 
 if (x &gt; 0) {                    // If statement
     do Output.printInt(x);
 } else {
-    do Output.printString("neg");
+    do Output.printString(&quot;neg&quot;);
 }
 
 while (i &lt; 10) {                // While loop
@@ -117,11 +147,8 @@ do Output.printInt(x);          // Subroutine call
 return;                         // Return (no value)
 return x + 1;                   // Return (with value)
 </code></pre>
-
 <h3>Expressions</h3>
-
-<pre><code class="language-jack">
-x + y                   // Addition
+<pre><code class="language-jack">x + y                   // Addition
 x - y                   // Subtraction
 x * y                   // Multiplication
 x / y                   // Division
@@ -133,11 +160,8 @@ x = y                   // Equal
 ~x                      // Bitwise NOT
 -x                      // Negation
 </code></pre>
-
 <h3>Subroutines</h3>
-
-<pre><code class="language-jack">
-// Function (static method)
+<pre><code class="language-jack">// Function (static method)
 function void doSomething() {
     var int x;
     let x = 5;
@@ -162,101 +186,75 @@ do Output.printInt(42);
 do point.setX(10);
 let result = Math.abs(-5);
 </code></pre>
-
 <h3>Classes</h3>
-
-<pre><code class="language-jack">
-class Point {
+<pre><code class="language-jack">class Point {
     field int x, y;
     static int count;
-    
+
     constructor Point new(int px, int py) {
         let x = px;
         let y = py;
         let count = count + 1;
         return this;
     }
-    
+
     method int getX() {
         return x;
     }
-    
+
     function int distance(Point p1, Point p2) {
         // Static method
         return 0;
     }
 }
 </code></pre>
-
 <h3>Arrays</h3>
-
-<pre><code class="language-jack">
-var Array arr;
+<pre><code class="language-jack">var Array arr;
 let arr = Array.new(10);        // Create array
 let arr[0] = 42;                // Set element
 let x = arr[0];                 // Get element
 do arr.dispose();               // Free memory
 </code></pre>
-
 <h3>Strings</h3>
-
-<pre><code class="language-jack">
-var String msg;
-let msg = "Hello, World!";
+<pre><code class="language-jack">var String msg;
+let msg = &quot;Hello, World!&quot;;
 do Output.printString(msg);
 do Output.println();
 </code></pre>
-
 <h3>Comments</h3>
-
-<pre><code class="language-jack">
-// Single-line comment
+<pre><code class="language-jack">// Single-line comment
 
 /* Multi-line
    comment */
 </code></pre>
-
 <h2>Operator Precedence</h2>
-
-<p>(Highest to Lowest)</p>
-<p>1. Unary: <code>-</code>, <code>~</code></p>
-<p>2. Multiplicative: <code>*</code>, <code>/</code></p>
-<p>3. Additive: <code>+</code>, <code>-</code></p>
-<p>4. Relational: <code><</code>, <code>></code>, <code>=</code></p>
-<p>5. Logical AND: <code>&</code></p>
-<p>6. Logical OR: <code>|</code></p>
-
+<p>(Highest to Lowest)
+1. Unary: <code>-</code>, <code>~</code>
+2. Multiplicative: <code>*</code>, <code>/</code>
+3. Additive: <code>+</code>, <code>-</code>
+4. Relational: <code>&lt;</code>, <code>&gt;</code>, <code>=</code>
+5. Logical AND: <code>&amp;</code>
+6. Logical OR: <code>|</code></p>
 <p>Use parentheses for clarity:</p>
-<pre><code class="language-jack">
-let x = (a + b) * (c - d);
+<pre><code class="language-jack">let x = (a + b) * (c - d);
 </code></pre>
-
 <h2>Common Patterns</h2>
-
 <h3>Loop with Counter</h3>
-
-<pre><code class="language-jack">
-var int i;
+<pre><code class="language-jack">var int i;
 let i = 0;
 while (i &lt; 10) {
     do Output.printInt(i);
     let i = i + 1;
 }
 </code></pre>
-
 <h3>Method Call Chain</h3>
-
-<pre><code class="language-jack">
-let point = Point.new(5, 10);
+<pre><code class="language-jack">let point = Point.new(5, 10);
 do point.setX(20);
 let x = point.getX();
 do point.dispose();
 </code></pre>
-
 <h3>Array Processing</h3>
-
-<pre><code class="language-jack">
-var Array arr;
+<pre><code class="language-jack">var Array arr;
 var int i, sum;
 
 let arr = Array.new(5);
@@ -270,25 +268,19 @@ while (i &lt; 5) {
 
 do Output.printInt(sum);
 </code></pre>
-
 <h3>Conditional Logic</h3>
-
-<pre><code class="language-jack">
-if (x &gt; 0) {
+<pre><code class="language-jack">if (x &gt; 0) {
     if (x &lt; 10) {
-        do Output.printString("small");
+        do Output.printString(&quot;small&quot;);
     } else {
-        do Output.printString("large");
+        do Output.printString(&quot;large&quot;);
     }
 } else {
-    do Output.printString("non-positive");
+    do Output.printString(&quot;non-positive&quot;);
 }
 </code></pre>
-
 <h3>Memory Management</h3>
-
-<pre><code class="language-jack">
-// Create object
+<pre><code class="language-jack">// Create object
 let point = Point.new(1, 2);
 
 // Use object
@@ -297,24 +289,18 @@ do point.setX(5);
 // Free memory
 do point.dispose();
 </code></pre>
-
 <h2>Built-in Classes (Standard Library)</h2>
-
 <p>The Hack OS provides these classes:</p>
-
 <h3>Math</h3>
-<pre><code class="language-jack">
-Math.abs(x)
+<pre><code class="language-jack">Math.abs(x)
 Math.multiply(x, y)
 Math.divide(x, y)
 Math.min(x, y)
 Math.max(x, y)
 Math.sqrt(x)
 </code></pre>
-
 <h3>String</h3>
-<pre><code class="language-jack">
-String.new(length)
+<pre><code class="language-jack">String.new(length)
 str.appendChar(char)
 str.length()
 str.charAt(i)
@@ -322,73 +308,58 @@ str.setCharAt(i, c)
 String.backSpace()
 String.doubleQuote()
 </code></pre>
-
 <h3>Array</h3>
-<pre><code class="language-jack">
-Array.new(size)
+<pre><code class="language-jack">Array.new(size)
 arr.length()      // Via indexing, use external tracking
 arr.dispose()
 </code></pre>
-
 <h3>Output</h3>
-<pre><code class="language-jack">
-Output.printChar(char)
+<pre><code class="language-jack">Output.printChar(char)
 Output.printString(str)
 Output.printInt(i)
 Output.println()
 Output.backSpace()
 </code></pre>
-
 <h3>Screen</h3>
-<pre><code class="language-jack">
-Screen.clearScreen()
+<pre><code class="language-jack">Screen.clearScreen()
 Screen.setColor(isBlack)
 Screen.drawPixel(x, y)
 Screen.drawLine(x1, y1, x2, y2)
 Screen.drawRectangle(x1, y1, x2, y2)
 Screen.drawCircle(x, y, r)
 </code></pre>
-
 <h3>Memory</h3>
-<pre><code class="language-jack">
-Memory.alloc(size)
+<pre><code class="language-jack">Memory.alloc(size)
 Memory.deAlloc(obj)
 Memory.peek(address)
 Memory.poke(address, value)
 </code></pre>
-
 <h3>Keyboard</h3>
-<pre><code class="language-jack">
-Keyboard.keyPressed()
+<pre><code class="language-jack">Keyboard.keyPressed()
 Keyboard.readChar()
 Keyboard.readLine(msg)
 Keyboard.readInt(msg)
 </code></pre>
-
 <h3>Sys</h3>
-<pre><code class="language-jack">
-Sys.init()
+<pre><code class="language-jack">Sys.init()
 Sys.halt()
 Sys.wait(duration)
 Sys.error(code)
 </code></pre>
-
 <h2>Symbol Table Scopes</h2>
-
 <h3>Class Scope</h3>
 <ul>
-<li>**static** variables: persistent across methods</li>
-<li>**field** variables: instance variables (one per object)</li>
-
+<li><strong>static</strong> variables: persistent across methods</li>
+<li><strong>field</strong> variables: instance variables (one per object)</li>
+</ul>
 <h3>Method Scope</h3>
-<li>**var** variables: local variables</li>
-<li>**argument** variables: parameters</li>
-<li>**this** implicit pointer: current object</li>
-
+<ul>
+<li><strong>var</strong> variables: local variables</li>
+<li><strong>argument</strong> variables: parameters</li>
+<li><strong>this</strong> implicit pointer: current object</li>
+</ul>
 <h2>Memory Segments</h2>
-
-<pre><code class="language-">
-local       - Subroutine local variables
+<pre><code>local       - Subroutine local variables
 argument    - Function parameters
 static      - Class-level static variables
 this        - Current object (field variables via this[i])
@@ -397,44 +368,39 @@ temp        - Temporary storage
 constant    - Constant values
 pointer     - Pointer 0 (this), Pointer 1 (that)
 </code></pre>
-
 <h2>Common Errors</h2>
+<pre><code>File.jack:LINE:COL: error: expected ';' after ')'
+ LINE |         do Output.printInt(1)
+      |                              ^
+→ The ^ marks the exact spot; add the missing ';' there
 
-<pre><code class="language-">
-Error: Undefined variable
-→ Declare variable with var, field, or static
+File.jack:LINE:COL: error: 'x' is not declared
+      = help: did you mean 'y'?
+→ Declare the variable with var, field, or static (or fix the typo)
 
-Error: Syntax errors
-→ Check braces, semicolons, keywords
+File.jack:LINE:COL: error: invalid character '@' in program / unterminated string
+→ Remove the invalid character / close the string literal
 
-Error: Undefined subroutine
-→ Check class name, method name, and argument count
-
-Error: Type mismatch
-→ Ensure correct variable types and assignments
+File.jack:LINE:COL: warning: unused variable 'y'
+→ Compiles anyway; -w hides warnings, --werror makes them errors
 </code></pre>
-
+<p>See ERROR_DETECTION.md for every error and warning.</p>
+<p>Not detected at compile time (Jack is weakly typed and calls are resolved by
+the VM): undefined subroutines, wrong argument counts, type mismatches and a
+missing <code>return</code>. These surface when the program runs in the VM Emulator.
+See <a href="error-detection.html">ERROR_DETECTION.md</a>.</p>
 <h2>File Organization</h2>
-
-<pre><code class="language-">
-project/
+<pre><code>project/
 ├── Main.jack          // Entry point
 ├── Point.jack         // Other classes
 └── Util.jack
 </code></pre>
-
-</ul>
 <p>Compile all at once:</p>
-<pre><code class="language-bash">
-jackc project/ -o output/
+<pre><code class="language-bash">jackc project/ -o output/
 </code></pre>
-
 <h2>VM Output Format</h2>
-
 <p>Jack compiles to Hack VM code:</p>
-
-<pre><code class="language-vm">
-function ClassName.methodName numLocals
+<pre><code class="language-vm">function ClassName.methodName numLocals
 push constant 5
 pop local 0
 push local 0
@@ -443,17 +409,14 @@ pop temp 0
 push constant 0
 return
 </code></pre>
-
 <h2>Testing Your Programs</h2>
-
-<p>1. <strong>Syntax Check</strong>: Compiler will report syntax errors</p>
-<p>2. <strong>Logic Check</strong>: Manually test with Output.printInt()</p>
-<p>3. <strong>Full Test</strong>: Run in Hack Emulator after VM translation</p>
-
+<ol>
+<li><strong>Syntax Check</strong>: Compiler will report syntax errors</li>
+<li><strong>Logic Check</strong>: Manually test with Output.printInt()</li>
+<li><strong>Full Test</strong>: Run in Hack Emulator after VM translation</li>
+</ol>
 <h2>Integration with nand2tetris Tools</h2>
-
-<pre><code class="language-bash">
-# 1. Compile Jack to VM
+<pre><code class="language-bash"># 1. Compile Jack to VM
 jackc program.jack -o program.vm
 
 # 2. Translate VM to Hack Assembly
@@ -462,38 +425,61 @@ java -jar VMTranslator.jar program.vm
 # 3. Run in Hack Emulator
 # Open program.asm in the emulator
 </code></pre>
-
 <h2>Performance Tips</h2>
-
 <ul>
-<li>Use `static` for class-level constants</li>
+<li>Use <code>static</code> for class-level constants</li>
 <li>Minimize variable scope (local vs field)</li>
 <li>Cache frequently accessed values</li>
 <li>Use arrays for bulk data</li>
-
+</ul>
 <h2>More Resources</h2>
-
+<ul>
 <li>Full Documentation: See README.md</li>
 <li>Usage Guide: See USAGE.md</li>
+<li>Error messages: See <a href="error-detection.html">ERROR_DETECTION.md</a></li>
+<li>Compiler window: See <a href="gui.html">docs/gui.html</a></li>
 <li>Architecture: See ARCHITECTURE.md</li>
 <li>Examples: See examples/ directory</li>
-
 </ul>
-<p>---</p>
-
+<hr />
 <p><strong>Quick Command Reference</strong></p>
-
-<p>| Task | Command |</p>
-<p>|------|---------|</p>
-<p>| Setup | <code>pip install -e ".[dev]"</code> |</p>
-<p>| Compile file | <code>jackc in.jack -o out.vm</code> |</p>
-<p>| Compile dir | <code>jackc src/ -o bin/</code> |</p>
-<p>| Run tests | <code>pytest -v</code> |</p>
-<p>| View help | <code>jackc -h</code> |</p>
-
+<table>
+<thead>
+<tr>
+<th>Task</th>
+<th>Command</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Setup</td>
+<td><code>pip install -e ".[dev]"</code></td>
+</tr>
+<tr>
+<td>Compile file</td>
+<td><code>jackc in.jack -o out.vm</code></td>
+</tr>
+<tr>
+<td>Compile dir</td>
+<td><code>jackc src/ -o bin/</code></td>
+</tr>
+<tr>
+<td>Run tests</td>
+<td><code>pytest -v</code></td>
+</tr>
+<tr>
+<td>View help</td>
+<td><code>jackc -h</code></td>
+</tr>
+<tr>
+<td>Compile in a window</td>
+<td><code>jackc-gui src/</code></td>
+</tr>
+</tbody>
+</table>
         </div>
         <div class="footer">
-            <p>Jack Compiler Documentation | Generated 2025-11-27 19:27:15</p>
+            <p>Jack Compiler Documentation | Generated 2026-10-09</p>
         </div>
     </div>
 </body>
