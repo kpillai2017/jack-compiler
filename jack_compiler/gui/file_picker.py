@@ -26,7 +26,7 @@ What it looks like:
       *  HelloWorld.jack
       *  Math.jack
     -----------------------------------------------------------
-     [ Compile this folder (5 files) ]   [ Cancel ]
+     [ Compile this folder (5 files) ]   [ Quit ]   ("Back" when opened from a program)
 
 Structure
 ---------
@@ -47,7 +47,7 @@ from .theme import MONO_FONTS
 
 # What the picker can end with:
 CHOSEN = "chosen"  # the user picked a file or folder to compile
-CANCEL = "cancel"  # the user pressed Esc / Cancel
+CANCEL = "cancel"  # the user pressed Esc / Back / Quit (the caller decides which it means)
 QUIT = "quit"  # the user closed the window
 
 
@@ -202,11 +202,17 @@ class FilePicker:
 
     MARGIN = 16
 
-    def __init__(self, surface, start_directory: Path, message: str = "", recursive: bool = False) -> None:
+    def __init__(
+        self, surface, start_directory: Path, message: str = "", recursive: bool = False, back_to: str = ""
+    ) -> None:
         import pygame  # imported here so the logic above works without pygame
 
         self.pygame = pygame
         self.surface = surface
+        # Esc / the second button: back to what was open (e.g. "Square/"), or,
+        # in the first picker, there's nothing to go back to - so it quits.
+        self.back_to = back_to
+        self._esc_needs_release = False  # see run()
         self.state = PickerState(start_directory, recursive)
         self.state.message = message
         self.font = pygame.font.SysFont(MONO_FONTS, 15)
@@ -227,6 +233,8 @@ class FilePicker:
         pygame = self.pygame
         clock = pygame.time.Clock()
         pygame.key.set_repeat(300, 40)  # hold an arrow key to keep moving
+        # Opened by HOLDING Esc? Then its key-repeat isn't a request to go back.
+        self._esc_needs_release = bool(pygame.key.get_pressed()[pygame.K_ESCAPE])
         try:
             while True:
                 for event in pygame.event.get():
@@ -250,7 +258,9 @@ class FilePicker:
         if event.type == pygame.KEYDOWN:
             ctrl = event.mod & (pygame.KMOD_CTRL | pygame.KMOD_META)
             if event.key == pygame.K_ESCAPE:
-                return CANCEL, None
+                return None if self._esc_needs_release else (CANCEL, None)
+            if ctrl and event.key == pygame.K_q:
+                return QUIT, None
             if event.key in (pygame.K_RETURN, pygame.K_KP_ENTER):
                 chosen = state.compile_folder_entry() if ctrl else state.activate()
             elif event.key in (pygame.K_BACKSPACE, pygame.K_LEFT):
@@ -270,6 +280,9 @@ class FilePicker:
                 state.move(-len(state.entries))
             elif event.key == pygame.K_END:
                 state.move(+len(state.entries))
+
+        elif event.type == pygame.KEYUP and event.key == pygame.K_ESCAPE:
+            self._esc_needs_release = False
 
         elif event.type == pygame.MOUSEWHEEL:
             self.scroll = max(0, self.scroll - event.y * 3)
@@ -389,8 +402,10 @@ class FilePicker:
         # Footer: help text and buttons.
         help_y = height - self.MARGIN - 44 - self.small.get_linesize() - 4
         pygame.draw.line(surface, self.DIM, (area.left, help_y - 4), (area.right, help_y - 4))
+        back_to = self.back_to if len(self.back_to) <= 20 else self.back_to[:19] + "…"
+        esc = f"Esc: back to {back_to}" if self.back_to else "Esc: quit"
         self._text(
-            "Click / Enter: open    Ctrl+Enter: compile folder    Backspace: up    Esc: cancel",
+            f"Enter: open   Ctrl+Enter: compile folder   Backspace: up   {esc}   Ctrl+Q: quit",
             self.DIM, (x, help_y), self.small,
         )  # fmt: skip
         count = state.current_folder_jack_count()
@@ -399,4 +414,4 @@ class FilePicker:
         self._compile_button = pygame.Rect(x, height - self.MARGIN - 40, max(300, self.font.size(label)[0] + 30), 40)
         self._cancel_button = pygame.Rect(self._compile_button.right + 12, self._compile_button.top, 120, 40)
         self._button(self._compile_button, label, enabled=enabled)
-        self._button(self._cancel_button, "Cancel", enabled=True)
+        self._button(self._cancel_button, "Back" if self.back_to else "Quit", enabled=True)

@@ -80,8 +80,20 @@ jackvm --version     # jackvm 0.1.0
 </code></pre>
 
 <h3>Already have them in separate environments?</h3>
-<p>That works too. Each app also looks for the other on your <code>PATH</code>,
-or you can point to it with an environment variable:</p>
+<p>That works too. Name each project's folder once in the shared
+<strong>config file</strong>, and the apps find each other from any folder and any
+environment:</p>
+<pre><code># ~/.config/jack-tools/config.ini
+# (Windows: %APPDATA%\jack-tools\config.ini; $XDG_CONFIG_HOME is honoured,
+#  and $JACK_TOOLS_CONFIG points to a different file)
+[apps]
+jackvm = ~/src/jackvm-py         ; searched: bin/, .venv, venv, env, .direnv/*
+jackc = ~/src/jack-compiler      ; jackc-gui is found there too
+# jackc-gui = /full/path/to/jackc-gui   ; a command works as well
+# jackvm = off                          ; hide the shortcut
+</code></pre>
+<p>Each app also looks for the other on your <code>PATH</code>, or you can point
+to it with an environment variable, which beats the config file:</p>
 <pre><code># tell the compiler where JackVM is
 export JACKVM="$HOME/src/jackvm-py/.venv/bin/jackvm"
 
@@ -138,18 +150,20 @@ opens its sources in the compiler.</p>
 <h2>4. How each app finds the other</h2>
 <p>Both apps use the same small module, <code>integrations.py</code>. An
 identical copy lives in each repository, and a test checks that the copies
-match. It tries three things in order and uses the first that works:</p>
+match. It tries four things in order and uses the first that works:</p>
 <table>
 <thead><tr><th>#</th><th>Where it looks</th><th>Example</th></tr></thead>
 <tbody>
 <tr><td>1</td><td>An <strong>environment variable</strong>: <code>JACKVM</code>, <code>JACKC</code>, <code>JACKC_GUI</code>. Set it to <code>off</code> to hide the shortcut.</td><td><code>JACKVM="python3 -m jackvm"</code></td></tr>
-<tr><td>2</td><td>The <strong>same Python environment</strong>: both packages register in the <code>jack_tools</code> entry-point group in their <code>pyproject.toml</code>.</td><td><code>pip install -e ./jackvm-py</code></td></tr>
-<tr><td>3</td><td>The <strong><code>PATH</code></strong>: a <code>jackvm</code> / <code>jackc</code> / <code>jackc-gui</code> command installed anywhere.</td><td><code>pipx install ./jackvm-py</code></td></tr>
+<tr><td>2</td><td>The <strong>config file</strong> <code>~/.config/jack-tools/config.ini</code>, section <code>[apps]</code>, keys <code>jackvm</code>, <code>jackc</code>, <code>jackc-gui</code>. A value is the project's folder (its <code>bin/</code>, <code>.venv</code>, <code>venv</code>, <code>env</code> and <code>.direnv/*</code> are searched) or a command; <code>off</code> hides the shortcut.</td><td><code>jackvm = ~/src/jackvm-py</code></td></tr>
+<tr><td>3</td><td>The <strong>same Python environment</strong>: both packages register in the <code>jack_tools</code> entry-point group in their <code>pyproject.toml</code>.</td><td><code>pip install -e ./jackvm-py</code></td></tr>
+<tr><td>4</td><td>The <strong><code>PATH</code></strong>: a <code>jackvm</code> / <code>jackc</code> / <code>jackc-gui</code> command installed anywhere.</td><td><code>pipx install ./jackvm-py</code></td></tr>
 </tbody>
 </table>
 <p>If nothing is found, the shortcut is still listed, as <code>Ctrl+J JackVM
-(not installed)</code>. Pressing it shows the command to install the missing
-app.</p>
+(not installed)</code>. Pressing it tells you what to put in the config file. If
+the folder you configured has no <code>jackvm</code> in it, it says where it
+looked instead. The full text is also printed in the terminal.</p>
 
 <h3>Why not just import each other?</h3>
 <ul>
@@ -176,7 +190,7 @@ lists the other, so each repository installs, tests and runs on its own.</li>
 <table>
 <thead><tr><th>You see</th><th>Try</th></tr></thead>
 <tbody>
-<tr><td><code>Ctrl+J JackVM (not installed)</code></td><td>Install jackvm-py into the same environment (<code>pip install -e ./jackvm-py</code>), or set <code>JACKVM</code> to its <code>jackvm</code> command. Restart <code>jackc-gui</code>: the lookup happens when the window opens.</td></tr>
+<tr><td><code>Ctrl+J JackVM (not installed)</code></td><td>Add <code>jackvm = &lt;its folder&gt;</code> under <code>[apps]</code> in the config file, install jackvm-py into the same environment (<code>pip install -e ./jackvm-py</code>), or set <code>JACKVM</code> to its <code>jackvm</code> command. Restart <code>jackc-gui</code>: the lookup happens when the window opens.</td></tr>
 <tr><td>It worked, then stopped after you moved a folder</td><td>Editable installs remember the old location. Run <code>pip install -e</code> again from the new place. Stale installs are skipped, and the lookup falls back to the <code>PATH</code>.</td></tr>
 <tr><td><code>Fix the errors in X.jack first</code></td><td>Another file in the same folder doesn't compile. Its tab is red, and <kbd>Ctrl</kbd>+<kbd>E</kbd> jumps to the problem.</td></tr>
 <tr><td><code>JackVM stopped (exit 1): ...</code></td><td>The program loaded but crashed, or JackVM couldn't load it. Run it from a terminal with <code>jackvm &lt;folder&gt;</code> to see the full message.</td></tr>

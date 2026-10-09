@@ -133,7 +133,7 @@ window), a small file browser opens. It only lists folders and
   *  HelloWorld.jack
   *  Math.jack
 -----------------------------------------------------------
- [ Compile this folder (5 files) ]   [ Cancel ]
+ [ Compile this folder (5 files) ]   [ Quit ]
 </code></pre>
 <ul>
 <li><strong>One file:</strong> click it, or select it and press <kbd>Enter</kbd>.</li>
@@ -143,7 +143,10 @@ the folder, or open the folder and press <strong>Compile this folder</strong>.</
 <li>Move with <kbd>↑</kbd> <kbd>↓</kbd> <kbd>PgUp</kbd> <kbd>PgDn</kbd>
 <kbd>Home</kbd> <kbd>End</kbd> or the mouse wheel. <kbd>Enter</kbd> or
 <kbd>→</kbd> opens a folder, <kbd>Backspace</kbd> or <kbd>←</kbd> goes up one
-level, and <kbd>Esc</kbd> cancels.</li>
+level. <kbd>Ctrl</kbd>+<kbd>Q</kbd> quits.</li>
+<li><kbd>Esc</kbd> quits from the first picker. If you came here from the
+compiler window (<kbd>Esc</kbd> or <kbd>Ctrl</kbd>+<kbd>O</kbd>), the button reads
+<strong>Back</strong> and <kbd>Esc</kbd> returns to what you had open.</li>
 <li>With <code>-r</code>, a folder can be compiled when it has <code>.jack</code>
 files anywhere below it.</li>
 </ul>
@@ -269,20 +272,23 @@ run <code>jackc --clean</code> if you don't want the VM Emulator to load it.</li
 <tr><td><kbd>Ctrl</kbd>+<kbd>O</kbd></td><td>Open another file or folder</td></tr>
 <tr><td><kbd>Ctrl</kbd>+<kbd>D</kbd></td><td>Show or hide the info boxes</td></tr>
 <tr><td><kbd>Ctrl</kbd>+<kbd>Q</kbd></td><td>Quit</td></tr>
-<tr><td><kbd>Esc</kbd></td><td>Quit (see below)</td></tr>
+<tr><td><kbd>Esc</kbd></td><td>Back to the file picker (see below)</td></tr>
 </tbody>
 </table>
 
-<h2 id="quit">8. Quitting</h2>
-<p><kbd>Esc</kbd> follows the same rules as the jackvm-py player, so a key pressed
-by mistake can't throw away a long build:</p>
+<h2 id="quit">8. Going back and quitting</h2>
+<p><kbd>Esc</kbd> takes you back to the file picker, so you can open another
+program without restarting. It follows the same rules as the jackvm-py player,
+so a key pressed by mistake can't throw away a long build:</p>
 <ul>
 <li><strong>While compiling:</strong> <em>hold</em> <kbd>Esc</kbd> for one second.
 A progress bar appears after a quarter of a second. Let go early to carry on.</li>
-<li><strong>Once it has finished:</strong> a single press quits. For a few seconds
-the window shows <em>Compilation finished: press Esc to quit</em>.</li>
-<li><kbd>Ctrl</kbd>+<kbd>Q</kbd> or closing the window always quits straight away.</li>
-<li>In the file picker, <kbd>Esc</kbd> cancels.</li>
+<li><strong>Once it has finished:</strong> a single press goes back. For a few seconds
+the window shows <em>Compilation finished - press Esc to go back, Ctrl+Q to quit</em>.</li>
+<li>The picker opens in the folder you were looking at. Press <kbd>Esc</kbd> there
+(or <strong>Back</strong>) to return to the program you had open.</li>
+<li><kbd>Ctrl</kbd>+<kbd>Q</kbd> or closing the window always quits straight away,
+in the picker too.</li>
 </ul>
 
 <h2 id="trouble">9. Troubleshooting</h2>

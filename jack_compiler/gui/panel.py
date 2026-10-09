@@ -56,7 +56,7 @@ HELP_ITEMS = [
     "Ctrl+O open",
     "Ctrl+D panel",
     "Ctrl+Q quit",
-    "Hold Esc 1 s: quit",
+    "Esc back to picker (hold 1 s if busy)",
 ]
 HELP_SEPARATOR = "   "
 
@@ -160,7 +160,7 @@ def build_sections(session: CompileSession, selected: int) -> List[Section]:
         box.add("warnings don't stop a file (Ctrl+W)", "dim")
     box.add(f"time   {session.elapsed:.2f} s", "dim")
     if session.finished:
-        box.add("Compilation finished: press Esc to quit", "dim")
+        box.add("Compilation finished: Esc to go back", "dim")
     sections.append(box)
 
     # --- files --------------------------------------------------------------

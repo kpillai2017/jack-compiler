@@ -40,14 +40,16 @@ Compiling runs on a background thread (see session.py), so the window
 stays responsive while a big folder compiles. Edit your .jack files in any
 editor, then press Ctrl+R here to recompile them.
 
-Quitting with Esc - the same rules as the jackvm player
--------------------------------------------------------
+Esc goes back to the file picker - the same rules as the jackvm player
+---------------------------------------------------------------------
   * While a compilation is running, a stray tap of Esc must not throw the
-    work away: hold Esc for ESC_HOLD_SECONDS (1 s) to quit. A "keep
+    work away: hold Esc for ESC_HOLD_SECONDS (1 s) to go back. A "keep
     holding" bar appears after ESC_SHOW_BAR_AFTER (0.25 s), so normal
     taps never flash it. Letting go early cancels.
   * Once the compilation has finished, there's nothing left to protect -
-    so a single Esc press quits immediately.
+    so a single Esc press goes back at once.
+  * In the picker, Esc (or "Back") returns to this compilation; the very
+    first picker has nothing to return to, so there Esc quits.
   * Ctrl+Q (or closing the window) always quits at once.
 """
 
@@ -69,7 +71,7 @@ from .syntax import Span, jack_spans, vm_spans
 
 FRAMES_PER_SECOND = 30  # a code viewer doesn't need more
 
-ESC_HOLD_SECONDS = 1.0  # hold Esc this long to quit
+ESC_HOLD_SECONDS = 1.0  # hold Esc this long (while compiling) to go back to the picker
 ESC_SHOW_BAR_AFTER = 0.25  # ...and show the "keep holding" bar after this long
 FINISHED_HINT_SECONDS = 3.0  # how long "finished - press Esc" shows over the code
 NOTICE_SECONDS = 5.0  # how long a message such as "Running in JackVM" shows
@@ -146,6 +148,7 @@ class CompilerWindow:
         # fake clock and "hold" Esc for exactly 1 second without waiting.
         self.now = time.perf_counter
         self._esc_pressed_at: Optional[float] = None  # None = Esc not held
+        self._esc_needs_release = False  # True = ignore Esc until it's let go (see go_back)
         self._finished_hint_until: Optional[float] = None
         self._was_compiling = False
 
@@ -224,7 +227,9 @@ class CompilerWindow:
         pygame.key.set_repeat(300, 40)  # hold an arrow key to keep scrolling
         clock = pygame.time.Clock()
         try:
-            while self._handle_events() and not self._esc_held_long_enough():
+            while self._handle_events():
+                if self._esc_held_long_enough() and not self.go_back():
+                    break  # the user closed the window from the picker
                 self._update()
                 self._draw()
                 clock.tick(FRAMES_PER_SECOND)
@@ -245,8 +250,12 @@ class CompilerWindow:
                         return False
                     continue
                 if event.key == pygame.K_ESCAPE:
+                    if self._esc_needs_release:
+                        continue  # still the Esc that was held in the picker
                     if self.compilation_finished():
-                        return False  # nothing left to protect: quit now
+                        if not self.go_back():  # nothing left to protect: back to the picker now
+                            return False
+                        continue
                     if self._esc_pressed_at is None:  # (ignore key-repeat events)
                         self._esc_pressed_at = self.now()  # start the hold timer
                     continue
@@ -254,11 +263,13 @@ class CompilerWindow:
 
             elif event.type == pygame.KEYUP:
                 if event.key == pygame.K_ESCAPE:
-                    self._esc_pressed_at = None  # let go early: cancel quitting
+                    self._esc_pressed_at = None  # let go early: don't go back
+                    self._esc_needs_release = False
 
             elif event.type == pygame.WINDOWFOCUSLOST:
                 # Otherwise Esc held while switching windows would "stick".
                 self._esc_pressed_at = None
+                self._esc_needs_release = False
 
             elif event.type == pygame.MOUSEWHEEL:
                 position = pygame.mouse.get_pos()
@@ -278,7 +289,7 @@ class CompilerWindow:
         return self.session.finished
 
     def esc_hold_progress(self) -> float:
-        """How far through the 'hold Esc to quit' countdown we are: 0.0 .. 1.0."""
+        """How far through the 'hold Esc to go back' countdown we are: 0.0 .. 1.0."""
         if self._esc_pressed_at is None:
             return 0.0
         held_for = self.now() - self._esc_pressed_at
@@ -401,9 +412,12 @@ class CompilerWindow:
         return started
 
     def notify(self, text: str, colour: str = "normal") -> None:
-        """Show a short message over the bottom of the code view for a few seconds."""
+        """
+        Show a short message over the bottom of the code view for a few
+        seconds. Only its first line fits; the terminal gets all of it.
+        """
         print(text)
-        self._notice = (text, colour, self.now() + NOTICE_SECONDS)
+        self._notice = (text.split("\n")[0], colour, self.now() + NOTICE_SECONDS)
 
     def next_problem(self, errors_only: bool = False) -> bool:
         """
@@ -450,22 +464,30 @@ class CompilerWindow:
         biggest = max(0, lines - self.code_rows)
         self.scroll[pane] = max(0, min(biggest, self.scroll[pane] + delta))
 
+    def go_back(self) -> bool:
+        """Esc: back to the file picker (see _open_something_else)."""
+        return self._open_something_else()
+
     def _open_something_else(self) -> bool:
         """
-        Ctrl+O: show the file picker inside our window. If the user picks
-        something, compile it; if they cancel, carry on as before.
-        Returns False if the user closed the window (= quit).
+        Ctrl+O (or Esc): show the file picker inside our window. If the user
+        picks something, compile it; if they go back, carry on as before.
+        Returns False if the user quit from the picker (Ctrl+Q / closed the window).
         """
-        self._esc_pressed_at = None  # Esc in the picker means "cancel", not "quit"
-        start = self.session.target if self.session.target.is_dir() else self.session.target.parent
+        self._esc_pressed_at = None  # Esc in the picker means "back here", not "quit"
+        target = self.session.target
+        start = target if target.is_dir() else target.parent
         width, height = self.window.get_size()
         if width < 800 or height < 560:
             self.window = pygame.display.set_mode((max(width, 800), max(height, 560)))
 
         outcome, session = choose_target(
             self.window, start, recursive=self.session.recursive, write=self.session.write,
-            werror=self.session.werror,
+            werror=self.session.werror, back_to=target.name + ("/" if target.is_dir() else ""),
         )
+        # If Esc is still down (it was held to get here), its key-repeat must
+        # not send us straight back to the picker: wait until it's let go.
+        self._esc_needs_release = bool(pygame.key.get_pressed()[pygame.K_ESCAPE])
         if session is not None:
             self.session = session
             self.selected = 0
@@ -688,14 +710,14 @@ class CompilerWindow:
         pygame.draw.rect(self.window, theme.BORDER, (track.left, thumb_top, track.width, thumb_height), border_radius=2)
 
     def _draw_quit_hints(self) -> None:
-        """The 'keep holding Esc' bar, or (briefly) a 'press Esc to quit' note."""
+        """The 'keep holding Esc' bar, or (briefly) a 'press Esc to go back' note."""
         progress = self.esc_hold_progress()
         if self._esc_pressed_at is not None and progress * ESC_HOLD_SECONDS >= ESC_SHOW_BAR_AFTER:
-            self._draw_banner("Keep holding Esc to quit...", progress)
+            self._draw_banner("Keep holding Esc to go back...", progress)
         elif self._notice is not None and self.now() < self._notice[2]:
             self._draw_banner(self._notice[0], None, self._notice[1])
         elif self.compilation_finished() and self._finished_hint_until is not None and self.now() < self._finished_hint_until:
-            self._draw_banner("Compilation finished - press Esc to quit", None)
+            self._draw_banner("Compilation finished - press Esc to go back, Ctrl+Q to quit", None)
 
     def _draw_banner(self, text: str, progress: Optional[float], colour: str = "normal") -> None:
         """A dark, see-through box over the bottom of the code view."""
@@ -726,18 +748,19 @@ class CompilerWindow:
 # ---------------------------------------------------------------------------
 def choose_target(
     surface, start_directory: Path, recursive: bool = False, write: bool = True, message: str = "",
-    werror: bool = False,
+    werror: bool = False, back_to: str = "",
 ) -> Tuple[str, Optional[CompileSession]]:
     """
     Show the file picker on `surface` until the user picks something that
     can be compiled (or gives up). If the choice can't be used, the picker
-    opens again with the problem shown at the top.
+    opens again with the problem shown at the top. `back_to` names what Esc
+    returns to ("" in the first picker, where Esc quits).
 
     Returns (outcome, session) - session is None unless outcome is "chosen".
     The session has not been started yet.
     """
     while True:
-        outcome, path = FilePicker(surface, start_directory, message, recursive).run()
+        outcome, path = FilePicker(surface, start_directory, message, recursive, back_to).run()
         if outcome != CHOSEN or path is None:
             return outcome, None
         try:

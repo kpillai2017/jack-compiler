@@ -136,7 +136,7 @@ def test_panel_describes_the_session_and_selected_file(project):
     broken = next(i for i, r in enumerate(session.results) if r.status == FAILED)
     status, files, errors, output = build_sections(session, broken)
     assert status.rows[0] == ("FAILED - 1 of 3 with errors", "error")
-    assert any("press Esc to quit" in text for text, _ in status.rows)
+    assert any("Esc to go back" in text for text, _ in status.rows)
     assert files.targets == [0, 1, 2]
     assert files.rows[broken][0].startswith("> ERR")
     assert errors.title == "PROBLEMS: Broken.jack"
@@ -162,7 +162,7 @@ def test_file_window_keeps_the_selection_visible():
 pygame = pytest.importorskip("pygame")
 
 from jack_compiler.gui import window as window_module  # noqa: E402
-from jack_compiler.gui.file_picker import CANCEL, CHOSEN, FilePicker, PickerState  # noqa: E402
+from jack_compiler.gui.file_picker import CANCEL, CHOSEN, QUIT, FilePicker, PickerState  # noqa: E402
 from jack_compiler.gui.window import ESC_HOLD_SECONDS, JACK, VM, CompilerWindow  # noqa: E402
 
 
@@ -217,8 +217,8 @@ def key_up(key):
     return pygame.event.Event(pygame.KEYUP, key=key, mod=0)
 
 
-# Esc while compiling: the same rules as jackvm's player.
-def test_a_quick_esc_tap_while_compiling_does_not_quit(busy_window):
+# Esc goes back to the picker - while compiling, only if it's held: the same rules as jackvm's player.
+def test_a_quick_esc_tap_while_compiling_does_not_go_back(busy_window):
     w = busy_window
     assert send(w, key_down(pygame.K_ESCAPE)) is True
     w.now.t += 0.2
@@ -227,7 +227,7 @@ def test_a_quick_esc_tap_while_compiling_does_not_quit(busy_window):
     assert not w._esc_held_long_enough()
 
 
-def test_holding_esc_for_one_second_quits_while_compiling(busy_window):
+def test_holding_esc_for_one_second_goes_back_while_compiling(busy_window):
     w = busy_window
     send(w, key_down(pygame.K_ESCAPE))
     w.now.t += ESC_HOLD_SECONDS / 2
@@ -262,8 +262,36 @@ def test_the_keep_holding_bar_is_drawn(busy_window):
     assert reds, "the red progress bar should be on screen"
 
 
-def test_one_esc_press_quits_once_compilation_has_finished(done_window):
-    assert send(done_window, key_down(pygame.K_ESCAPE)) is False
+def fake_picker(monkeypatch, *outcomes):
+    """Replace the picker: each time it's opened, it 'returns' the next outcome."""
+    calls = []
+
+    def choose_target(*args, **kwargs):
+        calls.append(kwargs)
+        return outcomes[len(calls) - 1]
+
+    monkeypatch.setattr(window_module, "choose_target", choose_target)
+    return calls
+
+
+def test_one_esc_press_goes_back_once_compilation_has_finished(done_window, project, monkeypatch):
+    calls = fake_picker(monkeypatch, (CANCEL, None), (QUIT, None))
+    old = done_window.session
+    assert send(done_window, key_down(pygame.K_ESCAPE)) is True  # picker, then Esc there: back here
+    assert done_window.session is old and calls[0]["back_to"] == f"{project.name}/"
+    send(done_window, key_up(pygame.K_ESCAPE))
+    assert send(done_window, key_down(pygame.K_ESCAPE)) is False  # picker, then Ctrl+Q there: quit
+    assert len(calls) == 2
+
+
+def test_after_going_back_a_still_held_esc_is_ignored(done_window, monkeypatch):
+    calls = fake_picker(monkeypatch, (CANCEL, None), (CANCEL, None))
+    send(done_window, key_down(pygame.K_ESCAPE))
+    done_window._esc_needs_release = True  # (what go_back sets if Esc is still down)
+    assert send(done_window, key_down(pygame.K_ESCAPE)) is True and len(calls) == 1  # key-repeat: ignored
+    send(done_window, key_up(pygame.K_ESCAPE))
+    send(done_window, key_down(pygame.K_ESCAPE))
+    assert len(calls) == 2  # a fresh press goes back again
 
 
 def test_ctrl_q_quits_and_other_shortcuts_dont(busy_window):
@@ -388,6 +416,26 @@ def test_picker_keyboard_and_esc(project):
     outcome, path = picker._handle_event(key_down(pygame.K_RETURN))
     assert outcome == CHOSEN and path.suffix == ".jack"
     assert picker._handle_event(key_down(pygame.K_ESCAPE)) == (CANCEL, None)
+    assert picker._handle_event(key_down(pygame.K_q, pygame.KMOD_CTRL)) == (QUIT, None)
+    picker._esc_needs_release = True  # opened while Esc was held down
+    assert picker._handle_event(key_down(pygame.K_ESCAPE)) is None
+    picker._handle_event(key_up(pygame.K_ESCAPE))
+    assert picker._handle_event(key_down(pygame.K_ESCAPE)) == (CANCEL, None)
+    pygame.quit()
+
+
+@pytest.mark.parametrize("back_to, esc, button", [("", "Esc: quit", "Quit"), ("Square/", "Esc: back to Square/", "Back")])
+def test_the_picker_says_what_esc_does(project, monkeypatch, back_to, esc, button):
+    pygame.init()
+    surface = pygame.display.set_mode((800, 560))
+    picker = FilePicker(surface, project, back_to=back_to)
+    drawn = []
+    monkeypatch.setattr(picker, "_text", lambda text, *a, **k: drawn.append(text))
+    monkeypatch.setattr(picker, "_button", lambda rect, label, **k: drawn.append(label))
+    picker.draw()
+    footer = next(t for t in drawn if "Ctrl+Q: quit" in t)
+    assert esc in footer and button in drawn
+    assert picker.small.size(footer)[0] <= 800 - 2 * picker.MARGIN  # fits the smallest window
     pygame.quit()
 
 
