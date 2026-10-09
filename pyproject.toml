@@ -28,9 +28,11 @@ classifiers = [
 
 [project.optional-dependencies]
 dev = ["pytest>=7"]
+gui = ["pygame>=2.6.1"]
 
 [project.scripts]
 jackc = "jack_compiler.compiler:main"
+jackc-gui = "jack_compiler.gui.main:main"
 
 [project.urls]
 Homepage = "https://github.com/kpillai2017/jack-compiler"
@@ -43,6 +45,7 @@ packages = [
     "jack_compiler",
     "jack_compiler.antlr_generated",
     "jack_compiler.antlr_generated.grammar",
+    "jack_compiler.gui",
 ]
 
 [tool.setuptools.dynamic]

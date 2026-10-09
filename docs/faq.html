@@ -177,6 +177,7 @@
         li {
             margin-bottom: 8px;
         }
+        kbd { background: #f4f4f4; border: 1px solid #ccc; border-bottom-width: 2px; border-radius: 3px; padding: 1px 6px; font-family: monospace; font-size: 0.9em; }
     </style>
 </head>
 <body>
@@ -189,6 +190,7 @@
         <nav>
             <a href="index.html">Home</a>
             <a href="getting-started.html">Getting Started</a>
+            <a href="gui.html">Compiler Window</a>
             <a href="how-it-works.html">How It Works</a>
             <a href="examples.html">Examples</a>
             <a href="faq.html">FAQ</a>
@@ -304,36 +306,71 @@
                         <p>Helpful when reporting a bug.</p>
                     </div>
                 </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">Is there a graphical version?</div>
+                    <div class="faq-answer">
+                        <p>Yes: <code>jackc-gui</code> compiles in a window and shows each Jack class next to
+                        the VM code it turns into, with errors marked under the line. Install it with the
+                        <code>gui</code> extra, which adds pygame:</p>
+                        <pre>pip install -e ".[gui]"
+jackc-gui src/</pre>
+                        <p>See <a href="gui.html">The Compiler Window</a>.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">Can I edit my code in jackc-gui?</div>
+                    <div class="faq-answer">
+                        <p>No, it's a viewer. Edit in your usual editor, save, and press <kbd>Ctrl</kbd>+<kbd>R</kbd>
+                        in the window to recompile. <kbd>Ctrl</kbd>+<kbd>E</kbd> jumps to the next error.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">How do I hide warnings, or make them fail the build?</div>
+                    <div class="faq-answer">
+                        <p><code>jackc -w src/</code> hides warnings. <code>jackc --werror src/</code> treats them as
+                        errors, so a file with warnings gets no <code>.vm</code> file and the exit status is 1.</p>
+                    </div>
+                </div>
             </div>
             
             <div class="section">
                 <h2>Common Errors & Solutions</h2>
                 
                 <div class="faq-item">
-                    <div class="faq-question">Error: "Syntax errors in program.jack"</div>
+                    <div class="faq-question">Error: "expected ';' after ..." (or another syntax error)</div>
                     <div class="faq-answer">
                         <div class="card error">
                             <strong>Problem:</strong> Your Jack code has a syntax error
                         </div>
+                        <p>The message shows the file, line and column, and marks the exact spot:</p>
+                        <pre>Main.jack:3:18: error: expected ';' after 'x'
+ 3 |         var int x
+   |                  ^
+   = help: every statement and declaration ends with ';'</pre>
                         <p><strong>Solution:</strong></p>
                         <ul>
                             <li>Check for missing semicolons at the end of statements</li>
-                            <li>Verify all braces are properly matched</li>
-                            <li>Use the <code>--verbose</code> flag to see the exact error line</li>
+                            <li>Verify all braces are properly matched (<code>unexpected end of file</code> usually means a missing <code>}</code>)</li>
+                            <li>Fix the first error first: later ones are often caused by it</li>
                             <li>Compare with the example programs in <code>examples/</code></li>
                         </ul>
                     </div>
                 </div>
                 
                 <div class="faq-item">
-                    <div class="faq-question">Error: "Undefined variable"</div>
+                    <div class="faq-question">Error: "'y' is not declared"</div>
                     <div class="faq-answer">
                         <div class="card error">
                             <strong>Problem:</strong> You're using a variable that hasn't been declared
                         </div>
+                        <p>If it looks like a typo, the compiler suggests the name you probably meant:
+                        <code>= help: did you mean 'count'?</code></p>
                         <p><strong>Solution:</strong></p>
                         <ul>
-                            <li>Make sure the variable is declared with <code>var</code> or <code>field</code></li>
+                            <li>Make sure the variable is declared with <code>var</code>, <code>field</code> or <code>static</code></li>
                             <li>Check for typos in variable names (Jack is case-sensitive)</li>
                             <li>Ensure the variable is declared before use</li>
                         </ul>
@@ -341,7 +378,8 @@
                         <pre>var int x;  // ✓ Correct
 let x = 5;
 
-let y = 10; // ✗ Error: y not declared</pre>
+let y = 10; // ✗ Error: 'y' is not declared</pre>
+                        <p>Every message the compiler can print is listed in the <a href="error-detection.html">Error Detection guide</a>.</p>
                     </div>
                 </div>
                 

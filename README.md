@@ -57,7 +57,7 @@ jack-compiler/
 ├── ERROR_DETECTION.md           # Error handling documentation
 ├── REFERENCE_COMPATIBILITY.md   # Compatibility with the nand2tetris web-ide
 ├── IMPLEMENTATION_SUMMARY.md    # Implementation overview
-├── pyproject.toml               # Package configuration (provides `jackc`)
+├── pyproject.toml               # Package configuration (provides `jackc` and `jackc-gui`)
 ├── requirements.txt             # Runtime dependency pin
 ├── antlr-4.13.0-complete.jar    # ANTLR4 tool (only needed to regenerate the parser)
 │
@@ -68,6 +68,7 @@ jack-compiler/
 │   ├── compiler_visitor.py      # Parse-tree visitor: AST + VM code generation
 │   ├── symbols.py               # Symbol table implementation
 │   ├── codegen.py               # VM code emitter
+│   ├── gui/                     # pygame front end (`jackc-gui`), see "Graphical Interface"
 │   └── antlr_generated/         # ANTLR4-generated lexer/parser (committed)
 │       └── grammar/
 │
@@ -285,6 +286,8 @@ Arguments:
                         (single file: only its own .vm)
   -n, --dry-run         Show what would be cleaned/compiled; change nothing
   -v, --verbose         Show full tracebacks for internal compiler errors
+  -w, --no-warnings     Do not print warnings (errors are always shown)
+  --werror              Treat warnings as errors
   --version             Show version and exit
   -h, --help            Show help message
 ```
@@ -319,8 +322,62 @@ except JackSyntaxError as e:
     print("\n".join(e.errors))                           # "Main.jack:4:9: ..." (1-based)
 ```
 
-Syntax errors are reported beneath the failing file as `file:line:col: message`;
-see [ERROR_DETECTION.md](ERROR_DETECTION.md).
+Errors and warnings are reported compiler-style, with the source line and a
+`^~~~` marker under the exact spot:
+
+```
+Main.jack:14:13: error: 'cuont' is not declared
+ 14 |         let cuont = 1;
+    |             ^~~~~
+    = help: did you mean 'count'?
+```
+
+Besides syntax errors, a semantic pass catches undeclared or duplicate names,
+methods called without an object, wrong argument counts, missing `return`s and
+more, and warns about unused variables and unreachable code. See
+[ERROR_DETECTION.md](ERROR_DETECTION.md).
+
+## Graphical Interface (`jackc-gui`)
+
+A pygame window for compiling and browsing the result, styled like the
+[jackvm-py](https://github.com/kpillai2017/jackvm-py) player, so the compiler and the
+VM feel like one tool. The full guide is
+[The Compiler Window](https://kpillai2017.github.io/jack-compiler/gui.html)
+([docs/gui.html](docs/gui.html)).
+
+![jackc-gui marking an undeclared variable under line 44 of SquareGame.jack, with a "did you mean" hint](docs/img/jackc-gui-errors.png)
+
+```bash
+pip install -e ".[gui]"          # adds pygame
+
+jackc-gui                        # choose a .jack file or folder in a window
+jackc-gui examples/              # compile a folder straight away
+jackc-gui examples/Math.jack     # ...or one file
+jackc-gui -r projects/           # a whole tree, like jackc -r
+jackc-gui src/ -o bin/           # write the .vm files to bin/
+jackc-gui --no-write src/        # preview only: never write .vm files
+python -m jack_compiler.gui ...  # the same, without installing
+```
+
+The window shows the selected `.jack` file next to the VM code it compiles to.
+Errors and warnings appear the way the compiler prints them: the line is shaded
+red or amber, and a `^~~~` marker under the exact spot carries the message,
+with any `help:` / `note:` lines beneath it. Beside them are the
+STATUS / FILES / PROBLEMS / OUTPUT boxes, and under them a SHORTCUTS box.
+`.vm` files are written where `jackc` would put them.
+
+| Key | Action |
+|-----|--------|
+| Up / Down / PgUp / PgDn / Home / End, mouse wheel | Scroll the code |
+| Tab (or click a pane) | Switch between the Jack and VM panes |
+| Click a file tab, Ctrl+Tab / Ctrl+Shift+Tab, Ctrl+PgDn / Ctrl+PgUp, Left / Right, 1–9, wheel over the tabs, or click in FILES | Switch file: both panes show that `.jack` file and its compiled VM code |
+| Ctrl+E | Jump to the next error or warning |
+| Ctrl+I | Show / hide the compiler messages under the code |
+| Ctrl+R | Recompile (re-reads the files, so edit in your editor and press Ctrl+R) |
+| Ctrl+O | Open another file or folder |
+| Ctrl+D | Show / hide the info panel |
+| Ctrl+Q | Quit |
+| **Esc** | Quit. The rules are the same as the jackvm player: **hold for 1 s** while a compilation is running (a progress bar appears after 0.25 s; letting go cancels), but **a single press** once it has finished. In the file picker, Esc cancels. |
 
 ## Supported Jack Language Constructs
 

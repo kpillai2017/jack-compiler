@@ -65,49 +65,64 @@
 <pre><code class="language-">
 jack_compiler/
 ├── __main__.py (enables `python -m jack_compiler`)
-├── compiler.py (200 lines)
+├── compiler.py (~580 lines)
 │   Main entry point and CLI driver
-│   - Command-line argument parsing
-│   - File I/O handling
-│   - Batch compilation support
+│   - Command-line argument parsing (-r, --clean, -n, -w, --werror, ...)
+│   - File I/O handling and batch compilation
+│   - Prints errors and warnings with the source line and a ^~~~ marker
 │   Usage: jackc input.jack -o output.vm
 │
-├── compiler_visitor.py (420 lines)
+├── diagnostics.py (~290 lines)
+│   Diagnostic records (line, column, severity, message, help, notes)
+│   - Collects ANTLR4 lexer/parser errors and rewrites them in plain English
+│   - render(): the compiler-style text jackc prints (jackc-gui draws the
+│     same layout with gui/annotate.py)
+│
+├── checker.py (~390 lines)
+│   Semantic checks, run before any VM code is generated
+│   - Errors: undeclared / duplicate names, wrong argument counts,
+│     methods called from functions, missing return, ...
+│   - Warnings: unused variables, unreachable code, ...
+│   - "did you mean ...?" suggestions
+│
+├── compiler_visitor.py (~690 lines)
 │   ANTLR4 visitor pattern implementation
 │   - Parse tree traversal
 │   - Symbol table management during compilation
 │   - Code generation orchestration
 │   Key methods: visit_* for each language construct
 │
-├── symbols.py (150 lines)
+├── symbols.py (~160 lines)
 │   Symbol table implementation
 │   - Class-level scope (static, field)
 │   - Subroutine-level scope (local, arguments)
 │   Classes: SymbolTable, SymbolInfo, VarKind enum
 │
-├── codegen.py (220 lines)
+├── codegen.py (~240 lines)
 │   Hack VM code generator
-│   - Instruction emission
-│   - Memory segment management
-│   - Arithmetic and logical operations
-│   - Control flow (labels, jumps)
-│   - Function management
+│   - Instruction emission, memory segments, arithmetic and logic
+│   - Control flow (labels, jumps) and function management
 │
 ├── __init__.py
 │   Package initialization and exports
 │
+├── gui/  (jackc-gui: the compiler window, needs pygame; see gui.html)
+│   ├── main.py         command-line options; starts the picker or window
+│   ├── session.py      compiles every file on a background thread (no pygame)
+│   ├── window.py       the main window: layout, keys, drawing
+│   ├── annotate.py     diagnostics -> shaded lines and ^~~~ rows
+│   ├── syntax.py       Jack and VM syntax colouring (no pygame)
+│   ├── panel.py        STATUS / FILES / PROBLEMS / OUTPUT / SHORTCUTS boxes
+│   ├── file_picker.py  choose a .jack file or folder
+│   └── theme.py        colours and fonts (matches jackvm-py)
+│
 └── antlr_generated/
     └── grammar/
         ├── JackLexer.py (auto-generated)
-        │   Tokenizer for Jack language
         ├── JackParser.py (auto-generated)
-        │   Parser implementation
         ├── JackListener.py (auto-generated)
-        │   Base listener class
         ├── JackVisitor.py (auto-generated)
-        │   Base visitor class
         └── __init__.py
-            Package initialization
 </code></pre>
 
 <h3>Grammar Definition (`grammar/`)</h3>
@@ -157,32 +172,32 @@ examples/
 
 <pre><code class="language-">
 tests/
-└── test_compiler.py (180 lines)
-    Comprehensive unit test suite
-    
-    TestSymbolTable:
-    - test_define_and_lookup()
-    - test_class_scope()
-    - test_subroutine_scope()
-    - test_undefined_variable()
-    
-    TestCodeGenerator:
-    - test_push_pop_constant()
-    - test_arithmetic_operations()
-    - test_labels_and_jumps()
-    - test_function_declaration()
-    - test_subroutine_call()
-    - test_string_constant()
-    
-    Run: pytest -v
+├── conftest.py
+│   Uses SDL's "dummy" video driver, so GUI tests need no screen
+│
+├── test_compiler.py
+│   Symbol table, code generator, CLI and end-to-end golden-file tests
+│   (examples/*.jack must compile to tests/expected/*.vm exactly)
+│
+├── test_diagnostics.py
+│   Every error and warning: message, line and column
+│
+├── test_gui.py
+│   jackc-gui: sessions, syntax colours, panels, the window and picker
+│   (with a fake clock for the hold-Esc-to-quit rule)
+│
+└── fixtures/square/
+    The nand2tetris Square program: must compile with no diagnostics
+
+Run: pytest -v
 </code></pre>
 
 <h3>Build & Configuration</h3>
 
 <pre><code class="language-">
 ├── pyproject.toml
-│   Python package configuration (provides the `jackc` command)
-│   Run: pip install -e ".[dev]"
+│   Python package configuration (provides `jackc` and `jackc-gui`)
+│   Run: pip install -e ".[dev]"   (add ,gui for the window: ".[dev,gui]")
 │
 ├── .github/workflows/ci.yml
 │   GitHub Actions: tests + grammar drift check

@@ -145,3 +145,10 @@ final_test/
 
 # ANTLR tool cache
 .antlr/
+
+# direnv: .envrc is a personal per-machine setting; .direnv/ holds its venv
+.envrc
+.direnv/
+
+# Scratch files left by AI-assistant tooling
+tmp_rovo_*

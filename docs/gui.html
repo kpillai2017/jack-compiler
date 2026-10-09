@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Compiler Window (jackc-gui)</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; background-color: #f5f5f5; }
+        .container { max-width: 900px; margin: 0 auto; padding: 40px 20px; background-color: white; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); }
+        .header { border-bottom: 3px solid #007acc; padding-bottom: 20px; margin-bottom: 30px; }
+        .header h1 { color: #007acc; margin-bottom: 10px; }
+        .breadcrumb { margin-bottom: 20px; }
+        .breadcrumb a { color: #007acc; text-decoration: none; }
+        .breadcrumb a:hover { text-decoration: underline; }
+        h1 { font-size: 2.5em; color: #222; margin: 40px 0 20px 0; }
+        h1:first-child { margin-top: 0; }
+        h2 { font-size: 2em; color: #333; margin: 35px 0 15px 0; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        h3 { font-size: 1.5em; color: #444; margin: 25px 0 12px 0; }
+        h4, h5, h6 { color: #555; margin: 20px 0 10px 0; }
+        p { margin-bottom: 15px; line-height: 1.8; }
+        code { background-color: #f4f4f4; padding: 2px 6px; border-radius: 3px; font-family: 'Courier New', monospace; font-size: 0.9em; color: #c7254e; }
+        pre { background-color: #272822; color: #f8f8f2; padding: 15px; border-radius: 5px; overflow-x: auto; margin: 20px 0; line-height: 1.4; font-size: 0.95em; }
+        pre code { background-color: transparent; color: #f8f8f2; padding: 0; }
+        ul, ol { margin: 20px 0 20px 30px; }
+        li { margin-bottom: 8px; }
+        a { color: #007acc; text-decoration: none; border-bottom: 1px dotted #007acc; }
+        a:hover { background-color: #f0f7ff; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; vertical-align: top; }
+        th { background-color: #f0f0f0; font-weight: bold; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        .footer { margin-top: 50px; padding-top: 20px; border-top: 1px solid #eee; color: #999; font-size: 0.9em; text-align: center; }
+        strong { font-weight: 600; }
+        em { font-style: italic; }
+        .card { border-left: 4px solid #007acc; background: #f0f7ff; padding: 12px 16px; margin: 20px 0; border-radius: 4px; }
+        .card.tip { border-left-color: #28a745; background: #effaf2; }
+        .card.warn { border-left-color: #f0ad4e; background: #fff8e6; }
+        kbd { background: #f4f4f4; border: 1px solid #ccc; border-bottom-width: 2px; border-radius: 3px; padding: 1px 6px; font-family: 'Courier New', monospace; font-size: 0.9em; }
+        td:first-child code { white-space: nowrap; }
+        figure { margin: 25px 0; }
+        figure img { width: 100%; height: auto; border-radius: 6px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25); }
+        figcaption { color: #666; font-size: 0.9em; margin-top: 8px; text-align: center; }
+        .toc { background: #fafafa; border: 1px solid #eee; border-radius: 4px; padding: 12px 20px; margin: 20px 0; }
+        .toc ol { margin: 8px 0 0 20px; }
+        .toc li { margin-bottom: 2px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🖥️ The Compiler Window (<code>jackc-gui</code>)</h1>
+            <div class="breadcrumb">
+                <a href="index.html">← Back to Documentation Index</a>
+            </div>
+        </div>
+        <div class="content">
+
+<p><code>jackc-gui</code> is the same compiler as <code>jackc</code>, in a window.
+It compiles a <code>.jack</code> file or a whole folder and shows each Jack class
+<strong>next to the VM code it turns into</strong>. If there are mistakes, it
+marks them under the faulty line, the same way the compiler prints them.
+It's the quickest way to see how Jack becomes VM code, and to fix a program
+that won't compile.</p>
+
+<figure>
+    <img src="img/jackc-gui.png" alt="jackc-gui showing Square.jack on the left, its VM code on the right, and the STATUS, FILES, PROBLEMS and OUTPUT boxes">
+    <figcaption>The nand2tetris Square program: <code>Square.jack</code> on the left, the <code>Square.vm</code> it compiles to on the right.</figcaption>
+</figure>
+
+<div class="toc">
+<strong>On this page</strong>
+<ol>
+<li><a href="#install">Install and start it</a></li>
+<li><a href="#choose">Choose what to compile</a></li>
+<li><a href="#tour">A tour of the window</a></li>
+<li><a href="#errors">Find and fix mistakes</a></li>
+<li><a href="#files">Where the <code>.vm</code> files go</a></li>
+<li><a href="#keys">Keyboard and mouse</a></li>
+<li><a href="#quit">Quitting</a></li>
+<li><a href="#trouble">Troubleshooting</a></li>
+<li><a href="#inside">How it's built</a></li>
+</ol>
+</div>
+
+<h2 id="install">1. Install and start it</h2>
+<p>The window is drawn with <a href="https://www.pygame.org/">pygame</a>. The
+<code>[gui]</code> extra installs it next to the compiler:</p>
+<pre><code>git clone https://github.com/kpillai2017/jack-compiler.git
+cd jack-compiler
+pip install -e ".[gui]"              # jackc + jackc-gui + pygame
+</code></pre>
+<p>Then start it in one of these ways:</p>
+<pre><code>jackc-gui                            # choose a .jack file or folder in a window
+jackc-gui examples/                  # compile a folder straight away
+jackc-gui examples/Math.jack         # ...or one file
+jackc-gui -r projects/               # a whole tree, like jackc -r
+jackc-gui src/ -o bin/               # write the .vm files to bin/
+jackc-gui --no-write src/            # preview only: never write .vm files
+python -m jack_compiler.gui ...      # the same, without installing
+</code></pre>
+
+<table>
+<thead><tr><th>Option</th><th>What it does</th></tr></thead>
+<tbody>
+<tr><td><code>input</code></td><td>A <code>.jack</code> file, or a folder of them. Leave it out to choose in a window.</td></tr>
+<tr><td><code>--gui</code></td><td>Open the file picker even though a path was given, starting in that folder.</td></tr>
+<tr><td><code>-o</code>, <code>--output</code></td><td>Where to write the <code>.vm</code> file(s). Default: next to the sources, like <code>jackc</code>. Needs an input path.</td></tr>
+<tr><td><code>-r</code>, <code>--recursive</code></td><td>Compile <code>.jack</code> files in sub-folders too. The folder layout is kept under <code>-o</code>.</td></tr>
+<tr><td><code>--no-write</code></td><td>Compile and show the VM code, but don't write any files.</td></tr>
+<tr><td><code>--rows N</code></td><td>Lines of code shown in each pane (default 34). Use fewer on a small screen.</td></tr>
+<tr><td><code>--font-size PT</code></td><td>Text size (default 13).</td></tr>
+<tr><td><code>--no-panel</code></td><td>Start with the info boxes hidden (<kbd>Ctrl</kbd>+<kbd>D</kbd> shows them).</td></tr>
+<tr><td><code>--version</code></td><td>Print the version and exit.</td></tr>
+</tbody>
+</table>
+<p>When you close the window it prints a one-line summary, such as
+<code>Compiled 3 of 3 file(s); 0 failed.</code> The exit status is
+<code>1</code> if any file failed, the same as <code>jackc</code>.</p>
+
+<h2 id="choose">2. Choose what to compile</h2>
+<p>Without a path (or with <code>--gui</code>, or <kbd>Ctrl</kbd>+<kbd>O</kbd> in the
+window), a small file browser opens. It only lists folders and
+<code>.jack</code> files:</p>
+<pre><code>Choose a .jack file, or a folder of .jack files
+/Users/you/jack-compiler/examples
+-----------------------------------------------------------
+ &lt;-  .. (parent folder)
+ [+] Square/                              [compile 3 files]
+  *  HelloWorld.jack
+  *  Math.jack
+-----------------------------------------------------------
+ [ Compile this folder (5 files) ]   [ Cancel ]
+</code></pre>
+<ul>
+<li><strong>One file:</strong> click it, or select it and press <kbd>Enter</kbd>.</li>
+<li><strong>A whole program:</strong> in nand2tetris one folder is one program
+(one <code>.jack</code> file per class). Click <code>[compile N files]</code> next to
+the folder, or open the folder and press <strong>Compile this folder</strong>.</li>
+<li>Move with <kbd>↑</kbd> <kbd>↓</kbd> <kbd>PgUp</kbd> <kbd>PgDn</kbd>
+<kbd>Home</kbd> <kbd>End</kbd> or the mouse wheel. <kbd>Enter</kbd> or
+<kbd>→</kbd> opens a folder, <kbd>Backspace</kbd> or <kbd>←</kbd> goes up one
+level, and <kbd>Esc</kbd> cancels.</li>
+<li>With <code>-r</code>, a folder can be compiled when it has <code>.jack</code>
+files anywhere below it.</li>
+</ul>
+
+<h2 id="tour">3. A tour of the window</h2>
+<table>
+<thead><tr><th>Part</th><th>What it shows</th></tr></thead>
+<tbody>
+<tr><td><strong>File tabs</strong> (top)</td><td>One tab per <code>.jack</code> file. Files with errors have red tabs. Click a tab, or press <kbd>1</kbd>–<kbd>9</kbd>, to show that file.</td></tr>
+<tr><td><strong>JACK pane</strong> (left)</td><td>The source, with syntax colours and line numbers. Errors and warnings are drawn under the line they belong to.</td></tr>
+<tr><td><strong>VM pane</strong> (right)</td><td>The VM code the selected file compiles to. A file with errors has no VM code, so this pane points you to PROBLEMS.</td></tr>
+<tr><td><strong>STATUS</strong></td><td>Whether it's compiling, finished or failed, what was compiled, whether files are written (<em>preview only</em> with <code>--no-write</code>), and how long it took.</td></tr>
+<tr><td><strong>FILES</strong></td><td>Every file with <code>ok</code> or <code>ERR</code>. Click a row to show that file.</td></tr>
+<tr><td><strong>PROBLEMS</strong></td><td>All errors (red) and warnings (amber) in the selected file, as <code>line:column: message</code>.</td></tr>
+<tr><td><strong>OUTPUT</strong></td><td>The <code>.vm</code> file for the selected tab, its size in VM lines and functions, and whether it was saved.</td></tr>
+<tr><td><strong>SHORTCUTS</strong> (bottom)</td><td>A reminder of the keys. See <a href="#keys">Keyboard and mouse</a>.</td></tr>
+</tbody>
+</table>
+<div class="card tip">
+<strong>Learning tip:</strong> put a Jack line and its VM code side by side.
+<code>let x = Ax;</code> in a constructor becomes <code>push argument 0</code> then
+<code>pop this 0</code>, because <code>x</code> is field 0 and <code>Ax</code> is
+argument 0. Every <code>function</code>, <code>method</code> and
+<code>constructor</code> starts a new <code>function Class.name nLocals</code>
+line in the VM pane, so it's easy to find the code for each one. For more
+side-by-side examples see <a href="examples.html">Examples</a>, and for
+the theory see <a href="how-it-works.html">How It Works</a>.
+</div>
+
+<h2 id="errors">4. Find and fix mistakes</h2>
+<figure>
+    <img src="img/jackc-gui-errors.png" alt="jackc-gui showing an undeclared-variable error under line 44 of SquareGame.jack, with a 'did you mean' hint and an unused-variable warning in PROBLEMS">
+    <figcaption>A typo (<code>direciton</code>) and an unused variable. The error is marked under the exact word, with a hint.</figcaption>
+</figure>
+<p>When compiling finishes, the window <strong>jumps to the first error</strong>
+by itself. Each problem is shown the way <code>jackc</code> prints it:</p>
+<ul>
+<li>The line is shaded <strong style="color:#c0392b">red</strong> for an error or
+<strong style="color:#b9770e">amber</strong> for a warning.</li>
+<li>A <code>^~~~</code> marker under the line points at the exact word, with the
+message below it.</li>
+<li>Any <code>help:</code> or <code>note:</code> lines come after that, for example
+<code>= help: did you mean 'direction'?</code></li>
+</ul>
+<p>Then:</p>
+<ol>
+<li>Press <kbd>Ctrl</kbd>+<kbd>E</kbd> to jump to the next problem. It moves on to
+the next file when this one has no more.</li>
+<li>Fix the code in <strong>your own editor</strong>. The window is a viewer, not an
+editor.</li>
+<li>Press <kbd>Ctrl</kbd>+<kbd>R</kbd> to read the files again and recompile.</li>
+</ol>
+<p>Press <kbd>Ctrl</kbd>+<kbd>I</kbd> to hide the messages under the code (the
+shading stays) and see the source on its own. Press it again to bring them back.</p>
+<div class="card">
+<strong>Errors or warnings?</strong> An <em>error</em> (such as a misspelt name, a
+missing <code>return</code>, or calling a method with the wrong number of arguments)
+stops that file from compiling, so it gets no <code>.vm</code> file. A
+<em>warning</em> (such as an unused variable or unreachable code) is only advice:
+the file still compiles. The complete list of checks is in the
+<a href="error-detection.html">Error Detection guide</a>.
+</div>
+
+<h2 id="files">5. Where the <code>.vm</code> files go</h2>
+<p>It follows the same rules as <code>jackc</code>, so you can switch between the two:</p>
+<ul>
+<li>By default each <code>Foo.jack</code> becomes <code>Foo.vm</code> in the same folder.</li>
+<li>With <code>-o</code>, the files go to that folder instead. With
+<code>-r</code>, the sub-folder layout is kept.</li>
+<li>A file with errors gets <strong>no new</strong> <code>.vm</code> file. A
+<code>.vm</code> file from an earlier, working compile is left as it was, so
+run <code>jackc --clean</code> if you don't want the VM Emulator to load it.</li>
+<li>With <code>--no-write</code> nothing is written at all. STATUS says
+<em>preview only</em>, and OUTPUT says <em>not saved</em>.</li>
+</ul>
+
+<h2 id="keys">6. Keyboard and mouse</h2>
+<table>
+<thead><tr><th>Key</th><th>Action</th></tr></thead>
+<tbody>
+<tr><td><kbd>↑</kbd> <kbd>↓</kbd> <kbd>PgUp</kbd> <kbd>PgDn</kbd> <kbd>Home</kbd> <kbd>End</kbd>, mouse wheel</td><td>Scroll the code</td></tr>
+<tr><td><kbd>Tab</kbd>, or click a pane</td><td>Choose which pane (Jack or VM) the scroll keys move</td></tr>
+<tr><td>Click a tab or a FILES row, <kbd>Ctrl</kbd>+<kbd>Tab</kbd> / <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Tab</kbd>, <kbd>Ctrl</kbd>+<kbd>PgDn</kbd> / <kbd>Ctrl</kbd>+<kbd>PgUp</kbd>, <kbd>←</kbd> <kbd>→</kbd>, <kbd>1</kbd>–<kbd>9</kbd>, wheel over the tabs</td><td>Switch file: both panes show that <code>.jack</code> file and its VM code</td></tr>
+<tr><td><kbd>Ctrl</kbd>+<kbd>E</kbd></td><td>Jump to the next error or warning</td></tr>
+<tr><td><kbd>Ctrl</kbd>+<kbd>I</kbd></td><td>Show or hide the messages under the code</td></tr>
+<tr><td><kbd>Ctrl</kbd>+<kbd>R</kbd></td><td>Recompile (reads the files again)</td></tr>
+<tr><td><kbd>Ctrl</kbd>+<kbd>O</kbd></td><td>Open another file or folder</td></tr>
+<tr><td><kbd>Ctrl</kbd>+<kbd>D</kbd></td><td>Show or hide the info boxes</td></tr>
+<tr><td><kbd>Ctrl</kbd>+<kbd>Q</kbd></td><td>Quit</td></tr>
+<tr><td><kbd>Esc</kbd></td><td>Quit (see below)</td></tr>
+</tbody>
+</table>
+
+<h2 id="quit">7. Quitting</h2>
+<p><kbd>Esc</kbd> follows the same rules as the jackvm-py player, so a key pressed
+by mistake can't throw away a long build:</p>
+<ul>
+<li><strong>While compiling:</strong> <em>hold</em> <kbd>Esc</kbd> for one second.
+A progress bar appears after a quarter of a second. Let go early to carry on.</li>
+<li><strong>Once it has finished:</strong> a single press quits. For a few seconds
+the window shows <em>Compilation finished: press Esc to quit</em>.</li>
+<li><kbd>Ctrl</kbd>+<kbd>Q</kbd> or closing the window always quits straight away.</li>
+<li>In the file picker, <kbd>Esc</kbd> cancels.</li>
+</ul>
+
+<h2 id="trouble">8. Troubleshooting</h2>
+<table>
+<thead><tr><th>You see</th><th>What to do</th></tr></thead>
+<tbody>
+<tr><td><code>jackc-gui needs pygame</code></td><td>Install the extra: <code>pip install -e ".[gui]"</code> (or <code>pip install pygame</code>).</td></tr>
+<tr><td><code>jackc-gui: command not found</code></td><td>Activate the virtual environment you installed into, or run <code>python -m jack_compiler.gui</code>.</td></tr>
+<tr><td><code>No .jack files found in ...</code></td><td>The folder has no <code>.jack</code> files directly inside it. Add <code>-r</code> to look in sub-folders.</td></tr>
+<tr><td>The window is taller than the screen</td><td>Show fewer lines, use smaller text, or both: <code>--rows 20 --font-size 11</code>. <kbd>Ctrl</kbd>+<kbd>D</kbd> hides the info boxes to make it narrower.</td></tr>
+<tr><td>Your change doesn't show</td><td>The window doesn't watch the files. Save in your editor, then press <kbd>Ctrl</kbd>+<kbd>R</kbd>.</td></tr>
+<tr><td>A file you fixed still has no <code>.vm</code> file</td><td>Check STATUS for <em>preview only</em>: you started with <code>--no-write</code>.</td></tr>
+</tbody>
+</table>
+
+<h2 id="inside">9. How it's built</h2>
+<p>The window calls the same compiler as <code>jackc</code>. Nothing is
+compiled differently, so the VM code and messages are identical. The code is
+in <a href="https://github.com/kpillai2017/jack-compiler/tree/main/jack_compiler/gui"><code>jack_compiler/gui/</code></a>,
+and the parts that don't draw anything can be tested without a window:</p>
+<table>
+<thead><tr><th>Module</th><th>Job</th></tr></thead>
+<tbody>
+<tr><td><code>main.py</code></td><td>Command-line options, and starting the picker or the window</td></tr>
+<tr><td><code>session.py</code></td><td>Compiles every file on a background thread and keeps a result per file (no pygame)</td></tr>
+<tr><td><code>window.py</code></td><td>The main window: layout, keys, drawing</td></tr>
+<tr><td><code>annotate.py</code></td><td>Turns diagnostics into the shaded lines and <code>^~~~</code> rows under the code</td></tr>
+<tr><td><code>syntax.py</code></td><td>Syntax colouring for Jack and VM code (no pygame)</td></tr>
+<tr><td><code>panel.py</code></td><td>The STATUS / FILES / PROBLEMS / OUTPUT / SHORTCUTS boxes</td></tr>
+<tr><td><code>file_picker.py</code></td><td>The file browser</td></tr>
+<tr><td><code>theme.py</code></td><td>Colours and fonts, matching the jackvm-py player</td></tr>
+</tbody>
+</table>
+<p>The tests in <code>tests/test_gui.py</code> use SDL's <em>dummy</em> video
+driver, so they draw into memory and run on CI machines with no screen. A fake
+clock lets them "hold <kbd>Esc</kbd> for one second" without waiting.</p>
+
+        </div>
+        <div class="footer">
+            <p>Jack Compiler documentation · <a href="https://github.com/kpillai2017/jack-compiler">jack-compiler</a> · <a href="https://github.com/kpillai2017/jackvm-py">jackvm-py</a></p>
+        </div>
+    </div>
+</body>
+</html>
