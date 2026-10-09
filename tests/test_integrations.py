@@ -62,9 +62,10 @@ def test_nothing_found_returns_none():
 
 
 def test_entry_point_commands_really_run():
-    command = entry_point_command("calendar:main", "cal")  # calendar.main() prints a calendar
-    done = subprocess.run([*command, "2026", "10"], capture_output=True, text=True)
-    assert done.returncode == 0 and "October" in done.stdout
+    # json.tool.main() takes no parameters and reads sys.argv on every Python from 3.8
+    command = entry_point_command("json.tool:main", "jsontool")
+    done = subprocess.run([*command, "--sort-keys"], input='{"b": 1, "a": 2}', capture_output=True, text=True)
+    assert done.returncode == 0 and done.stdout.index('"a"') < done.stdout.index('"b"')
 
 
 def test_this_package_advertises_itself_for_jackvm_py_to_find():
