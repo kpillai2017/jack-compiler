@@ -34,6 +34,13 @@ gui = ["pygame>=2.6.1"]
 jackc = "jack_compiler.compiler:main"
 jackc-gui = "jack_compiler.gui.main:main"
 
+# Lets jackvm-py (https://github.com/kpillai2017/jackvm-py) find this compiler
+# when both are installed in the same Python environment, so it can compile
+# .jack folders and open them in jackc-gui. See jack_compiler/integrations.py.
+[project.entry-points.jack_tools]
+compiler = "jack_compiler.compiler:main"
+compiler-gui = "jack_compiler.gui.main:main"
+
 [project.urls]
 Homepage = "https://github.com/kpillai2017/jack-compiler"
 Repository = "https://github.com/kpillai2017/jack-compiler"

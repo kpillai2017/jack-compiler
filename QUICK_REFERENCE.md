@@ -36,6 +36,7 @@ jackc-gui --no-write src_dir/    # preview only
 | Ctrl+I | Show / hide messages under the code |
 | Ctrl+Tab, 1–9, click a tab | Switch file |
 | Tab | Switch pane (Jack / VM) |
+| Ctrl+J | Run the program in JackVM ([jackvm-py](https://github.com/kpillai2017/jackvm-py), if installed) |
 | Ctrl+O | Open something else |
 | Ctrl+D | Show / hide info panel |
 | Ctrl+Q, or Esc (hold 1 s while compiling) | Quit |

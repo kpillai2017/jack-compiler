@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Using the Compiler with JackVM</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; background-color: #f5f5f5; }
+        .container { max-width: 900px; margin: 0 auto; padding: 40px 20px; background-color: white; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); }
+        .header { border-bottom: 3px solid #007acc; padding-bottom: 20px; margin-bottom: 30px; }
+        .header h1 { color: #007acc; margin-bottom: 10px; }
+        .breadcrumb { margin-bottom: 20px; }
+        .breadcrumb a { color: #007acc; text-decoration: none; }
+        .breadcrumb a:hover { text-decoration: underline; }
+        h1 { font-size: 2.5em; color: #222; margin: 40px 0 20px 0; }
+        h1:first-child { margin-top: 0; }
+        h2 { font-size: 2em; color: #333; margin: 35px 0 15px 0; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        h3 { font-size: 1.5em; color: #444; margin: 25px 0 12px 0; }
+        h4, h5, h6 { color: #555; margin: 20px 0 10px 0; }
+        p { margin-bottom: 15px; line-height: 1.8; }
+        code { background-color: #f4f4f4; padding: 2px 6px; border-radius: 3px; font-family: 'Courier New', monospace; font-size: 0.9em; color: #c7254e; }
+        pre { background-color: #272822; color: #f8f8f2; padding: 15px; border-radius: 5px; overflow-x: auto; margin: 20px 0; line-height: 1.4; font-size: 0.95em; }
+        pre code { background-color: transparent; color: #f8f8f2; padding: 0; }
+        ul { margin: 20px 0 20px 30px; }
+        li { margin-bottom: 8px; }
+        a { color: #007acc; text-decoration: none; border-bottom: 1px dotted #007acc; }
+        a:hover { background-color: #f0f7ff; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: #f0f0f0; font-weight: bold; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        blockquote { border-left: 4px solid #f0ad4e; background: #fff8e6; margin: 20px 0; padding: 4px 16px; }
+        .footer { margin-top: 50px; padding-top: 20px; border-top: 1px solid #eee; color: #999; font-size: 0.9em; text-align: center; }
+        strong { font-weight: 600; }
+        em { font-style: italic; }
+            .card { border-left: 4px solid #007acc; background: #f0f7ff; padding: 12px 16px; margin: 20px 0; border-radius: 4px; }
+        .card.tip { border-left-color: #28a745; background: #effaf2; }
+        kbd { background: #f4f4f4; border: 1px solid #ccc; border-bottom-width: 2px; border-radius: 3px; padding: 1px 6px; font-family: 'Courier New', monospace; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎮 Using the Compiler with JackVM</h1>
+            <div class="breadcrumb">
+                <a href="index.html">← Back to Documentation Index</a>
+            </div>
+        </div>
+        <div class="content">
+
+<p>This compiler turns Jack into VM code. To <em>run</em> that code you need a
+virtual machine. <a href="https://github.com/kpillai2017/jackvm-py"><strong>jackvm-py</strong></a>
+is a companion project: a Jack VM written in Python, with a game window and a
+live memory debugger. The two projects are in <strong>separate GitHub
+repositories</strong>. You clone and install them separately, and neither one
+needs the other. When both are installed, each adds a shortcut to the other.</p>
+
+<div class="card">
+<strong>In one sentence:</strong> press <kbd>Ctrl</kbd>+<kbd>J</kbd> in the
+compiler's window to play your program in JackVM, or point JackVM straight at
+a folder of <code>.jack</code> files and it compiles them for you.
+</div>
+
+<h2>1. Set it up</h2>
+
+<h3>The easy way: one Python environment</h3>
+<p>Clone both repositories side by side and install both into the same
+virtual environment. They then find each other automatically, with no
+configuration:</p>
+<pre><code>git clone https://github.com/kpillai2017/jack-compiler.git
+git clone https://github.com/kpillai2017/jackvm-py.git
+python3 -m venv .venv
+source .venv/bin/activate            # Windows: .venv\Scripts\activate
+pip install -e "./jack-compiler[gui]" -e ./jackvm-py
+</code></pre>
+<p>Check it worked:</p>
+<pre><code>jackc --version      # jackc 1.x
+jackvm --version     # jackvm 0.1.0
+</code></pre>
+
+<h3>Already have them in separate environments?</h3>
+<p>That works too. Each app also looks for the other on your <code>PATH</code>,
+or you can point to it with an environment variable:</p>
+<pre><code># tell the compiler where JackVM is
+export JACKVM="$HOME/src/jackvm-py/.venv/bin/jackvm"
+
+# tell JackVM where the compiler is
+export JACKC="$HOME/src/jack-compiler/.venv/bin/jackc"
+export JACKC_GUI="$HOME/src/jack-compiler/.venv/bin/jackc-gui"
+</code></pre>
+
+<h2>2. From the compiler to JackVM</h2>
+<p>Open your program in the <a href="gui.html">compiler's window</a> and press <kbd>Ctrl</kbd>+<kbd>J</kbd>:</p>
+<pre><code>jackc-gui projects/09/Square/
+</code></pre>
+<ul>
+<li><strong>What runs:</strong> every <code>.jack</code> file in the <em>same
+folder</em> as the selected tab. In nand2tetris one folder is one program. If
+you compiled a whole tree with <code>-r</code>, you run the program you're
+looking at.</li>
+<li><strong>Only working code runs.</strong> If any file in that folder has
+an error, Ctrl+J says <code>Fix the errors in Main.jack first</code>. Press
+<kbd>Ctrl</kbd>+<kbd>E</kbd> to jump to it.</li>
+<li><strong>Nothing is written next to your sources.</strong> The VM code goes
+to a fresh temporary folder, so it works with <code>--no-write</code> too.
+JackVM brings its own Jack OS (Math, Screen, Output, ...), so only your classes
+are needed.</li>
+<li><strong>Edit, then run again.</strong> Change your code in any editor,
+press <kbd>Ctrl</kbd>+<kbd>R</kbd> to recompile and <kbd>Ctrl</kbd>+<kbd>J</kbd>
+to run. The old JackVM window closes and a new one opens.</li>
+<li><strong>Crashes are reported.</strong> If JackVM stops with an error, its
+last message appears at the bottom of the compiler's window.</li>
+</ul>
+
+<h2>3. From JackVM to the compiler</h2>
+<h3>Run Jack source directly</h3>
+<pre><code>jackvm projects/09/Square/            # compiles the .jack files, then runs them
+jackvm projects/09/Square/Main.jack   # one file means its whole folder
+</code></pre>
+<p>Without a path, <code>jackvm</code> opens its file picker. When the
+compiler is installed, the picker also lists <code>.jack</code> files and
+offers <code>[compile+play N .jack]</code> next to folders of Jack source. If a
+folder has both <code>.jack</code> and <code>.vm</code> files, the
+<code>.jack</code> files win, because they're the ones you've been editing.</p>
+
+<h3>When the code has a mistake</h3>
+<p>The compiler's message is shown, and you can jump straight into the
+compiler's window:</p>
+<pre><code>Can't compile Square/: Main.jack:3:7: error: 'x' is not declared - Ctrl+J: open in compiler
+</code></pre>
+<p>Pressing <kbd>Ctrl</kbd>+<kbd>J</kbd> opens <code>jackc-gui</code> on that
+folder, with every mistake marked under the faulty line. Fix it there and
+press <kbd>Ctrl</kbd>+<kbd>J</kbd> again to run it back in JackVM.</p>
+<p>While a program is running, <kbd>Ctrl</kbd>+<kbd>J</kbd> in JackVM also
+opens its sources in the compiler.</p>
+
+<h2>4. How each app finds the other</h2>
+<p>Both apps use the same small module, <code>integrations.py</code>. An
+identical copy lives in each repository, and a test checks that the copies
+match. It tries three things in order and uses the first that works:</p>
+<table>
+<thead><tr><th>#</th><th>Where it looks</th><th>Example</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>An <strong>environment variable</strong>: <code>JACKVM</code>, <code>JACKC</code>, <code>JACKC_GUI</code>. Set it to <code>off</code> to hide the shortcut.</td><td><code>JACKVM="python3 -m jackvm"</code></td></tr>
+<tr><td>2</td><td>The <strong>same Python environment</strong>: both packages register in the <code>jack_tools</code> entry-point group in their <code>pyproject.toml</code>.</td><td><code>pip install -e ./jackvm-py</code></td></tr>
+<tr><td>3</td><td>The <strong><code>PATH</code></strong>: a <code>jackvm</code> / <code>jackc</code> / <code>jackc-gui</code> command installed anywhere.</td><td><code>pipx install ./jackvm-py</code></td></tr>
+</tbody>
+</table>
+<p>If nothing is found, the shortcut is still listed, as <code>Ctrl+J JackVM
+(not installed)</code>. Pressing it shows the command to install the missing
+app.</p>
+
+<h3>Why not just import each other?</h3>
+<ul>
+<li><strong>Independent repositories.</strong> The apps only call each other's
+<em>command line</em> (<code>jackvm &lt;folder&gt;</code>,
+<code>jackc &lt;folder&gt; -o &lt;folder&gt;</code>,
+<code>jackc-gui &lt;folder&gt;</code>). Either one can change its internals, or be
+an older or newer version, and they still work together.</li>
+<li><strong>One window per program.</strong> Both are pygame apps, and pygame
+supports a single window per process. Running JackVM as its own process gives
+it its own window, and a crash there can't take the compiler down.</li>
+<li><strong>No hard dependency.</strong> Neither <code>pyproject.toml</code>
+lists the other, so each repository installs, tests and runs on its own.</li>
+</ul>
+
+<pre><code>  jackc-gui ──Ctrl+J──▶  jackvm &lt;temp folder of .vm files&gt;
+     ▲                                │
+     │                        (Jack source given?)
+     │                                ▼
+     └──Ctrl+J── jackc-gui &lt;folder&gt;   jackc &lt;folder&gt; -o &lt;temp&gt;  ──▶ play
+</code></pre>
+
+<h2>5. Troubleshooting</h2>
+<table>
+<thead><tr><th>You see</th><th>Try</th></tr></thead>
+<tbody>
+<tr><td><code>Ctrl+J JackVM (not installed)</code></td><td>Install jackvm-py into the same environment (<code>pip install -e ./jackvm-py</code>), or set <code>JACKVM</code> to its <code>jackvm</code> command. Restart <code>jackc-gui</code>: the lookup happens when the window opens.</td></tr>
+<tr><td>It worked, then stopped after you moved a folder</td><td>Editable installs remember the old location. Run <code>pip install -e</code> again from the new place. Stale installs are skipped, and the lookup falls back to the <code>PATH</code>.</td></tr>
+<tr><td><code>Fix the errors in X.jack first</code></td><td>Another file in the same folder doesn't compile. Its tab is red, and <kbd>Ctrl</kbd>+<kbd>E</kbd> jumps to the problem.</td></tr>
+<tr><td><code>JackVM stopped (exit 1): ...</code></td><td>The program loaded but crashed, or JackVM couldn't load it. Run it from a terminal with <code>jackvm &lt;folder&gt;</code> to see the full message.</td></tr>
+<tr><td>JackVM plays old code</td><td>Press <kbd>Ctrl</kbd>+<kbd>R</kbd> in the compiler first. Ctrl+J runs the last compile, not unsaved edits.</td></tr>
+<tr><td>Windows: a path in <code>JACKVM</code> with spaces</td><td>Put it in double quotes: <code>set JACKVM="C:\Program Files\jackvm\jackvm.exe"</code></td></tr>
+</tbody>
+</table>
+
+<h2>See also</h2>
+<ul>
+<li><a href="https://github.com/kpillai2017/jackvm-py#running-jack-source-directly-with-jack-compiler">jackvm-py README: Running Jack source directly</a></li>
+<li><a href="https://github.com/kpillai2017/jack-compiler#graphical-interface-jackc-gui">jack-compiler README: the <code>jackc-gui</code> window and its shortcuts</a></li>
+<li><a href="getting-started.html">Getting Started</a>: installing the compiler on its own</li>
+</ul>
+
+        </div>
+        <div class="footer">
+            <p>Jack Compiler documentation · <a href="https://github.com/kpillai2017/jack-compiler">jack-compiler</a> · <a href="https://github.com/kpillai2017/jackvm-py">jackvm-py</a></p>
+        </div>
+    </div>
+</body>
+</html>

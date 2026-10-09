@@ -103,6 +103,10 @@ jack_compiler/
 │   - Instruction emission, memory segments, arithmetic and logic
 │   - Control flow (labels, jumps) and function management
 │
+├── integrations.py
+│   Finds jackvm-py (env var -> same Python environment -> PATH);
+│   an identical copy lives in jackvm-py (tests/test_shared_files.py checks)
+│
 ├── __init__.py
 │   Package initialization and exports
 │
@@ -114,6 +118,7 @@ jack_compiler/
 │   ├── syntax.py       Jack and VM syntax colouring (no pygame)
 │   ├── panel.py        STATUS / FILES / PROBLEMS / OUTPUT / SHORTCUTS boxes
 │   ├── file_picker.py  choose a .jack file or folder
+│   ├── run_in_vm.py    Ctrl+J: compile to a temp folder and start JackVM
 │   └── theme.py        colours and fonts (matches jackvm-py)
 │
 └── antlr_generated/
@@ -185,6 +190,12 @@ tests/
 ├── test_gui.py
 │   jackc-gui: sessions, syntax colours, panels, the window and picker
 │   (with a fake clock for the hold-Esc-to-quit rule)
+│
+├── test_integrations.py
+│   Finding JackVM, and the Ctrl+J launcher (with a fake VM)
+│
+├── test_shared_files.py
+│   integrations.py must match the copy in jackvm-py
 │
 └── fixtures/square/
     The nand2tetris Square program: must compile with no diagnostics

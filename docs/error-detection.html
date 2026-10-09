@@ -45,14 +45,14 @@
             </div>
         </div>
         <div class="content">
-<h1>Error Detection &amp; Handling Guide</h1>
-<h2>Overview</h2>
+<h1 id="error-detection-handling-guide">Error Detection &amp; Handling Guide</h1>
+<h2 id="overview">Overview</h2>
 <p><code>jackc</code> checks every file it compiles and reports problems clearly — per file,
 in a final summary, and through its exit status — so scripts, Make and CI can
 rely on it. This applies to single files, directories and recursive (<code>-r</code>)
 builds alike.</p>
-<h2>How Errors Are Detected</h2>
-<h3>1. Input checks (before compiling)</h3>
+<h2 id="how-errors-are-detected">How Errors Are Detected</h2>
+<h3 id="1-input-checks-before-compiling">1. Input checks (before compiling)</h3>
 <ul>
 <li>The input path must exist, otherwise: <code>✗ ERROR: Input path not found: &lt;path&gt;</code></li>
 <li>A directory must contain <code>.jack</code> files (searching sub-directories only with <code>-r</code>),
@@ -60,7 +60,7 @@ builds alike.</p>
 <li>Invalid option combinations are rejected, e.g.
   <code>jackc: error: --recursive requires a directory as input</code></li>
 </ul>
-<h3>2. Lexical and syntax errors (while parsing)</h3>
+<h3 id="2-lexical-and-syntax-errors-while-parsing">2. Lexical and syntax errors (while parsing)</h3>
 <p>The ANTLR4 lexer and parser report every problem they find in a file — invalid
 characters, unterminated strings, missing or unexpected tokens. Their raw
 messages are rewritten in plain English, and each one is printed the way GCC,
@@ -75,7 +75,7 @@ to the location. A forgotten <code>;</code>, <code>)</code> or <code>]</code> is
 token it should follow</strong>, where it was forgotten, not at the start of the next
 line. A bad character or unterminated string is reported once; the knock-on
 parser errors it causes on the same line are dropped.</p>
-<h3>3. Semantic errors and warnings (after parsing, before generating code)</h3>
+<h3 id="3-semantic-errors-and-warnings-after-parsing-before-generating-code">3. Semantic errors and warnings (after parsing, before generating code)</h3>
 <p>A file can be grammatically fine and still make no sense. A semantic pass
 (<code>jack_compiler/checker.py</code>) checks every file before any VM code is generated.</p>
 <p><strong>Errors</strong> stop the file from being compiled:</p>
@@ -190,15 +190,15 @@ parser errors it causes on the same line are dropped.</p>
 separately.</p>
 <p>Internal compiler bugs are reported as <code>✗ COMPILATION ERROR</code>; add <code>-v</code> for a
 Python traceback to include in a bug report.</p>
-<h3>4. Reporting (after compiling)</h3>
+<h3 id="4-reporting-after-compiling">4. Reporting (after compiling)</h3>
 <ul>
 <li>Every file is attempted — one failure does not stop the build</li>
 <li>A summary shows compiled / failed / total counts and lists each failed file</li>
 <li>No <code>.vm</code> file is written for a file that fails</li>
 <li>The exit status is non-zero if anything failed</li>
 </ul>
-<h2>How You'll Know If There Are Errors</h2>
-<h3>Per-file result</h3>
+<h2 id="how-youll-know-if-there-are-errors">How You'll Know If There Are Errors</h2>
+<h3 id="per-file-result">Per-file result</h3>
 <pre><code>[2/4] ✗ COMPILATION FAILED: src/game/Broken.jack
 src/game/Broken.jack:3:17: error: expected an expression, found ';'
  3 |         let x = ;
@@ -220,7 +220,7 @@ src/Main.jack:3:20: warning: unused variable 'y'
 <p>On a terminal, errors are red, warnings yellow, notes cyan and the <code>^~~~</code>
 marker green, as in GCC. Colour is off when output is redirected or
 <code>NO_COLOR</code> is set.</p>
-<h3>Summary</h3>
+<h3 id="summary">Summary</h3>
 <p><strong>All files compiled:</strong></p>
 <pre><code>────────────────────────────────────────────────────────────
 Compiled: 3  Failed: 0  Total: 3
@@ -234,7 +234,7 @@ Compiled: 3  Failed: 1  Total: 4
   ✗ src/game/Broken.jack
 ════════════════════════════════════════════════════════════
 </code></pre>
-<h3>Exit status</h3>
+<h3 id="exit-status">Exit status</h3>
 <table>
 <thead>
 <tr>
@@ -260,7 +260,7 @@ Compiled: 3  Failed: 1  Total: 4
 <pre><code class="language-bash">jackc -r src/
 echo $?        # 0 = success, non-zero = failure
 </code></pre>
-<h2>Types of Errors</h2>
+<h2 id="types-of-errors">Types of Errors</h2>
 <table>
 <thead>
 <tr>
@@ -307,14 +307,14 @@ echo $?        # 0 = success, non-zero = failure
 </tr>
 </tbody>
 </table>
-<h3>What is <em>not</em> detected</h3>
+<h3 id="what-is-not-detected">What is <em>not</em> detected</h3>
 <p>Jack is weakly typed, so type mismatches (<code>let x = "text";</code> for an <code>int x</code>)
 are not errors. Calls into other classes aren't checked either: they are
 compiled separately, so a wrong name or argument count there shows up when
 the program runs in the VM.</p>
-<h2>Common Jack Errors</h2>
+<h2 id="common-jack-errors">Common Jack Errors</h2>
 <p>All messages below are real <code>jackc</code> output.</p>
-<h3>Missing semicolon</h3>
+<h3 id="missing-semicolon">Missing semicolon</h3>
 <pre><code class="language-jack">do Output.printInt(1)
 return;
 </code></pre>
@@ -323,7 +323,7 @@ return;
    |                              ^
    = help: every statement and declaration ends with ';'
 </code></pre>
-<h3>Missing parentheses around a condition</h3>
+<h3 id="missing-parentheses-around-a-condition">Missing parentheses around a condition</h3>
 <pre><code class="language-jack">if x { let x = 1; }
 </code></pre>
 <pre><code>errs/IfNoParens.jack:4:11: error: expected '(' after 'if'
@@ -333,7 +333,7 @@ errs/IfNoParens.jack:4:13: error: expected ')' after 'x'
  4 |         if x { let x = 1; }
    |             ^
 </code></pre>
-<h3>Unclosed class or subroutine body</h3>
+<h3 id="unclosed-class-or-subroutine-body">Unclosed class or subroutine body</h3>
 <pre><code>errs/Unclosed.jack:4:6: error: unexpected end of file: expected '}' or a subroutine declaration
  4 |     }
    |      ^
@@ -342,24 +342,24 @@ errs/Unclosed.jack:1:16: note: this '{' is never closed
  1 | class Unclosed {
    |                ^
 </code></pre>
-<h3>Keyword used as a name</h3>
+<h3 id="keyword-used-as-a-name">Keyword used as a name</h3>
 <pre><code>errs/KeywordName.jack:4:17: error: expected a name, found 'class'
  4 |         var int class;
    |                 ^~~~~
 </code></pre>
-<h3>Unterminated string</h3>
+<h3 id="unterminated-string">Unterminated string</h3>
 <pre><code>errs/BadString.jack:4:31: error: unterminated string
  4 |         do Output.printString(&quot;oops);
    |                               ^~~~~~~
    = help: a string must end with '&quot;' on the same line
 </code></pre>
-<h3>Undeclared variable (with a suggestion)</h3>
+<h3 id="undeclared-variable-with-a-suggestion">Undeclared variable (with a suggestion)</h3>
 <pre><code>errs/Sem.jack:14:13: error: 'cuont' is not declared
  14 |         let cuont = 1;
     |             ^~~~~
     = help: did you mean 'count'?
 </code></pre>
-<h3>Declared twice</h3>
+<h3 id="declared-twice">Declared twice</h3>
 <pre><code>errs/Sem.jack:12:17: error: 'x' is already declared in this subroutine
  12 |         var int x;
     |                 ^
@@ -367,13 +367,13 @@ errs/Sem.jack:11:17: note: 'x' was first declared here
  11 |         var int x, y;
     |                 ^
 </code></pre>
-<h3>Calling a method from a function</h3>
+<h3 id="calling-a-method-from-a-function">Calling a method from a function</h3>
 <pre><code>errs/Calls.jack:4:12: error: can't call method 'draw' from function 'main'
  4 |         do draw(5);
    |            ^~~~
    = help: a function has no object; call it on one, e.g. 'obj.draw(...)'
 </code></pre>
-<h3>Wrong number of arguments</h3>
+<h3 id="wrong-number-of-arguments">Wrong number of arguments</h3>
 <pre><code>errs/Sem.jack:18:16: error: 'helper' takes 1 argument but 2 were given
  18 |         do Sem.helper(1, 2);
     |                ^~~~~~
@@ -381,16 +381,16 @@ errs/Sem.jack:27:18: note: 'helper' is declared here
  27 |     function int helper(int a) {
     |                  ^~~~~~
 </code></pre>
-<h3>Missing return</h3>
+<h3 id="missing-return">Missing return</h3>
 <pre><code>errs/Sem.jack:29:5: error: function 'helper' can reach its end without a 'return'
  29 |     }
     |     ^
     = help: every Jack subroutine must end with 'return' (use 'return;' in a void one)
 </code></pre>
-<h3>Empty file</h3>
+<h3 id="empty-file">Empty file</h3>
 <pre><code>errs/Missing.jack:1:1: error: unexpected end of file: expected 'class'
 </code></pre>
-<h2>Troubleshooting Errors</h2>
+<h2 id="troubleshooting-errors">Troubleshooting Errors</h2>
 <ol>
 <li><strong>Read the first error for each file first.</strong> Later errors are often caused by it.</li>
 <li><strong>Follow the <code>help:</code> and <code>note:</code> lines</strong>: they point at the fix, or at the other place involved (e.g. the first declaration).</li>
@@ -400,28 +400,28 @@ errs/Sem.jack:27:18: note: 'helper' is declared here
 <li><strong>Use <code>-v</code></strong> if you see <code>✗ COMPILATION ERROR</code> with an unexpected message, and include the traceback in a bug report.</li>
 <li><strong>Use <code>jackc-gui</code></strong> to work through many errors: it opens on the first one, Ctrl+E jumps to the next, and Ctrl+R recompiles after you save. See the <a href="gui.html">compiler window guide</a>.</li>
 </ol>
-<h2>Integration with Build Systems</h2>
+<h2 id="integration-with-build-systems">Integration with Build Systems</h2>
 <p>Because <code>jackc</code> exits non-zero on any failure, no extra checks are needed.</p>
-<h3>Make</h3>
+<h3 id="make">Make</h3>
 <pre><code class="language-makefile">build:
     jackc -r --clean src/ -o build/
 </code></pre>
-<h3>GitHub Actions</h3>
+<h3 id="github-actions">GitHub Actions</h3>
 <pre><code class="language-yaml">- name: Compile Jack sources
   run: jackc -r --clean src/ -o build/
 </code></pre>
-<h3>Shell scripts</h3>
+<h3 id="shell-scripts">Shell scripts</h3>
 <pre><code class="language-bash">#!/bin/bash
 set -e                      # stop the script if jackc fails
 jackc -r --clean src/
 echo &quot;Build successful!&quot;
 </code></pre>
-<h3>Saving a log</h3>
+<h3 id="saving-a-log">Saving a log</h3>
 <pre><code class="language-bash">jackc -r src/ &gt; build.log 2&gt;&amp;1
 </code></pre>
 <p>All diagnostics go to standard output, and colour is turned off automatically
 when output is redirected (or when the <code>NO_COLOR</code> environment variable is set).</p>
-<h2>FAQ</h2>
+<h2 id="faq">FAQ</h2>
 <p><strong>Q: Does compilation stop at the first error?</strong>
 A: No. Every file is compiled and every error reported, so you can fix them all in one pass.</p>
 <p><strong>Q: Is a <code>.vm</code> file produced for a file with errors?</strong>
@@ -460,7 +460,7 @@ generated.</p>
 A: Yes: <code>jackc-gui src/</code> shows each file with its errors and warnings marked
 under the line, the same way <code>jackc</code> prints them. Ctrl+E jumps from one to the
 next and Ctrl+R recompiles. See the <a href="gui.html">compiler window guide</a>.</p>
-<h2>See Also</h2>
+<h2 id="see-also">See Also</h2>
 <ul>
 <li><a href="batch-compilation.html">Batch Compilation Guide</a></li>
 <li><a href="batch-examples.html">Batch Compilation Examples</a></li>

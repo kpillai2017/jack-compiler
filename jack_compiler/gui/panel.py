@@ -244,12 +244,16 @@ class InfoPanel:
         total = sum(self.box_height(s.row_count) for s in sections)
         return total + self.GAP * max(0, len(sections) - 1)
 
-    def shortcuts_section(self, width: int) -> Section:
-        """Arrange HELP_ITEMS into rows that fit inside a box `width` pixels wide."""
+    def shortcuts_section(self, width: int, extra: Sequence[str] = ()) -> Section:
+        """
+        Arrange HELP_ITEMS into rows that fit inside a box `width` pixels
+        wide. `extra` items (e.g. "Ctrl+J run in JackVM") go before quitting.
+        """
         usable = width - 2 * self.PADDING
         rows: List[str] = []
         current = ""
-        for item in HELP_ITEMS:
+        quit_at = HELP_ITEMS.index("Ctrl+Q quit")
+        for item in [*HELP_ITEMS[:quit_at], *extra, *HELP_ITEMS[quit_at:]]:
             candidate = item if not current else current + HELP_SEPARATOR + item
             if current and self.font.size(candidate)[0] > usable:
                 rows.append(current)  # row is full: start a new one
