@@ -449,7 +449,9 @@ except JackSyntaxError as e:                  # also catches JackSemanticError
         print(render_diagnostic(d, open(&quot;Main.jack&quot;).read().splitlines()))
 </code></pre>
 <p><strong>Q: Can warnings fail the build?</strong>
-A: Yes: <code>jackc --werror src/</code> treats every warning as an error. <code>jackc -w</code> hides warnings instead.</p>
+A: Yes: <code>jackc --werror src/</code> treats every warning as an error. <code>jackc -w</code> hides warnings instead.
+In the compiler window, start it with <code>jackc-gui --werror</code> or press Ctrl+W to switch it on and off;
+the STATUS box shows which is in use.</p>
 <p><strong>Q: Where do the messages come from?</strong>
 A: Lexical and syntax errors come from the ANTLR4-generated lexer and parser
 (<code>grammar/Jack.g4</code>), turned into friendlier wording by

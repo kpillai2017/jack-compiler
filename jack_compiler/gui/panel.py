@@ -52,6 +52,7 @@ HELP_ITEMS = [
     "Ctrl+E next problem",
     "Ctrl+I messages",
     "Ctrl+R recompile",
+    "Ctrl+W warnings=errors",
     "Ctrl+O open",
     "Ctrl+D panel",
     "Ctrl+Q quit",
@@ -136,8 +137,8 @@ def build_sections(session: CompileSession, selected: int) -> List[Section]:
 
     # --- status -----------------------------------------------------------
     output_lines = wrap(session.describe_output())
-    # state + target + output + time + "press Esc" hint (only once finished)
-    box = Section("STATUS", min_rows=4 + len(output_lines))
+    # state + target + output + warnings + time + "press Esc" hint (only once finished)
+    box = Section("STATUS", min_rows=5 + len(output_lines))
     if session.state == COMPILING:
         box.add(f"COMPILING {session.completed}/{session.total}", "highlight")
     elif session.state == DONE and session.failed_count:
@@ -152,6 +153,11 @@ def build_sections(session: CompileSession, selected: int) -> List[Section]:
     box.add(fit_left(f"{kind}: {session.target.name or session.target}"))
     for line in output_lines:
         box.add(line, "dim")
+    # Always one line, so switching it (Ctrl+W) doesn't change the box's size.
+    if session.werror:
+        box.add("warnings count as errors (--werror)", "warning")
+    else:
+        box.add("warnings don't stop a file (Ctrl+W)", "dim")
     box.add(f"time   {session.elapsed:.2f} s", "dim")
     if session.finished:
         box.add("Compilation finished: press Esc to quit", "dim")

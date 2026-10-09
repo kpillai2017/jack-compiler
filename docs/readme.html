@@ -333,6 +333,7 @@ jackc-gui examples/Math.jack     # ...or one file
 jackc-gui -r projects/           # a whole tree, like jackc -r
 jackc-gui src/ -o bin/           # write the .vm files to bin/
 jackc-gui --no-write src/        # preview only: never write .vm files
+jackc-gui --werror src/          # warnings count as errors, like jackc --werror
 python -m jack_compiler.gui ...  # the same, without installing
 </code></pre>
 <p>The window shows the selected <code>.jack</code> file next to the VM code it compiles to.
@@ -372,6 +373,10 @@ STATUS / FILES / PROBLEMS / OUTPUT boxes, and under them a SHORTCUTS box.
 <tr>
 <td>Ctrl+R</td>
 <td>Recompile (re-reads the files, so edit in your editor and press Ctrl+R)</td>
+</tr>
+<tr>
+<td>Ctrl+W</td>
+<td>Warnings count as errors (like <code>--werror</code>), or back again; recompiles. STATUS shows which</td>
 </tr>
 <tr>
 <td>Ctrl+J</td>

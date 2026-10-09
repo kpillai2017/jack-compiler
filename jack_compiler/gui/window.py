@@ -28,7 +28,8 @@ Errors and warnings are shown the way a compiler prints them: the line is
 shaded (red = error, amber = warning) and a ^~~~ marker under the exact
 spot carries the message, with any "help:" suggestion and "note:" (e.g.
 where a name was first declared) beneath it. Ctrl+E jumps from problem to
-problem; Ctrl+I hides/shows the messages. Tabs are coloured like the
+problem; Ctrl+I hides/shows the messages; Ctrl+W makes warnings count as
+errors (like jackc --werror) and recompiles. Tabs are coloured like the
 FILES box: red for files with errors. The
 right-hand column (Ctrl+D hides it) shows how the compilation went.
 
@@ -302,6 +303,8 @@ class CompilerWindow:
             self.next_problem()
         elif key == pygame.K_i:
             self.toggle_inline_messages()
+        elif key == pygame.K_w:
+            self.toggle_werror()
         elif key == pygame.K_d:
             self.show_panel = not self.show_panel
             self._resize_window()
@@ -370,6 +373,25 @@ class CompilerWindow:
             return False  # already compiling
         self._esc_pressed_at = None
         self._finished_hint_until = None
+        return True
+
+    def toggle_werror(self) -> bool:
+        """
+        Ctrl+W: treat warnings as errors (like jackc --werror), or stop
+        doing so, and recompile. Not while compiling: each run reads the
+        setting once, so changing it half-way would mix the two.
+        Returns True if the setting changed.
+        """
+        if self.session.state == COMPILING:
+            self.notify("Still compiling - press Ctrl+W again when it's finished", "warning")
+            return False
+        self.session.werror = not self.session.werror
+        if self.session.werror:
+            self.notify("Warnings now count as errors (--werror): recompiling", "warning")
+        else:
+            self.notify("Warnings are only warnings again: recompiling")
+        self._error_cursor = None
+        self.recompile()
         return True
 
     def run_in_vm(self) -> bool:
@@ -441,7 +463,8 @@ class CompilerWindow:
             self.window = pygame.display.set_mode((max(width, 800), max(height, 560)))
 
         outcome, session = choose_target(
-            self.window, start, recursive=self.session.recursive, write=self.session.write
+            self.window, start, recursive=self.session.recursive, write=self.session.write,
+            werror=self.session.werror,
         )
         if session is not None:
             self.session = session
@@ -702,7 +725,8 @@ class CompilerWindow:
 # Choosing what to compile with the GUI file picker
 # ---------------------------------------------------------------------------
 def choose_target(
-    surface, start_directory: Path, recursive: bool = False, write: bool = True, message: str = ""
+    surface, start_directory: Path, recursive: bool = False, write: bool = True, message: str = "",
+    werror: bool = False,
 ) -> Tuple[str, Optional[CompileSession]]:
     """
     Show the file picker on `surface` until the user picks something that
@@ -717,14 +741,16 @@ def choose_target(
         if outcome != CHOSEN or path is None:
             return outcome, None
         try:
-            return CHOSEN, CompileSession(path, recursive=recursive, write=write)
+            return CHOSEN, CompileSession(path, recursive=recursive, write=write, werror=werror)
         except (FileNotFoundError, OSError) as problem:
             message = str(problem)
             print(message)
             start_directory = path if path.is_dir() else path.parent
 
 
-def open_picker_window(start_directory: Path, recursive: bool = False, write: bool = True) -> Optional[CompileSession]:
+def open_picker_window(
+    start_directory: Path, recursive: bool = False, write: bool = True, werror: bool = False
+) -> Optional[CompileSession]:
     """
     Used when jackc-gui is started without a path: open a window just for
     the picker. Returns the chosen session, or None if the user gave up.
@@ -733,7 +759,7 @@ def open_picker_window(start_directory: Path, recursive: bool = False, write: bo
     pygame.init()
     pygame.display.set_caption("Jack Compiler - choose what to compile")
     surface = pygame.display.set_mode((900, 620))
-    outcome, session = choose_target(surface, start_directory, recursive, write)
+    outcome, session = choose_target(surface, start_directory, recursive, write, werror=werror)
     if session is None:
         pygame.quit()
     return session
