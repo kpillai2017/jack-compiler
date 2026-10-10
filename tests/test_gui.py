@@ -746,9 +746,9 @@ def test_save_picker_says_what_it_does(project, monkeypatch):
     monkeypatch.setattr(picker, "_text", lambda text, *a, **k: drawn.append(text))
     monkeypatch.setattr(picker, "_button", lambda rect, label, **k: drawn.append(label))
     picker.draw()
-    footer = next(t for t in drawn if "Ctrl+Q: quit" in t)
-    assert "Choose the folder to save the .vm files in" in drawn and "Save here" in drawn
-    assert "save in folder" in footer and picker.small.size(footer)[0] <= 800 - 2 * picker.MARGIN
+    footer = next(t for t in drawn if "Backspace: up" in t)
+    assert "Choose the folder to save the .vm files in" in drawn and "Save here" in drawn and "New folder" in drawn
+    assert "save in folder" in footer and "Ctrl+N: new folder" in footer and picker.small.size(footer)[0] <= 800 - 2 * picker.MARGIN
     pygame.quit()
 
 
@@ -816,3 +816,55 @@ def test_jackc_gui_output_works_with_the_picker(project, monkeypatch):
     assert gui_main.main(["--gui", str(project), "-o", str(project / "bin")]) == 0
     assert seen["output"] == project / "bin" and opened[0].output == project / "bin"
     assert opened[0].session.results[0].target == (project / "bin" / "Math.vm").resolve()
+
+
+# --- "New folder" in the save-as chooser ---------------------------------------------
+from jack_compiler.gui.file_picker import folder_name_problem  # noqa: E402
+
+
+def test_picker_new_folder_rules(tmp_path):
+    assert folder_name_problem("bin") == ""
+    for bad in ("", "a/b", "a\\b", ".", "..", ".hidden"):
+        assert folder_name_problem(bad), bad
+    state = PickerState(tmp_path, purpose=SAVE)
+    state.start_new_folder()
+    state.type_name("")
+    assert state.create_folder() is None and "Type a name" in state.message and state.naming == ""
+    state.type_name("bin\n")
+    assert state.create_folder() == tmp_path.resolve() / "bin" and (tmp_path / "bin").is_dir()
+    assert state.naming is None and state.entries[state.selected].path == tmp_path.resolve() / "bin"
+    (tmp_path / "f").write_text("")
+    state.start_new_folder()
+    state.type_name("f")
+    assert state.create_folder() is None and "already a file" in state.message
+    state.erase_name()
+    assert state.naming == ""
+    state.cancel_new_folder()
+    assert state.naming is None
+
+
+def test_file_picker_new_folder_keys_and_button(project):
+    pygame.init()
+    surface = pygame.display.set_mode((800, 560))
+    picker = FilePicker(surface, project, back_to="x/", purpose=SAVE)
+    handle = picker._handle_event
+    assert handle(key_down(pygame.K_n, pygame.KMOD_CTRL)) is None and picker.state.naming == ""
+    handle(pygame.event.Event(pygame.TEXTINPUT, text="binx"))
+    handle(key_down(pygame.K_BACKSPACE))  # edits the name, doesn't go up
+    assert picker.state.naming == "bin" and picker.state.directory == project.resolve()
+    picker.draw()
+    assert handle(key_down(pygame.K_ESCAPE)) is None and picker.state.naming is None  # stops naming only
+    picker._esc_needs_release = False
+    picker.draw()
+    assert handle(pygame.event.Event(pygame.MOUSEBUTTONDOWN, button=1, pos=picker._new_folder_button.center)) is None
+    handle(pygame.event.Event(pygame.TEXTINPUT, text="vm"))
+    handle(key_down(pygame.K_RETURN))
+    assert (project / "vm").is_dir() and picker.state.entries[picker.state.selected].label == "vm/"
+    assert handle(key_down(pygame.K_RETURN, pygame.KMOD_CTRL)) == (CHOSEN, (project / "vm").resolve())
+    open_picker = FilePicker(surface, project)  # the open-a-program picker has no "New folder"
+    open_picker.draw()
+    assert open_picker._new_folder_button is None
+    handle = open_picker._handle_event
+    handle(key_down(pygame.K_n, pygame.KMOD_CTRL))
+    assert open_picker.state.naming is None
+    pygame.quit()

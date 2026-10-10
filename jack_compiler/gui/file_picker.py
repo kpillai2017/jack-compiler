@@ -33,7 +33,8 @@ Choosing where to save
 Ctrl+Shift+S in the window ("save as") opens the same picker with
 `purpose=SAVE`: it lists only folders, Enter opens one, and "[save here]"
 next to a folder, Ctrl+Enter, or the "Save here" button picks where the
-.vm files go.
+.vm files go. Ctrl+N / "New folder" makes a folder: type its name, Enter
+creates and selects it, Esc stops.
 
 Structure
 ---------
@@ -65,6 +66,22 @@ SAVE = "save"  # a folder to save the .vm files in
 # ---------------------------------------------------------------------------
 # Part 1: logic (no pygame)
 # ---------------------------------------------------------------------------
+NAME_LIMIT = 100  # longest folder name the "New folder" box takes
+
+
+def folder_name_problem(name: str) -> str:
+    """Why `name` can't be a new folder ("" if it can)."""
+    if not name:
+        return "Type a name for the new folder"
+    if "/" in name or "\\" in name or "\0" in name:
+        return "A folder name can't contain / or \\"
+    if name in (".", ".."):
+        return f"{name} isn't a folder name"
+    if name.startswith("."):
+        return "Names starting with . are hidden here - choose another"
+    return ""
+
+
 @dataclass(frozen=True)
 class Entry:
     """One row in the file list."""
@@ -127,6 +144,7 @@ class PickerState:
     def __init__(self, directory: Path, recursive: bool = False, purpose: str = OPEN) -> None:
         self.recursive = recursive
         self.purpose = purpose
+        self.naming: Optional[str] = None  # the new folder's name while it's being typed (SAVE only)
         self.message = ""  # feedback shown to the user (e.g. an error)
         self.open_folder(directory)
 
@@ -194,6 +212,52 @@ class PickerState:
             return None
         return folder
 
+    # --- "New folder" (save mode): name a folder, then create it -------------
+    def start_new_folder(self) -> None:
+        """Ctrl+N / the "New folder" button: start typing a name."""
+        self.naming = ""
+        self.message = ""
+
+    def type_name(self, text: str) -> None:
+        if self.naming is not None:
+            self.naming = (self.naming + text.replace("\n", "").replace("\r", ""))[:NAME_LIMIT]
+
+    def erase_name(self) -> None:
+        if self.naming:
+            self.naming = self.naming[:-1]
+
+    def cancel_new_folder(self) -> None:
+        self.naming = None
+        self.message = ""
+
+    def create_folder(self) -> Optional[Path]:
+        """
+        Make the typed folder in the folder being shown and select it.
+        Returns its path, or None (with self.message saying why; typing goes on).
+        An existing folder of that name is simply selected.
+        """
+        if self.naming is None:
+            return None
+        name = self.naming.strip()
+        problem = folder_name_problem(name)
+        folder = self.directory / name
+        if not problem and folder.exists() and not folder.is_dir():
+            problem = f"There's already a file called {name}"
+        if not problem:
+            try:
+                folder.mkdir(exist_ok=True)
+            except OSError as error:
+                problem = f"Can't make {name}/: {error.strerror or error}"
+        if problem:
+            self.message = problem
+            return None
+        self.naming = None
+        self.open_folder(self.directory)  # list it...
+        for index, entry in enumerate(self.entries):
+            if entry.path == folder:
+                self.selected = index  # ...and select it
+        return folder
+
     def current_folder_jack_count(self) -> int:
         return sum(1 for e in self.entries if e.kind == "jack")
 
@@ -243,6 +307,7 @@ class FilePicker:
         self._row_rects: List[Tuple[object, int, Optional[object]]] = []
         self._compile_button = None
         self._cancel_button = None
+        self._new_folder_button = None
 
     # --- the picker's own little main loop --------------------------------
     def run(self) -> Tuple[str, Optional[Path]]:
@@ -275,13 +340,18 @@ class FilePicker:
         if event.type == pygame.QUIT:
             return QUIT, None
 
+        if state.naming is not None and event.type in (pygame.KEYDOWN, pygame.TEXTINPUT):
+            return self._naming_event(event)
+
         if event.type == pygame.KEYDOWN:
             ctrl = event.mod & (pygame.KMOD_CTRL | pygame.KMOD_META)
             if event.key == pygame.K_ESCAPE:
                 return None if self._esc_needs_release else (CANCEL, None)
             if ctrl and event.key == pygame.K_q:
                 return QUIT, None
-            if event.key in (pygame.K_RETURN, pygame.K_KP_ENTER):
+            if ctrl and event.key == pygame.K_n and self.saving:
+                self._start_new_folder()
+            elif event.key in (pygame.K_RETURN, pygame.K_KP_ENTER):
                 chosen = state.compile_folder_entry() if ctrl else state.activate()
             elif event.key in (pygame.K_BACKSPACE, pygame.K_LEFT):
                 state.go_up()
@@ -316,8 +386,36 @@ class FilePicker:
             return CHOSEN, chosen
         return None
 
+    def _start_new_folder(self) -> None:
+        self.state.start_new_folder()
+        self.pygame.key.start_text_input()  # so typing arrives as TEXTINPUT events
+
+    def _naming_event(self, event) -> Optional[Tuple[str, Optional[Path]]]:
+        """Keys while a new folder's name is typed: Enter creates it, Esc stops."""
+        pygame, state = self.pygame, self.state
+        if event.type == pygame.TEXTINPUT:
+            state.type_name(event.text)
+            return None
+        ctrl = event.mod & (pygame.KMOD_CTRL | pygame.KMOD_META)
+        if ctrl and event.key == pygame.K_q:
+            return QUIT, None
+        if event.key == pygame.K_ESCAPE:
+            state.cancel_new_folder()
+            self._esc_needs_release = True  # this press isn't also "go back"
+        elif event.key in (pygame.K_RETURN, pygame.K_KP_ENTER):
+            state.create_folder()
+        elif event.key == pygame.K_BACKSPACE:
+            state.erase_name()
+        return None
+
     def _handle_click(self, position) -> Optional[Path]:
         """Work out what is under the mouse and do the matching action."""
+        if self._new_folder_button and self._new_folder_button.collidepoint(position):
+            if self.state.naming is None:
+                self._start_new_folder()
+            else:
+                self.state.create_folder()
+            return None
         if self._compile_button and self._compile_button.collidepoint(position):
             return self.state.compile_current_folder()
         for row_rect, index, compile_rect in self._row_rects:
@@ -383,7 +481,13 @@ class FilePicker:
             title += "  (recursive)"
         self._text(title, self.TITLE, (x, self.MARGIN))
         self._text(self._fit_left(str(state.directory), width - 2 * x, self.font), self.TEXT, (x, self.MARGIN + line))
-        if state.message:
+        if state.naming is not None:
+            prompt = f"New folder: {state.naming}_"
+            self._text(prompt, self.TITLE, (x, self.MARGIN + 2 * line), self.small)
+            hint = state.message or "Enter: create   Esc: cancel"
+            self._text(hint, self.ERROR if state.message else self.DIM,
+                       (x + self.small.size(prompt)[0] + 16, self.MARGIN + 2 * line), self.small)  # fmt: skip
+        elif state.message:
             self._text(state.message, self.ERROR, (x, self.MARGIN + 2 * line), self.small)
 
         # The list of entries (only the rows that fit).
@@ -427,11 +531,11 @@ class FilePicker:
         pygame.draw.line(surface, self.DIM, (area.left, help_y - 4), (area.right, help_y - 4))
         back_to = self.back_to if len(self.back_to) <= 20 else self.back_to[:19] + "…"
         esc = f"Esc: back to {back_to}" if self.back_to else "Esc: quit"
-        chosen = "save in folder" if self.saving else "compile folder"
-        self._text(
-            f"Enter: open   Ctrl+Enter: {chosen}   Backspace: up   {esc}   Ctrl+Q: quit",
-            self.DIM, (x, help_y), self.small,
-        )  # fmt: skip
+        if self.saving:  # (Esc always goes back here: the chooser opens from a program)
+            keys = "Enter: open   Ctrl+Enter: save in folder   Ctrl+N: new folder   Backspace: up   Esc: back"
+        else:
+            keys = f"Enter: open   Ctrl+Enter: compile folder   Backspace: up   {esc}   Ctrl+Q: quit"
+        self._text(keys, self.DIM, (x, help_y), self.small)
         count = state.current_folder_jack_count()
         enabled = count > 0 or state.recursive or self.saving
         if self.saving:
@@ -442,3 +546,8 @@ class FilePicker:
         self._cancel_button = pygame.Rect(self._compile_button.right + 12, self._compile_button.top, 120, 40)
         self._button(self._compile_button, label, enabled=enabled)
         self._button(self._cancel_button, "Back" if self.back_to else "Quit", enabled=True)
+        self._new_folder_button = None
+        if self.saving:
+            label = "Create" if state.naming is not None else "New folder"
+            self._new_folder_button = pygame.Rect(self._cancel_button.right + 12, self._cancel_button.top, 140, 40)
+            self._button(self._new_folder_button, label, enabled=True)

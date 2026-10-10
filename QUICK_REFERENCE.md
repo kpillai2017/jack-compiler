@@ -41,7 +41,7 @@ jackc-gui -o bin/                # pick in a window; .vm files go to bin/
 | Ctrl+J | Run the program in JackVM ([jackvm-py](https://github.com/kpillai2017/jackvm-py)); asks where it is the first time |
 | Ctrl+O | Open something else |
 | Ctrl+S | Save the `.vm` files |
-| Ctrl+Shift+S | Save as: choose the folder for the `.vm` files |
+| Ctrl+Shift+S | Save as: choose the folder for the `.vm` files (Ctrl+N there: new folder) |
 | Ctrl+D | Show / hide info panel |
 | Esc (hold 1 s while compiling) | Back to the file picker |
 | Ctrl+Q | Quit |
