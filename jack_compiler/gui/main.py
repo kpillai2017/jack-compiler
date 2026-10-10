@@ -8,10 +8,13 @@ main.py - Start the compiler GUI from the command line.
     jackc-gui --gui projects/        # open the picker in projects/
     jackc-gui -r projects/           # compile a whole tree (like jackc -r)
     jackc-gui src/ -o bin/           # write the .vm files to bin/
+    jackc-gui -o bin/                # choose in a window; the .vm files go to bin/
     jackc-gui --no-write src/        # preview only: never write .vm files
     python -m jack_compiler.gui ...  # the same, without installing
 
 The .vm files go where `jackc` would put them, unless --no-write is given.
+In the window, Ctrl+S saves them (even with --no-write) and Ctrl+Shift+S
+chooses another folder to save them in.
 """
 
 from __future__ import annotations
@@ -37,7 +40,10 @@ def build_argument_parser() -> argparse.ArgumentParser:
         "--gui", action="store_true",
         help="choose what to compile in a window (starts in the given folder, or the current one)",
     )  # fmt: skip
-    parser.add_argument("-o", "--output", help="output .vm file or folder (default: next to the sources)")
+    parser.add_argument(
+        "-o", "--output",
+        help="output .vm file or folder (default: next to the sources; Ctrl+Shift+S in the window chooses another)",
+    )  # fmt: skip
     parser.add_argument("-r", "--recursive", action="store_true", help="compile .jack files in sub-folders too")
     parser.add_argument("--no-write", action="store_true", help="compile and show the VM code, but don't write .vm files")
     parser.add_argument(
@@ -80,11 +86,12 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     from .window import CompilerWindow, open_picker_window
 
     use_picker = args.gui or args.input is None
+    output = Path(args.output) if args.output else None
     if use_picker:
-        if args.output:
-            parser.error("--output needs an input path (it can't be used with the picker)")
         start = Path(args.input).expanduser() if args.input else Path.cwd()
-        session = open_picker_window(start if start.is_dir() else Path.cwd(), args.recursive, write, args.werror)
+        session = open_picker_window(
+            start if start.is_dir() else Path.cwd(), args.recursive, write, args.werror, output=output,
+        )  # fmt: skip
         if session is None:
             return 0  # the user cancelled or closed the window
     else:
@@ -92,7 +99,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         if input_path.is_file() and args.recursive:
             parser.error("--recursive requires a directory as input")
         try:
-            session = CompileSession(input_path, args.output, args.recursive, write, werror=args.werror)
+            session = CompileSession(input_path, output, args.recursive, write, werror=args.werror)
         except FileNotFoundError as problem:
             print(problem, file=sys.stderr)
             return 1
@@ -102,6 +109,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         font_size=args.font_size,
         code_rows=args.rows,
         show_panel=not args.no_panel,
+        output=output,
     ).run()
     if session.finished:
         print(f"Compiled {session.ok_count} of {session.total} file(s); {session.failed_count} failed.")

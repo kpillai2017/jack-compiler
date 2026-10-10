@@ -28,6 +28,13 @@ What it looks like:
     -----------------------------------------------------------
      [ Compile this folder (5 files) ]   [ Quit ]   ("Back" when opened from a program)
 
+Choosing where to save
+----------------------
+Ctrl+Shift+S in the window ("save as") opens the same picker with
+`purpose=SAVE`: it lists only folders, Enter opens one, and "[save here]"
+next to a folder, Ctrl+Enter, or the "Save here" button picks where the
+.vm files go.
+
 Structure
 ---------
 * `list_entries()` and `PickerState` hold all the *logic* (no pygame), so
@@ -50,6 +57,10 @@ CHOSEN = "chosen"  # the user picked a file or folder to compile
 CANCEL = "cancel"  # the user pressed Esc / Back / Quit (the caller decides which it means)
 QUIT = "quit"  # the user closed the window
 
+# What the picker is choosing:
+OPEN = "open"  # something to compile (a .jack file or a folder)
+SAVE = "save"  # a folder to save the .vm files in
+
 
 # ---------------------------------------------------------------------------
 # Part 1: logic (no pygame)
@@ -71,11 +82,12 @@ class Entry:
         return self.path.name
 
 
-def list_entries(directory: Path) -> List[Entry]:
+def list_entries(directory: Path, folders_only: bool = False) -> List[Entry]:
     """
     Everything the picker shows for `directory`, in display order:
-    the parent folder first, then sub-folders, then .jack files.
-    Hidden items (names starting with ".") and other file types are skipped.
+    the parent folder first, then sub-folders, then .jack files (unless
+    `folders_only`). Hidden items (names starting with ".") and other file
+    types are skipped.
     """
     entries: List[Entry] = []
     if directory.parent != directory:  # the top of the disk has no parent
@@ -91,8 +103,8 @@ def list_entries(directory: Path) -> List[Entry]:
             continue
         try:
             if child.is_dir():
-                folders.append(Entry("folder", child, count_jack_files(child)))
-            elif child.suffix.lower() == ".jack":
+                folders.append(Entry("folder", child, 0 if folders_only else count_jack_files(child)))
+            elif child.suffix.lower() == ".jack" and not folders_only:
                 jack_files.append(Entry("jack", child))
         except OSError:
             continue  # unreadable item: just leave it out
@@ -107,17 +119,21 @@ class PickerState:
 
     With `recursive=True`, a folder counts as compilable when it has .jack
     files anywhere below it (like `jackc -r`), not just directly inside.
+
+    With `purpose=SAVE` it chooses a folder to save into: only folders are
+    listed, and any folder can be picked (it needn't hold .jack files).
     """
 
-    def __init__(self, directory: Path, recursive: bool = False) -> None:
+    def __init__(self, directory: Path, recursive: bool = False, purpose: str = OPEN) -> None:
         self.recursive = recursive
+        self.purpose = purpose
         self.message = ""  # feedback shown to the user (e.g. an error)
         self.open_folder(directory)
 
     # --- navigation -------------------------------------------------------
     def open_folder(self, directory: Path) -> None:
         self.directory = Path(directory).expanduser().resolve()
-        self.entries = list_entries(self.directory)
+        self.entries = list_entries(self.directory, folders_only=self.purpose == SAVE)
         # Start on the first real item rather than on "..", if there is one.
         self.selected = 1 if len(self.entries) > 1 and self.entries[0].kind == "parent" else 0
         self.message = ""
@@ -170,6 +186,8 @@ class PickerState:
         return self._choose_folder(self.directory)
 
     def _choose_folder(self, folder: Path) -> Optional[Path]:
+        if self.purpose == SAVE:
+            return folder
         if not count_jack_files(folder, self.recursive):
             where = "inside or below" if self.recursive else "directly inside"
             self.message = f"There are no .jack files {where} {folder.name or folder}/"
@@ -180,8 +198,8 @@ class PickerState:
         return sum(1 for e in self.entries if e.kind == "jack")
 
     def folder_is_compilable(self, entry: Entry) -> bool:
-        """Show a [compile] button on this folder row?"""
-        return entry.kind == "folder" and (entry.jack_count > 0 or self.recursive)
+        """Show a [compile] (or [save here]) button on this folder row?"""
+        return entry.kind == "folder" and (entry.jack_count > 0 or self.recursive or self.purpose == SAVE)
 
 
 # ---------------------------------------------------------------------------
@@ -203,7 +221,8 @@ class FilePicker:
     MARGIN = 16
 
     def __init__(
-        self, surface, start_directory: Path, message: str = "", recursive: bool = False, back_to: str = ""
+        self, surface, start_directory: Path, message: str = "", recursive: bool = False, back_to: str = "",
+        purpose: str = OPEN,
     ) -> None:
         import pygame  # imported here so the logic above works without pygame
 
@@ -213,7 +232,8 @@ class FilePicker:
         # in the first picker, there's nothing to go back to - so it quits.
         self.back_to = back_to
         self._esc_needs_release = False  # see run()
-        self.state = PickerState(start_directory, recursive)
+        self.state = PickerState(start_directory, recursive, purpose)
+        self.saving = purpose == SAVE
         self.state.message = message
         self.font = pygame.font.SysFont(MONO_FONTS, 15)
         self.small = pygame.font.SysFont(MONO_FONTS, 13)
@@ -358,8 +378,8 @@ class FilePicker:
         x = self.MARGIN
 
         # Header: title, current folder, message.
-        title = "Choose a .jack file, or a folder of .jack files"
-        if state.recursive:
+        title = "Choose the folder to save the .vm files in" if self.saving else "Choose a .jack file, or a folder of .jack files"
+        if state.recursive and not self.saving:
             title += "  (recursive)"
         self._text(title, self.TITLE, (x, self.MARGIN))
         self._text(self._fit_left(str(state.directory), width - 2 * x, self.font), self.TEXT, (x, self.MARGIN + line))
@@ -387,7 +407,10 @@ class FilePicker:
 
             compile_rect = None
             if state.folder_is_compilable(entry):
-                label = f"[compile {self._files(entry.jack_count)}]" if entry.jack_count else "[compile tree]"
+                if self.saving:
+                    label = "[save here]"
+                else:
+                    label = f"[compile {self._files(entry.jack_count)}]" if entry.jack_count else "[compile tree]"
                 image = self.font.render(label, True, self.TITLE)
                 compile_rect = image.get_rect(right=row.right - 8, top=row.top + 4)
                 surface.blit(image, compile_rect)
@@ -404,13 +427,17 @@ class FilePicker:
         pygame.draw.line(surface, self.DIM, (area.left, help_y - 4), (area.right, help_y - 4))
         back_to = self.back_to if len(self.back_to) <= 20 else self.back_to[:19] + "…"
         esc = f"Esc: back to {back_to}" if self.back_to else "Esc: quit"
+        chosen = "save in folder" if self.saving else "compile folder"
         self._text(
-            f"Enter: open   Ctrl+Enter: compile folder   Backspace: up   {esc}   Ctrl+Q: quit",
+            f"Enter: open   Ctrl+Enter: {chosen}   Backspace: up   {esc}   Ctrl+Q: quit",
             self.DIM, (x, help_y), self.small,
         )  # fmt: skip
         count = state.current_folder_jack_count()
-        enabled = count > 0 or state.recursive
-        label = f"Compile this folder ({self._files(count)})" if count else "Compile this folder"
+        enabled = count > 0 or state.recursive or self.saving
+        if self.saving:
+            label = "Save here"
+        else:
+            label = f"Compile this folder ({self._files(count)})" if count else "Compile this folder"
         self._compile_button = pygame.Rect(x, height - self.MARGIN - 40, max(300, self.font.size(label)[0] + 30), 40)
         self._cancel_button = pygame.Rect(self._compile_button.right + 12, self._compile_button.top, 120, 40)
         self._button(self._compile_button, label, enabled=enabled)

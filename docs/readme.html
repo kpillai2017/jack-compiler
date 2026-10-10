@@ -354,6 +354,7 @@ jackc-gui examples/              # compile a folder straight away
 jackc-gui examples/Math.jack     # ...or one file
 jackc-gui -r projects/           # a whole tree, like jackc -r
 jackc-gui src/ -o bin/           # write the .vm files to bin/
+jackc-gui -o bin/                # choose in a window; the .vm files go to bin/
 jackc-gui --no-write src/        # preview only: never write .vm files
 jackc-gui --werror src/          # warnings count as errors, like jackc --werror
 python -m jack_compiler.gui ...  # the same, without installing
@@ -363,7 +364,8 @@ Errors and warnings appear the way the compiler prints them: the line is shaded
 red or amber, and a <code>^~~~</code> marker under the exact spot carries the message,
 with any <code>help:</code> / <code>note:</code> lines beneath it. Beside them are the
 STATUS / FILES / PROBLEMS / OUTPUT boxes, and under them a SHORTCUTS box.
-<code>.vm</code> files are written where <code>jackc</code> would put them.</p>
+<code>.vm</code> files are written where <code>jackc</code> would put them (or where <code>-o</code> says).
+To save them somewhere else, press <strong>Ctrl+Shift+S</strong> and choose a folder.</p>
 <table>
 <thead>
 <tr>
@@ -407,6 +409,14 @@ STATUS / FILES / PROBLEMS / OUTPUT boxes, and under them a SHORTCUTS box.
 <tr>
 <td>Ctrl+O</td>
 <td>Open another file or folder</td>
+</tr>
+<tr>
+<td>Ctrl+S</td>
+<td>Save the <code>.vm</code> files (also after <code>--no-write</code>)</td>
+</tr>
+<tr>
+<td>Ctrl+Shift+S</td>
+<td><strong>Save as</strong>: choose the folder to save the <code>.vm</code> files in (Enter opens a folder; <code>[save here]</code>, Ctrl+Enter or <em>Save here</em> picks it). Ctrl+S and Ctrl+R then save there</td>
 </tr>
 <tr>
 <td>Ctrl+D</td>

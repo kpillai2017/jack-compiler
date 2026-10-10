@@ -33,6 +33,11 @@ errors (like jackc --werror) and recompiles. Tabs are coloured like the
 FILES box: red for files with errors. The
 right-hand column (Ctrl+D hides it) shows how the compilation went.
 
+The .vm files are saved as they compile (next to the sources, or where -o
+says). Ctrl+S saves them again (also in a --no-write preview), and
+Ctrl+Shift+S ("save as") asks for a folder to save them in - from then on
+Ctrl+S and Ctrl+R save there.
+
 If JackVM (https://github.com/kpillai2017/jackvm-py) is installed, Ctrl+J
 runs the program you're looking at in a second window - see run_in_vm.py.
 
@@ -62,7 +67,7 @@ from typing import Dict, List, Optional, Tuple
 import pygame
 
 from . import theme
-from .file_picker import CHOSEN, QUIT, FilePicker
+from .file_picker import CHOSEN, QUIT, SAVE, FilePicker
 from ..integrations import JACKVM, can_configure
 from ..locate_app import QUIT as LOCATE_QUIT
 from ..locate_app import locate
@@ -133,8 +138,11 @@ class CompilerWindow:
         code_rows: int = DEFAULT_CODE_ROWS,
         show_panel: bool = True,
         launcher: Optional[VMLauncher] = None,
+        output: Optional[Path] = None,
     ) -> None:
         self.session = session
+        # -o: where the .vm files of anything chosen with Ctrl+O go (None = next to the sources).
+        self.output = Path(output) if output else None
         # Ctrl+J: run in JackVM. Looked up once, when the window is made.
         self.launcher = launcher if launcher is not None else VMLauncher()
         self._notice: Optional[Tuple[str, str, float]] = None  # (text, colour, shown until)
@@ -331,6 +339,8 @@ class CompilerWindow:
             self.run_in_vm()
         elif key == pygame.K_o:
             return self._open_something_else()
+        elif key == pygame.K_s:
+            return self.save_as() if shift else (self.save() or True)
         return True
 
     def _handle_key(self, key: int) -> None:
@@ -441,6 +451,53 @@ class CompilerWindow:
             self.run_in_vm()
         return True
 
+    def save(self) -> bool:
+        """Ctrl+S: write the .vm files of everything that compiled. Returns True if any were written."""
+        if self.session.state == COMPILING:
+            self.notify("Still compiling - press Ctrl+S again when it's finished", "warning")
+            return False
+        written, problems = self.session.save()
+        if problems:
+            self.notify(problems[0], "error")
+        elif written:
+            count = len(written)
+            self.notify(f"Saved {count} .vm file{'s' if count != 1 else ''} to {self.session.output_folder()}")
+        else:
+            self.notify("Nothing to save: fix the errors, then Ctrl+R", "error")
+        return bool(written)
+
+    def save_as(self) -> bool:
+        """
+        Ctrl+Shift+S: ask where the .vm files should go, then save them there
+        (Ctrl+S and Ctrl+R keep saving there). Returns False if the user quit
+        from the folder chooser (Ctrl+Q / closed the window).
+        """
+        if self.session.state == COMPILING:
+            self.notify("Still compiling - press Ctrl+Shift+S again when it's finished", "warning")
+            return True
+        self._esc_pressed_at = None
+        width, height = self.window.get_size()
+        if width < 800 or height < 560:
+            self.window = pygame.display.set_mode((max(width, 800), max(height, 560)))
+        target = self.session.target
+        outcome, folder = choose_output_folder(
+            self.window, self.session.output_folder(), back_to=target.name + ("/" if target.is_dir() else ""),
+        )
+        self._esc_needs_release = bool(pygame.key.get_pressed()[pygame.K_ESCAPE])
+        pygame.key.set_repeat(300, 40)  # the picker turned key repeat off
+        self._resize_window()
+        if outcome == QUIT:
+            return False
+        if folder is not None:
+            try:
+                self.session.set_output(folder)
+            except (OSError, RuntimeError) as problem:
+                self.notify(f"Can't save there: {problem}", "error")
+                return True
+            self._resize_window()  # the STATUS box now says where the files go
+            self.save()
+        return True
+
     def notify(self, text: str, colour: str = "normal") -> None:
         """
         Show a short message over the bottom of the code view for a few
@@ -514,6 +571,7 @@ class CompilerWindow:
         outcome, session = choose_target(
             self.window, start, recursive=self.session.recursive, write=self.session.write,
             werror=self.session.werror, back_to=target.name + ("/" if target.is_dir() else ""),
+            output=self.output,
         )
         # If Esc is still down (it was held to get here), its key-repeat must
         # not send us straight back to the picker: wait until it's let go.
@@ -778,13 +836,14 @@ class CompilerWindow:
 # ---------------------------------------------------------------------------
 def choose_target(
     surface, start_directory: Path, recursive: bool = False, write: bool = True, message: str = "",
-    werror: bool = False, back_to: str = "",
+    werror: bool = False, back_to: str = "", output: Optional[Path] = None,
 ) -> Tuple[str, Optional[CompileSession]]:
     """
     Show the file picker on `surface` until the user picks something that
     can be compiled (or gives up). If the choice can't be used, the picker
     opens again with the problem shown at the top. `back_to` names what Esc
-    returns to ("" in the first picker, where Esc quits).
+    returns to ("" in the first picker, where Esc quits). `output` is where
+    the .vm files go (like jackc -o; None = next to the sources).
 
     Returns (outcome, session) - session is None unless outcome is "chosen".
     The session has not been started yet.
@@ -794,15 +853,26 @@ def choose_target(
         if outcome != CHOSEN or path is None:
             return outcome, None
         try:
-            return CHOSEN, CompileSession(path, recursive=recursive, write=write, werror=werror)
+            return CHOSEN, CompileSession(path, output, recursive=recursive, write=write, werror=werror)
         except (FileNotFoundError, OSError) as problem:
             message = str(problem)
             print(message)
             start_directory = path if path.is_dir() else path.parent
 
 
+def choose_output_folder(surface, start_directory: Path, back_to: str = "") -> Tuple[str, Optional[Path]]:
+    """
+    Ctrl+Shift+S: show the picker in "save" mode until the user picks a
+    folder for the .vm files. Returns (outcome, folder); folder is None
+    unless outcome is "chosen".
+    """
+    outcome, folder = FilePicker(surface, start_directory, back_to=back_to, purpose=SAVE).run()
+    return outcome, folder if outcome == CHOSEN else None
+
+
 def open_picker_window(
-    start_directory: Path, recursive: bool = False, write: bool = True, werror: bool = False
+    start_directory: Path, recursive: bool = False, write: bool = True, werror: bool = False,
+    output: Optional[Path] = None,
 ) -> Optional[CompileSession]:
     """
     Used when jackc-gui is started without a path: open a window just for
@@ -812,7 +882,7 @@ def open_picker_window(
     pygame.init()
     pygame.display.set_caption("Jack Compiler - choose what to compile")
     surface = pygame.display.set_mode((900, 620))
-    outcome, session = choose_target(surface, start_directory, recursive, write, werror=werror)
+    outcome, session = choose_target(surface, start_directory, recursive, write, werror=werror, output=output)
     if session is None:
         pygame.quit()
     return session

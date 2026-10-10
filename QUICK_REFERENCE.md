@@ -26,7 +26,8 @@ jackc src_dir/
 pip install -e ".[gui]"          # adds pygame (once per virtual environment)
 jackc-gui                        # pick a file or folder in a window
 jackc-gui src_dir/               # compile and show Jack + VM side by side
-jackc-gui --no-write src_dir/    # preview only
+jackc-gui --no-write src_dir/    # preview only (Ctrl+S still saves)
+jackc-gui -o bin/                # pick in a window; .vm files go to bin/
 ```
 
 | Key | Action |
@@ -39,6 +40,8 @@ jackc-gui --no-write src_dir/    # preview only
 | Tab | Switch pane (Jack / VM) |
 | Ctrl+J | Run the program in JackVM ([jackvm-py](https://github.com/kpillai2017/jackvm-py)); asks where it is the first time |
 | Ctrl+O | Open something else |
+| Ctrl+S | Save the `.vm` files |
+| Ctrl+Shift+S | Save as: choose the folder for the `.vm` files |
 | Ctrl+D | Show / hide info panel |
 | Esc (hold 1 s while compiling) | Back to the file picker |
 | Ctrl+Q | Quit |

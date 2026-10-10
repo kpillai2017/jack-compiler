@@ -380,6 +380,7 @@ jackc-gui examples/              # compile a folder straight away
 jackc-gui examples/Math.jack     # ...or one file
 jackc-gui -r projects/           # a whole tree, like jackc -r
 jackc-gui src/ -o bin/           # write the .vm files to bin/
+jackc-gui -o bin/                # choose in a window; the .vm files go to bin/
 jackc-gui --no-write src/        # preview only: never write .vm files
 jackc-gui --werror src/          # warnings count as errors, like jackc --werror
 python -m jack_compiler.gui ...  # the same, without installing
@@ -390,7 +391,8 @@ Errors and warnings appear the way the compiler prints them: the line is shaded
 red or amber, and a `^~~~` marker under the exact spot carries the message,
 with any `help:` / `note:` lines beneath it. Beside them are the
 STATUS / FILES / PROBLEMS / OUTPUT boxes, and under them a SHORTCUTS box.
-`.vm` files are written where `jackc` would put them.
+`.vm` files are written where `jackc` would put them (or where `-o` says).
+To save them somewhere else, press **Ctrl+Shift+S** and choose a folder.
 
 | Key | Action |
 |-----|--------|
@@ -403,6 +405,8 @@ STATUS / FILES / PROBLEMS / OUTPUT boxes, and under them a SHORTCUTS box.
 | Ctrl+W | Warnings count as errors (like `--werror`), or back again; recompiles. STATUS shows which |
 | Ctrl+J | Run the program in [JackVM](https://github.com/kpillai2017/jackvm-py). If JackVM isn't found yet, it asks where it is ([details](#using-it-with-jackvm)) |
 | Ctrl+O | Open another file or folder |
+| Ctrl+S | Save the `.vm` files (also after `--no-write`) |
+| Ctrl+Shift+S | **Save as**: choose the folder to save the `.vm` files in (Enter opens a folder; `[save here]`, Ctrl+Enter or *Save here* picks it). Ctrl+S and Ctrl+R then save there |
 | Ctrl+D | Show / hide the info panel |
 | **Esc** | **Go back** to the file picker, where you can open something else. The rules are the same as the jackvm player: **a single press** once the compilation has finished, but **hold for 1 s** while it's still running (a progress bar appears after 0.25 s; letting go cancels). In the picker, Esc goes back to what you had open, or quits if nothing is open yet. |
 | Ctrl+Q, or close the window | Quit (works in the file picker too) |

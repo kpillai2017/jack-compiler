@@ -97,6 +97,7 @@ jackc-gui examples/                  # compile a folder straight away
 jackc-gui examples/Math.jack         # ...or one file
 jackc-gui -r projects/               # a whole tree, like jackc -r
 jackc-gui src/ -o bin/               # write the .vm files to bin/
+jackc-gui -o bin/                    # choose in a window; the .vm files go to bin/
 jackc-gui --no-write src/            # preview only: never write .vm files
 jackc-gui --werror src/              # warnings count as errors
 python -m jack_compiler.gui ...      # the same, without installing
@@ -107,7 +108,7 @@ python -m jack_compiler.gui ...      # the same, without installing
 <tbody>
 <tr><td><code>input</code></td><td>A <code>.jack</code> file, or a folder of them. Leave it out to choose in a window.</td></tr>
 <tr><td><code>--gui</code></td><td>Open the file picker even though a path was given, starting in that folder.</td></tr>
-<tr><td><code>-o</code>, <code>--output</code></td><td>Where to write the <code>.vm</code> file(s). Default: next to the sources, like <code>jackc</code>. Needs an input path.</td></tr>
+<tr><td><code>-o</code>, <code>--output</code></td><td>Where to write the <code>.vm</code> file(s). Default: next to the sources, like <code>jackc</code>. Works with the file picker too. <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>S</kbd> chooses another folder in the window.</td></tr>
 <tr><td><code>-r</code>, <code>--recursive</code></td><td>Compile <code>.jack</code> files in sub-folders too. The folder layout is kept under <code>-o</code>.</td></tr>
 <tr><td><code>--no-write</code></td><td>Compile and show the VM code, but don't write any files.</td></tr>
 <tr><td><code>--werror</code></td><td>Warnings count as errors, like <code>jackc --werror</code>. <kbd>Ctrl</kbd>+<kbd>W</kbd> switches it in the window.</td></tr>
@@ -256,8 +257,15 @@ program starts. Your answer is saved in the
 <li>A file with errors gets <strong>no new</strong> <code>.vm</code> file. A
 <code>.vm</code> file from an earlier, working compile is left as it was, so
 run <code>jackc --clean</code> if you don't want the VM Emulator to load it.</li>
-<li>With <code>--no-write</code> nothing is written at all. STATUS says
-<em>preview only</em>, and OUTPUT says <em>not saved</em>.</li>
+<li>With <code>--no-write</code> nothing is written while compiling. STATUS says
+<em>preview only</em>, and OUTPUT says <em>not saved</em>. <kbd>Ctrl</kbd>+<kbd>S</kbd>
+still saves them.</li>
+<li><strong>Save as:</strong> <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>S</kbd> opens a folder
+chooser. <kbd>Enter</kbd> opens a folder; click <code>[save here]</code> next to a folder,
+press <kbd>Ctrl</kbd>+<kbd>Enter</kbd>, or press the <em>Save here</em> button to save the
+<code>.vm</code> files there (with <code>-r</code>, the sub-folder layout is kept).
+<kbd>Esc</kbd> goes back without saving. From then on, <kbd>Ctrl</kbd>+<kbd>S</kbd> and
+<kbd>Ctrl</kbd>+<kbd>R</kbd> save there, and STATUS shows the folder.</li>
 </ul>
 
 <h2 id="keys">7. Keyboard and mouse</h2>
@@ -273,6 +281,8 @@ run <code>jackc --clean</code> if you don't want the VM Emulator to load it.</li
 <tr><td><kbd>Ctrl</kbd>+<kbd>W</kbd></td><td>Warnings count as errors (like <code>--werror</code>), or back again; recompiles (<a href="#werror">details</a>)</td></tr>
 <tr><td><kbd>Ctrl</kbd>+<kbd>J</kbd></td><td>Run the program in JackVM, if it's installed (<a href="#run">details</a>)</td></tr>
 <tr><td><kbd>Ctrl</kbd>+<kbd>O</kbd></td><td>Open another file or folder</td></tr>
+<tr><td><kbd>Ctrl</kbd>+<kbd>S</kbd></td><td>Save the <code>.vm</code> files (also after <code>--no-write</code>)</td></tr>
+<tr><td><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>S</kbd></td><td>Save as: choose the folder to save the <code>.vm</code> files in (<a href="#files">details</a>)</td></tr>
 <tr><td><kbd>Ctrl</kbd>+<kbd>D</kbd></td><td>Show or hide the info boxes</td></tr>
 <tr><td><kbd>Ctrl</kbd>+<kbd>Q</kbd></td><td>Quit</td></tr>
 <tr><td><kbd>Esc</kbd></td><td>Back to the file picker (see below)</td></tr>
@@ -318,12 +328,12 @@ and the parts that don't draw anything can be tested without a window:</p>
 <thead><tr><th>Module</th><th>Job</th></tr></thead>
 <tbody>
 <tr><td><code>main.py</code></td><td>Command-line options, and starting the picker or the window</td></tr>
-<tr><td><code>session.py</code></td><td>Compiles every file on a background thread and keeps a result per file (no pygame)</td></tr>
+<tr><td><code>session.py</code></td><td>Compiles every file on a background thread and keeps a result per file; saves the <code>.vm</code> files and can send them to another folder (no pygame)</td></tr>
 <tr><td><code>window.py</code></td><td>The main window: layout, keys, drawing</td></tr>
 <tr><td><code>annotate.py</code></td><td>Turns diagnostics into the shaded lines and <code>^~~~</code> rows under the code</td></tr>
 <tr><td><code>syntax.py</code></td><td>Syntax colouring for Jack and VM code (no pygame)</td></tr>
 <tr><td><code>panel.py</code></td><td>The STATUS / FILES / PROBLEMS / OUTPUT / SHORTCUTS boxes</td></tr>
-<tr><td><code>file_picker.py</code></td><td>The file browser</td></tr>
+<tr><td><code>file_picker.py</code></td><td>The file browser, also used to choose the folder for &ldquo;save as&rdquo;</td></tr>
 <tr><td><code>run_in_vm.py</code></td><td><kbd>Ctrl</kbd>+<kbd>J</kbd>: compiles the folder to a temporary directory and starts JackVM (found by <code>../integrations.py</code>)</td></tr>
 <tr><td><code>theme.py</code></td><td>Colours and fonts, matching the jackvm-py player</td></tr>
 </tbody>

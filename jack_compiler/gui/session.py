@@ -11,6 +11,10 @@ with the very same rules as the `jackc` command line tool:
     jackc src/ -o bin/         ->  bin/*.vm
     jackc -r projects/         ->  every .jack file in the tree
 
+The output can be changed later: set_output() points every target at
+another folder (the window's Ctrl+Shift+S, "save as"), and save() writes
+the VM code that has already been compiled (Ctrl+S) - no recompiling.
+
 then compiles each file and keeps a `FileResult` for it: the Jack source,
 the generated VM code and every diagnostic (errors and warnings, each with
 a line and column, see jack_compiler/diagnostics.py) so the window can mark
@@ -83,16 +87,25 @@ class FileResult:
         return sum(1 for line in self.vm_text.splitlines() if line.lstrip().startswith("function "))
 
 
+def output_is_folder(output: Path) -> bool:
+    """Is a single file's -o output a folder (an existing one, or a name without .vm)?"""
+    return output.is_dir() or output.suffix.lower() != ".vm"
+
+
 def plan_session_jobs(
     target: Path, output: Optional[Path] = None, recursive: bool = False
 ) -> List[Tuple[Path, Path]]:
     """
-    (source .jack, target .vm) pairs for a file or a folder, exactly as
-    `jackc target [-o output] [-r]` would compile them.
+    (source .jack, target .vm) pairs for a file or a folder, as
+    `jackc target [-o output] [-r]` would compile them. For a single file,
+    an `output` folder (see output_is_folder) means output/<Name>.vm.
     """
     target = Path(target)
     if target.is_file():
-        return [(target, Path(output) if output else target.with_suffix(".vm"))]
+        if output is None:
+            return [(target, target.with_suffix(".vm"))]
+        output = Path(output)
+        return [(target, output / target.with_suffix(".vm").name if output_is_folder(output) else output)]
     if target.is_dir():
         return plan_jobs(target, Path(output) if output else target, recursive)
     raise FileNotFoundError(f"Input path not found: {target}")
@@ -120,7 +133,7 @@ class CompileSession:
         self.target = Path(target).expanduser().resolve()
         self.output = Path(output).expanduser().resolve() if output else None
         self.recursive = recursive
-        self.write = write  # False = preview only: never touch the disk
+        self.write = write  # False = preview only: compiling never writes (Ctrl+S still can, see save())
         # True = warnings count as errors (like jackc --werror). Read once at
         # the start of each run, so change it only between runs.
         self.werror = werror
@@ -249,6 +262,60 @@ class CompileSession:
             return 0.0
         end = self.finished_at if self.finished_at is not None else time.perf_counter()
         return end - self.started_at
+
+    # --- where the .vm files go -------------------------------------------------
+    def set_output(self, output: Optional[Path]) -> None:
+        """
+        Send the .vm files somewhere else (None = next to the sources). The
+        results are kept; only their targets change - call save() to write
+        them there. From now on every (re)compile writes there too.
+        """
+        if self.state == COMPILING:
+            raise RuntimeError("can't change the output while compiling")
+        output = Path(output).expanduser().resolve() if output else None
+        targets = dict(plan_session_jobs(self.target, output, self.recursive))
+        for result in self.results:
+            # A .jack file added since the session started isn't in self.results
+            # (Ctrl+O picks it up); one deleted since keeps a target by the same rule.
+            if result.source not in targets:
+                base = output or (self.target if self.target.is_dir() else self.target.parent)
+                if result.source != self.target and self.target in result.source.parents:
+                    relative = result.source.relative_to(self.target)
+                else:  # a single-file session
+                    relative = Path(result.source.name)
+                targets[result.source] = base / relative.with_suffix(".vm")
+            result.target = targets[result.source]
+            result.written = False
+        self.output = output
+        self.write = True
+
+    def save(self) -> Tuple[List[Path], List[str]]:
+        """
+        Write the VM code of every file that compiled to its target (even in
+        a preview-only session). Returns (paths written, problems).
+        """
+        if self.state == COMPILING:
+            raise RuntimeError("can't save while compiling")
+        written: List[Path] = []
+        problems: List[str] = []
+        for result in self.results:
+            if result.status != OK:
+                continue
+            try:
+                result.target.parent.mkdir(parents=True, exist_ok=True)
+                result.target.write_text(result.vm_text, encoding="utf-8")
+            except OSError as problem:
+                problems.append(f"can't write {result.target}: {problem}")
+                continue
+            result.written = True
+            written.append(result.target)
+        return written, problems
+
+    def output_folder(self) -> Path:
+        """The folder the .vm files go to (for a single file, the folder its .vm file is in)."""
+        if self.output is not None:
+            return self.output.parent if self.target.is_file() and not output_is_folder(self.output) else self.output
+        return self.target if self.target.is_dir() else self.target.parent
 
     def first_failed_index(self) -> Optional[int]:
         return next((i for i, r in enumerate(self.results) if r.status == FAILED), None)

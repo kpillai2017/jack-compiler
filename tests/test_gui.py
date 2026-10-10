@@ -674,3 +674,145 @@ def test_without_pygame_it_says_how_to_install_it_into_this_python(monkeypatch, 
     root = Path(gui_main.__file__).resolve().parent.parent.parent
     assert "jackc-gui needs pygame" in said and sys.executable in said
     assert f'pip install -e "{root}[gui]"' in said  # this checkout's extra - jack-compiler isn't on PyPI
+
+
+# --- saving: Ctrl+S, Ctrl+Shift+S ("save as") and -o with the picker ---------------------
+from jack_compiler.gui.file_picker import SAVE  # noqa: E402
+
+
+def test_a_single_file_with_an_output_folder_goes_inside_it(tmp_path):
+    (tmp_path / "A.jack").write_text("")
+    (tmp_path / "bin").mkdir()
+    assert plan_session_jobs(tmp_path / "A.jack", tmp_path / "bin") == [(tmp_path / "A.jack", tmp_path / "bin" / "A.vm")]
+    assert plan_session_jobs(tmp_path / "A.jack", tmp_path / "new") == [(tmp_path / "A.jack", tmp_path / "new" / "A.vm")]
+    assert plan_session_jobs(tmp_path / "A.jack", tmp_path / "B.vm") == [(tmp_path / "A.jack", tmp_path / "B.vm")]
+
+
+def test_session_save_writes_a_preview_and_set_output_moves_the_targets(project):
+    session = CompileSession(project, write=False)
+    session.run()
+    assert not list(project.glob("*.vm"))  # a preview writes nothing...
+    written, problems = session.save()  # ...until Ctrl+S
+    assert sorted(p.name for p in written) == ["HelloWorld.vm", "Math.vm"] and problems == []
+    assert all(r.written for r in session.results if r.status == OK)
+
+    out = project / "out"
+    session.set_output(out)
+    assert session.output == out.resolve() and session.write is True and session.output_folder() == out.resolve()
+    assert {r.target.parent for r in session.results} == {out.resolve()}
+    assert not any(r.written for r in session.results)  # not saved there yet
+    session.save()
+    assert sorted(p.name for p in out.iterdir()) == ["HelloWorld.vm", "Math.vm"]  # Broken.jack failed
+    session.run()  # recompiling now writes there too
+    assert (out / "Math.vm").read_text() == (project / "Math.vm").read_text()
+
+
+def test_set_output_keeps_the_tree_and_refuses_while_compiling(tmp_path):
+    (tmp_path / "sub").mkdir()
+    (tmp_path / "sub" / "B.jack").write_text((EXAMPLES_DIR / "HelloWorld.jack").read_text())
+    session = CompileSession(tmp_path, recursive=True)
+    session.set_output(tmp_path / "out")
+    assert session.results[0].target == (tmp_path / "out" / "sub" / "B.vm").resolve()
+    session.state = COMPILING
+    with pytest.raises(RuntimeError):
+        session.set_output(None)
+    with pytest.raises(RuntimeError):
+        session.save()
+
+
+def test_single_file_session_output_folder(project):
+    session = CompileSession(project / "Math.jack")
+    assert session.output_folder() == project.resolve()
+    session.set_output(project / "bin")
+    assert session.results[0].target == (project / "bin" / "Math.vm").resolve()
+    assert session.output_folder() == (project / "bin").resolve()
+
+
+def test_save_picker_lists_only_folders_and_any_folder_can_be_chosen(project):
+    (project / "empty").mkdir()
+    state = PickerState(project, purpose=SAVE)
+    assert [e.kind for e in state.entries] == ["parent", "folder"]
+    assert state.folder_is_compilable(state.entries[1])  # [save here], although it has no .jack files
+    assert state.compile_folder_entry() == (project / "empty").resolve()
+    assert state.compile_current_folder() == project.resolve()
+    assert state.activate() is None and state.directory == (project / "empty").resolve()  # Enter opens it
+
+
+def test_save_picker_says_what_it_does(project, monkeypatch):
+    pygame.init()
+    surface = pygame.display.set_mode((800, 560))
+    picker = FilePicker(surface, project, back_to="Square/", purpose=SAVE)
+    drawn = []
+    monkeypatch.setattr(picker, "_text", lambda text, *a, **k: drawn.append(text))
+    monkeypatch.setattr(picker, "_button", lambda rect, label, **k: drawn.append(label))
+    picker.draw()
+    footer = next(t for t in drawn if "Ctrl+Q: quit" in t)
+    assert "Choose the folder to save the .vm files in" in drawn and "Save here" in drawn
+    assert "save in folder" in footer and picker.small.size(footer)[0] <= 800 - 2 * picker.MARGIN
+    pygame.quit()
+
+
+def test_ctrl_s_saves_a_preview(project):
+    session = CompileSession(project, write=False)
+    session.run()
+    w = make_window(session)
+    assert send(w, key_down(pygame.K_s, pygame.KMOD_CTRL)) is True
+    assert (project / "Math.vm").is_file() and "Saved 2 .vm files" in w._notice[0]
+    assert any("Ctrl+Shift+S" in text for text, _ in w.shortcuts.rows)
+    pygame.quit()
+
+
+def test_ctrl_shift_s_chooses_a_folder_and_saves_there(done_window, project, monkeypatch):
+    w = done_window
+    out = project / "chosen"
+    seen = {}
+
+    def fake_choose(surface, start, back_to=""):
+        seen["start"] = start
+        return CHOSEN, out
+
+    monkeypatch.setattr(window_module, "choose_output_folder", fake_choose)
+    assert send(w, key_down(pygame.K_s, pygame.KMOD_CTRL | pygame.KMOD_SHIFT)) is True
+    assert seen["start"] == project.resolve()
+    assert sorted(p.name for p in out.iterdir()) == ["HelloWorld.vm", "Math.vm"]
+    assert w.session.output == out.resolve() and str(out) in w._notice[0]
+    assert "chosen" in w.session.describe_output()
+
+    monkeypatch.setattr(window_module, "choose_output_folder", lambda *a, **k: (CANCEL, None))
+    assert send(w, key_down(pygame.K_s, pygame.KMOD_CTRL | pygame.KMOD_SHIFT)) is True
+    assert w.session.output == out.resolve()  # Esc: nothing changes
+    monkeypatch.setattr(window_module, "choose_output_folder", lambda *a, **k: (QUIT, None))
+    assert send(w, key_down(pygame.K_s, pygame.KMOD_CTRL | pygame.KMOD_SHIFT)) is False  # closed the window
+
+
+def test_saving_waits_while_compiling(busy_window, monkeypatch):
+    monkeypatch.setattr(window_module, "choose_output_folder", lambda *a, **k: pytest.fail("opened the chooser"))
+    assert send(busy_window, key_down(pygame.K_s, pygame.KMOD_CTRL | pygame.KMOD_SHIFT)) is True
+    assert send(busy_window, key_down(pygame.K_s, pygame.KMOD_CTRL)) is True
+    assert "Still compiling" in busy_window._notice[0]
+
+
+def test_ctrl_o_passes_the_output_option_on(done_window, project, monkeypatch):
+    w = done_window
+    w.output = project / "bin"
+    seen = {}
+    monkeypatch.setattr(window_module, "choose_target", lambda *a, **k: seen.update(k) or (CANCEL, None))
+    send(w, key_down(pygame.K_o, pygame.KMOD_CTRL))
+    assert seen["output"] == project / "bin"
+
+
+def test_jackc_gui_output_works_with_the_picker(project, monkeypatch):
+    from jack_compiler.gui import main as gui_main
+
+    seen = {}
+
+    def fake_picker(start, recursive, write, werror, output=None):
+        seen["output"] = output
+        return CompileSession(project / "Math.jack", output, write=write)
+
+    opened = []
+    monkeypatch.setattr(window_module, "open_picker_window", fake_picker)
+    monkeypatch.setattr(window_module.CompilerWindow, "run", lambda self: opened.append(self))
+    assert gui_main.main(["--gui", str(project), "-o", str(project / "bin")]) == 0
+    assert seen["output"] == project / "bin" and opened[0].output == project / "bin"
+    assert opened[0].session.results[0].target == (project / "bin" / "Math.vm").resolve()

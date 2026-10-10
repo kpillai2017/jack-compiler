@@ -54,6 +54,8 @@ HELP_ITEMS = [
     "Ctrl+R recompile",
     "Ctrl+W warnings=errors",
     "Ctrl+O open",
+    "Ctrl+S save",
+    "Ctrl+Shift+S save as",
     "Ctrl+D panel",
     "Ctrl+Q quit",
     "Esc back to picker (hold 1 s if busy)",
@@ -207,7 +209,7 @@ def build_sections(session: CompileSession, selected: int) -> List[Section]:
         if current.written:
             box.add("saved" + warned, "warning" if warned else "ok")
         else:
-            box.add("not saved (preview only)" + warned, "dim")
+            box.add("not saved (preview only: Ctrl+S saves)" + warned, "dim")
     elif current.status == FAILED:
         box.add("not saved: fix the errors, then Ctrl+R", "error")
     else:
