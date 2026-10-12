@@ -79,6 +79,41 @@ OS_API = {
     "Sys": ("function void init()", "function void halt()", "function void error(int errorCode)",
             "function void wait(int duration)"),
 }  # fmt: skip
+# Public additions supplied by the companion extended Jack OS. These calls
+# use standard Jack syntax but require a compatible runtime (not the stock OS).
+# Existing signatures stay unchanged; private helpers are not public APIs.
+OS_API["Memory"] += ("function void fill(int address, int count, int value)",
+                     "function void copy(int source, int destination, int count)",
+                     "function void move(int source, int destination, int count)")
+OS_API["Screen"] += ("function void drawBitmap(int x, int y, int width, int height, Array bitmap)",
+                     "function void drawSprite(int x, int y, int width, int height, Array bitmap, Array mask)",
+                     "function void captureBitmap(int x, int y, int width, int height, Array buffer)",
+                     "function void drawVertical(int x, int y1, int y2)")
+OS_API["Output"] += ("function int cursorRow()", "function int cursorColumn()")
+OS_API["String"] += ("method int capacity()", "method void clear()", "method boolean hasCapacity(int count)",
+                     "method String appendString(String other)", "method boolean equals(String other)",
+                     "method int indexOf(int c)", "method String substring(int start, int count)",
+                     "method String copy()", "method boolean isInteger()")
+OS_API["Math"] += ("function int clamp(int value, int minimum, int maximum)", "function int sign(int value)",
+                   "function int mod(int value, int divisor)", "function int shiftLeft(int value, int count)",
+                   "function int shiftRight(int value, int count)", "function int shiftRightUnsigned(int value, int count)")
+OS_API["Input"] = ("function void init()", "function void update()", "function int key()",
+                   "function int pressed()", "function int released()")
+OS_API["Random"] = ("constructor Random new(int seed)", "method int next()", "method int range(int limit)",
+                    "method void dispose()")
+OS_API["IntQueue"] = ("constructor IntQueue new(int cap)", "method void enqueue(int value)",
+                      "method int dequeue()", "method boolean isEmpty()", "method boolean isFull()",
+                      "method int length()", "method void clear()", "method void dispose()")
+OS_API["IntStack"] = ("constructor IntStack new(int cap)", "method void push(int value)", "method int pop()",
+                      "method int peek()", "method boolean isEmpty()", "method boolean isFull()",
+                      "method int length()", "method void clear()", "method void dispose()")
+OS_API["Console"] = ("function void printAt(int row, int column, String text)", "function void clearLine(int row)",
+                     "function void clearRegion(int row, int column, int rows, int columns)",
+                     "function void scrollUp(int lines)", "function void printPaddedInt(int value, int width)")
+OS_API["Timer"] = ("constructor Timer new(int units)", "method void tick()", "method void advance(int units)",
+                   "method int remaining()", "method boolean expired()", "method void reset()",
+                   "method void restart(int units)", "method void dispose()")
+OS_API["Clock"] = ("function boolean supported()", "function int now()", "function int elapsed(int start)")
 # A program class with one of these names mixes its own subroutines with the
 # OS's (e.g. examples/Array.jack calls the OS's Array.new), so qualified calls
 # into it can't be checked.

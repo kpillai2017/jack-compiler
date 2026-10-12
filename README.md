@@ -518,6 +518,16 @@ can change its internals without breaking the other.
 - `method` - Instance method (implicit 'this')
 - `constructor` - Constructor (returns 'this')
 
+## Extended OS compatibility
+
+The semantic checker also recognises the companion extended OS APIs (including
+`Input`, `Random`, `IntQueue`, `IntStack`, `Console`, `Timer`, and `Clock`). These
+use ordinary Jack syntax and do **not** require `--extensions`, but do require a
+compatible extended runtime: the stock nand2tetris OS does not provide them.
+Compilation validates calls; it does not install or link their implementations.
+See [extended OS compatibility](docs/extended-os.md) for the full API list,
+portability guidance, and signature consistency tests.
+
 ## Opt-in language extensions
 
 **Learn by doing:** [combined four-group teaching lab](teaching/extensions/README.md)

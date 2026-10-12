@@ -46,6 +46,14 @@ jackc-gui src_dir/
 any errors and warnings marked under the line. See
 [The Compiler Window](docs/gui.html).
 
+## Extended OS requirements
+
+Calls to the companion OS's extra APIs compile with ordinary Jack syntax,
+without `--extensions`, but require a compatible extended OS at runtime.
+The compiler checks calls; it does not bundle the OS. Stock nand2tetris OS
+implementations do not provide these additions. See
+[extended OS compatibility](docs/extended-os.md) for details and an example.
+
 ## Optional language extensions
 
 For a guided, runnable demonstration of all four extension groups, follow the

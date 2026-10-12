@@ -68,6 +68,11 @@ Welcome to the comprehensive documentation for the Jack Compiler - a complete im
    - Exercises with checkpoints and automated runtime verification
    - Full Markdown lesson: [teaching/extensions/README.md](../teaching/extensions/README.md)
 
+### **extended-os.md** — Runtime compatibility
+   - Public companion OS additions and runtime requirements
+   - Difference between language syntax extensions and extended OS calls
+   - Stock nand2tetris portability limits and optional signature consistency tests
+
 ## 🚀 Quick Start
 
 1. **Setup**: Read [getting-started.html](getting-started.html)
