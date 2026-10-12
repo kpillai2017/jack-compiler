@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Extended Jack Teaching Lab - Jack Compiler</title>
+<style>
+body{font-family:system-ui,sans-serif;line-height:1.65;margin:0;background:#f3f5fc;color:#25304a}
+header{background:#5265bc;color:white;padding:2rem}main,nav{max-width:960px;margin:auto;padding:1.5rem}
+nav a{margin-right:1rem}a{color:#4256af}header a{color:white}section{margin:2rem 0}
+pre{background:#17223b;color:#f4f6ff;padding:1rem;overflow:auto;border-radius:6px}code{font-family:monospace}
+table{border-collapse:collapse;width:100%}th,td{border:1px solid #cbd1e5;text-align:left;padding:.5rem}
+.note{border-left:4px solid #5265bc;background:white;padding:1rem}footer{padding:2rem;text-align:center}
+</style>
+</head>
+<body>
+<header><h1>Extended Jack: one program, four lessons</h1><p>A hands-on lab connecting source syntax, execution order, and VM instructions.</p></header>
+<nav aria-label="Documentation"><a href="index.html">Home</a><a href="getting-started.html">Getting started</a><a href="examples.html">Standard examples</a><a href="how-it-works.html">Compiler architecture</a></nav>
+<main>
+<p>Start with standard Jack's <code>let</code>, <code>if</code>, <code>while</code>, <code>do</code>, and <code>return</code>. Then explore the extensions using the runnable
+<a href="https://github.com/kpillai2017/jack-compiler/blob/main/teaching/extensions/Main.jack">Main.jack source</a> and the
+<a href="https://github.com/kpillai2017/jack-compiler/blob/main/teaching/extensions/README.md">full walkthrough with exercises</a>.
+In a local checkout these are <code>teaching/extensions/Main.jack</code> and <code>teaching/extensions/README.md</code>.</p>
+<p class="note">Extensions are opt-in, not standard nand2tetris Jack. They add no VM instructions. The compiler GUI currently uses standard mode. The lesson is outside <code>examples/</code> so standard-mode batch examples remain valid.</p>
+<section id="run"><h2>1. Compile and run</h2>
+<p>From the compiler repository root:</p>
+<pre><code>jackc --extensions teaching/extensions/Main.jack -o build/extensions/Main.vm
+# With the optional companion jackvm-py installed:
+jackvm build/extensions/Main.vm
+jackvm --headless --ticks 300000 build/extensions/Main.vm</code></pre>
+<p>Run the generated VM rather than the source: automatic source compilation may select standard mode. In Python use <code>JackCompiler(extensions=True)</code>. Headless mode renders the pixel screen as ASCII, not a plain-text transcription; the graphical VM is easiest for reading the lesson output.</p>
+</section>
+<section id="predict"><h2>2. Predict before running</h2>
+<pre><code>Extensions "lab" \ A
+total = 31
+processed = 5
+index calls = 5
+flags = 3
+state = 6
+finished</code></pre>
+<table><thead><tr><th>i</th><th>Action</th><th>Score</th><th>Total</th></tr></thead><tbody>
+<tr><td>0</td><td>process</td><td>1</td><td>1</td></tr>
+<tr><td>1</td><td>process</td><td>3</td><td>4</td></tr>
+<tr><td>2</td><td>continue</td><td>—</td><td>4</td></tr>
+<tr><td>3</td><td>process</td><td>7</td><td>11</td></tr>
+<tr><td>4</td><td>process</td><td>9</td><td>20</td></tr>
+<tr><td>5</td><td>process</td><td>11</td><td>31</td></tr>
+<tr><td>6</td><td>break</td><td>—</td><td>31</td></tr>
+<tr><td>7</td><td>not reached</td><td>—</td><td>31</td></tr>
+</tbody></table>
+<p>The first loop explicitly clears the array: allocation does not promise zeroed elements. <code>countIndex(i)</code> increments a counter and returns the index, so five processed rows mean five calls.</p>
+</section>
+<section id="group-1"><h2>3. Group 1: literals and comparisons</h2>
+<pre><code>const int MASK = 0x0F;
+const char BADGE = 'A';
+let flags |= 0b0010;
+if (i &gt;= STOP_AT) { break; }
+if (state != State.READY) { /* ... */ }</code></pre>
+<p>Hexadecimal <code>0x0F</code> means 15, binary <code>0b0010</code> means 2, and <code>'A'</code> means character code 65. Literal magnitudes remain 0–32767. Comparisons <code>&lt;=</code>, <code>&gt;=</code>, and <code>!=</code> return true (-1) or false (0).</p>
+<p>Strings decode <code>\"</code> and <code>\\</code>, plus <code>\n</code>, <code>\r</code>, <code>\t</code>, <code>\b</code>, <code>\f</code>, <code>\0</code>, and <code>\'</code>. Unknown escapes are errors. The lab uses <code>Output.println()</code>: an escaped newline character is not a guarantee of OS display behaviour.</p>
+<p class="note"><strong>Two traps:</strong> operators still evaluate left to right: <code>1 + 2 * 3</code> yields 9, not 7. Use parentheses. Standard-mode strings keep backslashes literally; changing mode can change an existing string's meaning.</p>
+</section>
+<section id="group-2"><h2>4. Group 2: initialisers and compound assignment</h2>
+<pre><code>var Array scores = Array.new(CAPACITY);
+var int i = 0, countdown = 3;
+let scores[Main.countIndex(i)] += (i * 2) + BONUS;
+let total += scores[i];</code></pre>
+<p>Initialisers run once in source order, after method/constructor setup and before statements. Locals stay at subroutine start and retain subroutine scope. Reading a later local from an earlier initialiser sees its zeroed local slot, not its eventual initialiser.</p>
+<table><thead><tr><th>Compound</th><th>Simple-variable expansion</th></tr></thead><tbody>
+<tr><td><code>x += y</code></td><td><code>x = x + y</code></td></tr>
+<tr><td><code>x -= y</code></td><td><code>x = x - y</code></td></tr>
+<tr><td><code>x *= y</code></td><td><code>x = x * y</code></td></tr>
+<tr><td><code>x /= y</code></td><td><code>x = x / y</code></td></tr>
+<tr><td><code>x &amp;= y</code></td><td><code>x = x &amp; y</code></td></tr>
+<tr><td><code>x |= y</code></td><td><code>x = x | y</code></td></tr>
+</tbody></table>
+<p>All are used in the full program. For array targets, do not duplicate the index expression in a textual expansion: the compiler evaluates the target once and saves its address and old value on the VM stack across RHS calls. The lab's <code>indexCalls = 5</code> makes this observable. Bitwise <code>&amp;</code>/<code>|</code> are not short-circuit operators; <code>2 | 1</code> is 3 and <code>3 &amp; 15</code> remains 3.</p>
+</section>
+<section id="group-3"><h2>5. Group 3: loops and control flow</h2>
+<pre><code>for (let i = 0; i &lt;= (CAPACITY - 1); let i += 1) {
+    if (i = SKIP_AT) { continue; }
+    if (i &gt;= STOP_AT) { break; }
+    let scores[Main.countIndex(i)] += (i * 2) + BONUS;
+    let total += scores[i];
+    let processed += 1;
+    let flags |= 0b0010;
+}</code></pre>
+<p>Order: initialise once → condition → body → update → condition. Header <code>let</code> keywords are optional; each assignment is a single assignment, not a declaration or comma list. Any clause may be absent; <code>for (;;)</code> repeats without a condition.</p>
+<ul><li><code>continue</code> runs a for-loop update, but jumps directly to a while-loop condition.</li><li><code>break</code> exits the innermost loop and skips a for-loop update.</li><li><code>return</code> exits the whole subroutine.</li><li>Controls outside loops are errors. Unreachable statements are warned about in extension mode.</li></ul>
+<p>The countdown loop decrements before checking whether to continue. Otherwise a skip might prevent progress. Conditions follow Jack's Boolean convention, not arbitrary-integer truthiness. An endless loop with a reachable break still needs a return on paths after it.</p>
+</section>
+<section id="group-4"><h2>6. Group 4: constants and enums</h2>
+<pre><code>const int CAPACITY = 8, STOP_AT = 6, SKIP_AT = 2;
+const boolean RUNNING = true;
+enum State { READY, ACTIVE = 5, DONE }</code></pre>
+<p>Constants have <code>int</code>, <code>char</code>, or <code>boolean</code> type, cannot be assigned or indexed, and allocate no VM storage. Subroutine constants are also supported. Local names may shadow class constants; <code>Main.CAPACITY</code> explicitly selects a class constant.</p>
+<p>Enums are scoped integer names, not distinct types: READY is 0, ACTIVE is 5, DONE is 6. Explicit values reset subsequent numbering. Use <code>State.DONE</code>, not bare <code>DONE</code>.</p>
+<p>Constant expressions allow grouping, unary minus/not, existing binary operators, primitive literals and other constants/members. Forward references work; cycles, runtime variables/calls, strings, null/this, and division by zero are rejected. Evaluation is left-to-right signed 16-bit wrapping, with division truncated toward zero. Boolean constants must be 0/-1 and chars 0–32767; implicit enum overflow is an error.</p>
+<p class="note">Declarations/references are limited to the current source class: no cross-file exports or enum type declarations. Enum names cannot collide with variables/constants. <code>const</code>, <code>enum</code>, <code>for</code>, <code>break</code>, and <code>continue</code> are reserved only in extension mode.</p>
+</section>
+<section id="vm"><h2>7. Inspect the generated VM</h2><ul>
+<li>Constants/members become literal pushes; negative values additionally use <code>neg</code> or <code>not</code>.</li>
+<li><code>&lt;=</code> → <code>gt; not</code>, <code>&gt;=</code> → <code>lt; not</code>, <code>!=</code> → <code>eq; not</code>.</li>
+<li>For loops have condition, update and exit labels. Compare continue/break targets.</li>
+<li>Array updates preserve the target on the stack. Initialisers follow the function prologue.</li>
+</ul><p>Allocation/disposal still use the ordinary OS: <code>Array.new</code> and <code>scores.dispose()</code>.</p></section>
+<section id="exercises"><h2>8. Exercises and checkpoints</h2><ol>
+<li>Set SKIP_AT to 3: total 29, processed 5, calls 5. Explain the removed score.</li>
+<li>Set STOP_AT to 4, retaining SKIP_AT = 2: total 11, processed 3, calls 3.</li>
+<li>Remove the skip: total 36, processed 6, calls 6.</li>
+<li>Change ACTIVE to 10: DONE and the final state become 11.</li>
+<li>Try assigning CAPACITY, using a runtime call in a constant expression, or break outside a loop. Explain the errors.</li>
+<li>Rewrite the scoring loop as standard while plus flags. Where must its update run?</li>
+</ol></section>
+<section id="tests"><h2>9. Verify the lesson</h2><pre><code>python3 -m pytest tests/test_teaching_extensions.py -q
+# Optional sibling VM runtime:
+PYTHONPATH="../jackvm-py" python3 -m pytest tests/test_teaching_extensions.py -q</code></pre>
+<p>Tests cover compilation, standard-mode rejection, documentation/source consistency, results, and exercise variations. Runtime checks read Main's five static results after the VM halts; the stack top is not a reliable return value because Sys.init discards Main.main's result.</p></section>
+</main><footer>Jack Compiler — Extended language teaching lab</footer>
+</body>
+</html>

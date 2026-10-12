@@ -8,6 +8,9 @@ implementation.
 
 from typing import Any, Dict, List, Optional
 
+from .literals import integer_value, quoted_value
+from .constants import collect_constants, lookup_constant
+
 from .codegen import CodeGenerator
 from .symbols import VarKind
 
@@ -35,8 +38,10 @@ class JackCompilerVisitor:
     - Term: { termType, ... }
     """
 
-    def __init__(self):
+    def __init__(self, extensions: bool = False):
         """Initialize the visitor."""
+        self.extensions = extensions
+        self.loop_labels = []  # (break target, continue target), innermost last
         self.codegen: Optional[CodeGenerator] = None
         self.class_name: Optional[str] = None
         self.current_span: Span = Span()
@@ -67,6 +72,8 @@ class JackCompilerVisitor:
         """
         self.class_name = ctx.className().getText()
         self.codegen = CodeGenerator(self.class_name)
+        self.class_constants = collect_constants(ctx, self.class_name)
+        self.constants = self.class_constants
         
         # Process class variable declarations
         var_decs = []
@@ -175,6 +182,14 @@ class JackCompilerVisitor:
         # Process body
         subroutine_body = ctx.subroutineBody()
         
+        blocked = set(self.codegen.symbol_table.subroutine_symbols)
+        blocked.update(local.varName().getText()
+                       for declaration in subroutine_body.varDeclaration()
+                       for local in declaration.localVariable())
+        self.constant_blocked = blocked
+        self.constants = collect_constants(
+            subroutine_body, self.class_name, parent=self.class_constants, blocked=blocked)
+
         # Process local variables
         var_decs = []
         for var_decl in subroutine_body.varDeclaration():
@@ -197,6 +212,13 @@ class JackCompilerVisitor:
             self.codegen.emit("push argument 0")
             self.codegen.emit("pop pointer 0")
         
+        # Initialisers run once, in source order, after the object pointer is set.
+        for var_decl in subroutine_body.varDeclaration():
+            for local in var_decl.localVariable():
+                if local.expression() is not None:
+                    self.visit_expression_eval(local.expression())
+                    self.codegen.pop_variable(local.varName().getText())
+
         # Compile statements
         statements = []
         for statement in subroutine_body.statements().statement():
@@ -232,18 +254,25 @@ class JackCompilerVisitor:
         type_name = ctx.type_().getText()
         
         var_names = []
-        for var_name in ctx.varName():
-            name = var_name.getText()
+        for local in ctx.localVariable():
+            name = local.varName().getText()
             var_names.append(name)
             self.codegen.symbol_table.define(name, type_name, VarKind.LOCAL)
-        
-        return [{
+
+        declaration = {
             "type": {
                 "value": type_name,
                 "span": self.current_span.to_dict()
             },
             "names": var_names
-        }]
+        }
+        initialisers = {
+            local.varName().getText(): self.visit_expression(local.expression())
+            for local in ctx.localVariable() if local.expression() is not None
+        }
+        if initialisers:
+            declaration["initialisers"] = initialisers
+        return [declaration]
 
     def visit_statement(self, ctx: Any) -> Dict:
         """Visit a statement and return AST node."""
@@ -253,6 +282,14 @@ class JackCompilerVisitor:
             return self.visit_if_statement(ctx.ifStatement())
         elif ctx.whileStatement():
             return self.visit_while_statement(ctx.whileStatement())
+        elif ctx.forStatement():
+            return self.visit_for_statement(ctx.forStatement())
+        elif ctx.breakStatement():
+            self.codegen.emit_goto(self.loop_labels[-1][0])
+            return {"statementType": "breakStatement"}
+        elif ctx.continueStatement():
+            self.codegen.emit_goto(self.loop_labels[-1][1])
+            return {"statementType": "continueStatement"}
         elif ctx.doStatement():
             return self.visit_do_statement(ctx.doStatement())
         elif ctx.returnStatement():
@@ -274,21 +311,28 @@ class JackCompilerVisitor:
             }
         """
         var_name = ctx.varName().getText()
-        
+        operator = ctx.assignmentOperator().getText()
+        compound = operator != "="
+
         if ctx.LBRACKET():
-            # Array assignment: let array[index] = value
-            # Stack: need to compute array+index, then store value there
-            self.visit_expression_eval(ctx.expression(0))  # Push index
-            self.codegen.push_variable(var_name)  # Push array base
-            self.codegen.emit("add")  # Stack: [array+index]
-            self.visit_expression_eval(ctx.expression(1))  # Push value
-            # Stack: [array+index, value]
-            self.codegen.emit("pop temp 0")  # temp0 = value, stack: [array+index]
-            self.codegen.emit("pop pointer 1")  # THAT = array+index, stack: []
-            self.codegen.emit("push temp 0")  # Stack: [value]
-            self.codegen.emit("pop that 0")  # that[0] = value
-            
-            return {
+            # Evaluate the target once. Preserve its address and old value on
+            # the stack: RHS calls may overwrite both temp and pointer segments.
+            self.visit_expression_eval(ctx.expression(0))
+            self.codegen.push_variable(var_name)
+            self.codegen.emit("add")
+            if compound:
+                self.codegen.emit("pop pointer 1")
+                self.codegen.emit("push pointer 1")
+                self.codegen.emit("push that 0")
+            self.visit_expression_eval(ctx.expression(1))
+            if compound:
+                self.emit_op(operator[0])
+            self.codegen.emit("pop temp 0")
+            self.codegen.emit("pop pointer 1")
+            self.codegen.emit("push temp 0")
+            self.codegen.emit("pop that 0")
+
+            result = {
                 "statementType": "letStatement",
                 "name": var_name,
                 "arrayIndex": self.visit_expression(ctx.expression(0)),
@@ -296,16 +340,22 @@ class JackCompilerVisitor:
                 "span": self.current_span.to_dict()
             }
         else:
-            # Simple assignment
+            if compound:
+                self.codegen.push_variable(var_name)
             self.visit_expression_eval(ctx.expression(0))
+            if compound:
+                self.emit_op(operator[0])
             self.codegen.pop_variable(var_name)
-            
-            return {
+
+            result = {
                 "statementType": "letStatement",
                 "name": {"value": var_name, "span": self.current_span.to_dict()},
                 "value": self.visit_expression(ctx.expression(0)),
                 "span": self.current_span.to_dict()
             }
+        if compound:
+            result["assignmentOperator"] = operator
+        return result
 
     def visit_if_statement(self, ctx: Any) -> Dict:
         """
@@ -369,11 +419,13 @@ class JackCompilerVisitor:
         self.codegen.emit("not")
         self.codegen.emit_if_goto(end_label)
         
-        # Collect statements for AST while generating code
-        statements = []
-        for stmt in ctx.statements().statement():
-            statements.append(self.visit_statement(stmt))
-        
+        # Collect statements while tracking the innermost loop's jump targets.
+        self.loop_labels.append((end_label, loop_label))
+        try:
+            statements = [self.visit_statement(stmt) for stmt in ctx.statements().statement()]
+        finally:
+            self.loop_labels.pop()
+
         self.codegen.emit_goto(loop_label)
         self.codegen.emit_label(end_label)
         
@@ -381,6 +433,34 @@ class JackCompilerVisitor:
             "statementType": "whileStatement",
             "condition": self.visit_expression(ctx.expression()),
             "body": statements
+        }
+
+    def visit_for_statement(self, ctx: Any) -> Dict:
+        """Lower a for loop; continue targets its update, not its condition."""
+        condition_label = self.codegen.new_label("FOR")
+        update_label = self.codegen.new_label("FORUPDATE")
+        end_label = self.codegen.new_label("ENDFOR")
+        initialiser = self.visit_let_statement(ctx.init) if ctx.init is not None else None
+        self.codegen.emit_label(condition_label)
+        if ctx.condition is not None:
+            self.visit_expression_eval(ctx.condition)
+            self.codegen.emit("not")
+            self.codegen.emit_if_goto(end_label)
+        self.loop_labels.append((end_label, update_label))
+        try:
+            statements = [self.visit_statement(stmt) for stmt in ctx.statements().statement()]
+        finally:
+            self.loop_labels.pop()
+        self.codegen.emit_label(update_label)
+        update = self.visit_let_statement(ctx.update) if ctx.update is not None else None
+        self.codegen.emit_goto(condition_label)
+        self.codegen.emit_label(end_label)
+        return {
+            "statementType": "forStatement",
+            "initialiser": initialiser,
+            "condition": self.visit_expression(ctx.condition) if ctx.condition is not None else None,
+            "update": update,
+            "body": statements,
         }
 
     def visit_do_statement(self, ctx: Any) -> Dict:
@@ -477,12 +557,18 @@ class JackCompilerVisitor:
         if ctx.integerConstant():
             return {
                 "termType": "numericLiteral",
-                "value": int(ctx.integerConstant().getText())
+                "value": integer_value(ctx.integerConstant().getText())
             }
         
+        elif ctx.characterConstant():
+            return {
+                "termType": "numericLiteral",
+                "value": ord(quoted_value(ctx.characterConstant().getText(), extensions=True))
+            }
+
         elif ctx.stringConstant():
             string_text = ctx.stringConstant().getText()
-            string_value = string_text[1:-1]
+            string_value = quoted_value(string_text, extensions=self.extensions)
             return {
                 "termType": "stringLiteral",
                 "value": string_value
@@ -505,14 +591,21 @@ class JackCompilerVisitor:
                     "span": self.current_span.to_dict()
                 }
             else:
-                # Variable
+                # Constants appear as numeric literals in the emitted AST.
                 var_name = ctx.varName().getText()
+                constant = self._constant(var_name)
+                if constant is not None:
+                    return {"termType": "numericLiteral", "value": constant.value}
                 return {
                     "termType": "variable",
                     "name": var_name,
                     "span": self.current_span.to_dict()
                 }
         
+        elif ctx.qualifiedConstant():
+            name = ctx.qualifiedConstant().getText()
+            return {"termType": "numericLiteral", "value": self._constant(name).value}
+
         elif ctx.subroutineCall():
             return {
                 "termType": "subroutineCall",
@@ -537,13 +630,17 @@ class JackCompilerVisitor:
     def visit_term_eval(self, ctx: Any):
         """Evaluate term and emit VM code."""
         if ctx.integerConstant():
-            value = int(ctx.integerConstant().getText())
+            value = integer_value(ctx.integerConstant().getText())
             self.codegen.push_constant(value)
         
         elif ctx.stringConstant():
             string_text = ctx.stringConstant().getText()
-            string_value = string_text[1:-1]
+            string_value = quoted_value(string_text, extensions=self.extensions)
             self.codegen.emit_string_constant(string_value)
+
+        elif ctx.characterConstant():
+            value = quoted_value(ctx.characterConstant().getText(), extensions=True)
+            self.codegen.push_constant(ord(value))
         
         elif ctx.keywordConstant():
             keyword = ctx.keywordConstant().getText()
@@ -565,8 +662,15 @@ class JackCompilerVisitor:
                 self.codegen.emit_array_access()
             else:
                 var_name = ctx.varName().getText()
-                self.codegen.push_variable(var_name)
-        
+                constant = self._constant(var_name)
+                if constant is not None:
+                    self._emit_constant(constant.value)
+                else:
+                    self.codegen.push_variable(var_name)
+
+        elif ctx.qualifiedConstant():
+            self._emit_constant(self._constant(ctx.qualifiedConstant().getText()).value)
+
         elif ctx.subroutineCall():
             self.visit_subroutine_call_eval(ctx.subroutineCall())
         
@@ -580,6 +684,20 @@ class JackCompilerVisitor:
                 self.codegen.emit_negate()
             elif op == "~":
                 self.codegen.emit_not()
+
+    def _constant(self, name):
+        return lookup_constant(name, self.constants, self.class_constants, self.class_name,
+                               self.constant_blocked)
+
+    def _emit_constant(self, value):
+        if value >= 0:
+            self.codegen.push_constant(value)
+        elif value == -32768:
+            self.codegen.push_constant(32767)
+            self.codegen.emit_not()
+        else:
+            self.codegen.push_constant(-value)
+            self.codegen.emit_negate()
 
     def visit_subroutine_call(self, ctx: Any) -> Dict:
         """
@@ -666,8 +784,10 @@ class JackCompilerVisitor:
 
     def visit_op(self, ctx: Any):
         """Visit operator and emit VM code."""
-        op = ctx.getText()
-        
+        self.emit_op(ctx.getText())
+
+    def emit_op(self, op: str):
+        """Emit VM code for a binary operator given as plain text."""
         if op == "+":
             self.codegen.emit_add()
         elif op == "-":
@@ -686,6 +806,15 @@ class JackCompilerVisitor:
             self.codegen.emit_gt()
         elif op == "=":
             self.codegen.emit_eq()
+        elif op == "<=":
+            self.codegen.emit_gt()
+            self.codegen.emit_not()
+        elif op == ">=":
+            self.codegen.emit_lt()
+            self.codegen.emit_not()
+        elif op == "!=":
+            self.codegen.emit_eq()
+            self.codegen.emit_not()
 
 
 # Backwards-compatible alias for code written against the old module name.

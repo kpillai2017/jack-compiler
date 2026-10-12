@@ -59,6 +59,15 @@ Welcome to the comprehensive documentation for the Jack Compiler - a complete im
    - How each app finds the other (environment variable, same environment, PATH)
    - Troubleshooting
 
+### **language-extensions.html** — Extended Jack Teaching Lab
+   - Runnable source: `teaching/extensions/Main.jack` in the repository
+   - All four extension groups in one program: literals/comparisons, initialisers/
+     compound assignment, loops/control flow, constants/enums
+   - Predicted output and an iteration-by-iteration execution trace
+   - Standard-mode compatibility, VM lowering, and common pitfalls
+   - Exercises with checkpoints and automated runtime verification
+   - Full Markdown lesson: [teaching/extensions/README.md](../teaching/extensions/README.md)
+
 ## 🚀 Quick Start
 
 1. **Setup**: Read [getting-started.html](getting-started.html)

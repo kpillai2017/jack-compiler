@@ -12,7 +12,7 @@ program
     ;
 
 classDeclaration
-    : CLASS className LBRACE classVarDeclaration* subroutineDeclaration* RBRACE
+    : CLASS className LBRACE (classVarDeclaration | constDeclaration | enumDeclaration)* subroutineDeclaration* RBRACE
     ;
 
 classVarDeclaration
@@ -35,11 +35,35 @@ parameterList
     ;
 
 subroutineBody
-    : LBRACE varDeclaration* statements RBRACE
+    : LBRACE (varDeclaration | constDeclaration)* statements RBRACE
     ;
 
 varDeclaration
-    : VAR type varName (COMMA varName)* SEMICOLON
+    : VAR type localVariable (COMMA localVariable)* SEMICOLON
+    ;
+
+localVariable
+    : varName (EQUAL expression)?
+    ;
+
+constDeclaration
+    : CONST type constEntry (COMMA constEntry)* SEMICOLON
+    ;
+
+constEntry
+    : varName EQUAL expression
+    ;
+
+enumDeclaration
+    : ENUM className LBRACE enumMember (COMMA enumMember)* COMMA? RBRACE SEMICOLON?
+    ;
+
+enumMember
+    : varName (EQUAL expression)?
+    ;
+
+qualifiedConstant
+    : varName DOT varName
     ;
 
 statements
@@ -50,12 +74,25 @@ statement
     : letStatement
     | ifStatement
     | whileStatement
+    | forStatement
+    | breakStatement
+    | continueStatement
     | doStatement
     | returnStatement
     ;
 
 letStatement
-    : LET varName (LBRACKET expression RBRACKET)? EQUAL expression SEMICOLON
+    : LET varName (LBRACKET expression RBRACKET)? assignmentOperator expression SEMICOLON
+    ;
+
+assignmentOperator
+    : EQUAL
+    | PLUS_ASSIGN
+    | MINUS_ASSIGN
+    | MUL_ASSIGN
+    | DIV_ASSIGN
+    | AND_ASSIGN
+    | OR_ASSIGN
     ;
 
 ifStatement
@@ -64,6 +101,22 @@ ifStatement
 
 whileStatement
     : WHILE LPAREN expression RPAREN LBRACE statements RBRACE
+    ;
+
+forStatement
+    : FOR LPAREN init=forAssignment? SEMICOLON condition=expression? SEMICOLON update=forAssignment? RPAREN LBRACE statements RBRACE
+    ;
+
+forAssignment
+    : LET? varName (LBRACKET expression RBRACKET)? assignmentOperator expression
+    ;
+
+breakStatement
+    : BREAK SEMICOLON
+    ;
+
+continueStatement
+    : CONTINUE SEMICOLON
     ;
 
 doStatement
@@ -81,10 +134,12 @@ expression
 term
     : integerConstant
     | stringConstant
+    | characterConstant
     | keywordConstant
     | varName
     | varName LBRACKET expression RBRACKET
     | subroutineCall
+    | qualifiedConstant
     | LPAREN expression RPAREN
     | unaryOp term
     ;
@@ -108,6 +163,9 @@ op
     | LT
     | GT
     | EQUAL
+    | LE
+    | GE
+    | NE
     ;
 
 unaryOp
@@ -143,6 +201,17 @@ stringConstant
     : STRING_LITERAL
     ;
 
+characterConstant
+    : CHAR_LITERAL
+    ;
+
+// Extension keywords remain valid identifiers in standard mode.
+CONST       : {getattr(self, 'extensions', False)}? 'const';
+ENUM        : {getattr(self, 'extensions', False)}? 'enum';
+FOR         : {getattr(self, 'extensions', False)}? 'for';
+BREAK       : {getattr(self, 'extensions', False)}? 'break';
+CONTINUE    : {getattr(self, 'extensions', False)}? 'continue';
+
 // Keywords
 CLASS       : 'class';
 CONSTRUCTOR : 'constructor';
@@ -167,6 +236,12 @@ WHILE       : 'while';
 RETURN      : 'return';
 
 // Operators and symbols
+PLUS_ASSIGN : '+=';
+MINUS_ASSIGN: '-=';
+MUL_ASSIGN  : '*=';
+DIV_ASSIGN  : '/=';
+AND_ASSIGN  : '&=';
+OR_ASSIGN   : '|=';
 PLUS        : '+';
 MINUS       : '-';
 MUL         : '*';
@@ -174,6 +249,9 @@ DIV         : '/';
 AND         : '&';
 OR          : '|';
 NOT         : '~';
+LE          : '<=';
+GE          : '>=';
+NE          : '!=';
 LT          : '<';
 GT          : '>';
 EQUAL       : '=';
@@ -190,10 +268,17 @@ RBRACE      : '}';
 // Literals
 INTEGER
     : [0-9]+
+    | '0' [xX] [0-9a-fA-F]+
+    | '0' [bB] [01]+
     ;
 
 STRING_LITERAL
-    : '"' (~["\r\n])* '"'
+    : {not getattr(self, 'extensions', False)}? '"' (~["\r\n])* '"'
+    | {getattr(self, 'extensions', False)}? '"' ('\\' ~[\r\n] | ~["\\\r\n])* '"'
+    ;
+
+CHAR_LITERAL
+    : '\'' ('\\' ~[\r\n] | ~['\\\r\n]) '\''
     ;
 
 IDENTIFIER

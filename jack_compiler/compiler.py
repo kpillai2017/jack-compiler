@@ -211,7 +211,8 @@ class Colors:
 class JackCompiler:
     """Main compiler class."""
 
-    def __init__(self, verbose: bool = False, warnings: bool = True, werror: bool = False):
+    def __init__(self, verbose: bool = False, warnings: bool = True, werror: bool = False,
+                 extensions: bool = False):
         """
         Initialize the compiler.
 
@@ -219,8 +220,10 @@ class JackCompiler:
             verbose: Print a full traceback on unexpected internal errors.
             warnings: Print warnings (they never stop compilation by themselves).
             werror: Treat warnings as errors (like ``gcc -Werror``).
+            extensions: Enable extra comparisons and literal syntax (off by default).
         """
-        self.visitor = JackCompilerVisitor()
+        self.extensions = extensions
+        self.visitor = JackCompilerVisitor(extensions=extensions)
         self.verbose = verbose
         self.show_warnings = warnings
         self.werror = werror
@@ -246,6 +249,7 @@ class JackCompiler:
         listener = CollectingErrorListener(input_path)
 
         lexer = JackLexer(input_stream)
+        lexer.extensions = self.extensions
         lexer.removeErrorListeners()
         lexer.addErrorListener(listener)
 
@@ -258,7 +262,7 @@ class JackCompiler:
         if listener.diagnostics:
             raise JackSyntaxError(input_path, listener.diagnostics)
 
-        diagnostics = check_semantics(tree, input_path)
+        diagnostics = check_semantics(tree, input_path, extensions=self.extensions)
         if self.werror:
             diagnostics = [
                 Diagnostic(d.file, d.line, d.column, d.message + " [-Werror]", ERROR, d.length, d.help, d.notes)
@@ -533,6 +537,10 @@ Examples:
         help='Treat warnings as errors: a file with warnings is not compiled',
     )
     parser.add_argument(
+        '--extensions', action='store_true',
+        help='Enable extra literals/operators, initialisers, loop controls, constants, and enums',
+    )
+    parser.add_argument(
         '--version', action='version', version=f'%(prog)s {__version__}'
     )
     return parser
@@ -548,7 +556,8 @@ def main(argv=None):
         print(f"{Colors.red('✗ ERROR')}: Input path not found: {args.input}")
         sys.exit(1)
 
-    compiler = JackCompiler(verbose=args.verbose, warnings=not args.no_warnings, werror=args.werror)
+    compiler = JackCompiler(verbose=args.verbose, warnings=not args.no_warnings,
+                            werror=args.werror, extensions=args.extensions)
 
     if input_path.is_file():
         if args.recursive:

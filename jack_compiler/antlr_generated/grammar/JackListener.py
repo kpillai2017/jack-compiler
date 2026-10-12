@@ -80,6 +80,60 @@ class JackListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by JackParser#localVariable.
+    def enterLocalVariable(self, ctx:JackParser.LocalVariableContext):
+        pass
+
+    # Exit a parse tree produced by JackParser#localVariable.
+    def exitLocalVariable(self, ctx:JackParser.LocalVariableContext):
+        pass
+
+
+    # Enter a parse tree produced by JackParser#constDeclaration.
+    def enterConstDeclaration(self, ctx:JackParser.ConstDeclarationContext):
+        pass
+
+    # Exit a parse tree produced by JackParser#constDeclaration.
+    def exitConstDeclaration(self, ctx:JackParser.ConstDeclarationContext):
+        pass
+
+
+    # Enter a parse tree produced by JackParser#constEntry.
+    def enterConstEntry(self, ctx:JackParser.ConstEntryContext):
+        pass
+
+    # Exit a parse tree produced by JackParser#constEntry.
+    def exitConstEntry(self, ctx:JackParser.ConstEntryContext):
+        pass
+
+
+    # Enter a parse tree produced by JackParser#enumDeclaration.
+    def enterEnumDeclaration(self, ctx:JackParser.EnumDeclarationContext):
+        pass
+
+    # Exit a parse tree produced by JackParser#enumDeclaration.
+    def exitEnumDeclaration(self, ctx:JackParser.EnumDeclarationContext):
+        pass
+
+
+    # Enter a parse tree produced by JackParser#enumMember.
+    def enterEnumMember(self, ctx:JackParser.EnumMemberContext):
+        pass
+
+    # Exit a parse tree produced by JackParser#enumMember.
+    def exitEnumMember(self, ctx:JackParser.EnumMemberContext):
+        pass
+
+
+    # Enter a parse tree produced by JackParser#qualifiedConstant.
+    def enterQualifiedConstant(self, ctx:JackParser.QualifiedConstantContext):
+        pass
+
+    # Exit a parse tree produced by JackParser#qualifiedConstant.
+    def exitQualifiedConstant(self, ctx:JackParser.QualifiedConstantContext):
+        pass
+
+
     # Enter a parse tree produced by JackParser#statements.
     def enterStatements(self, ctx:JackParser.StatementsContext):
         pass
@@ -107,6 +161,15 @@ class JackListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by JackParser#assignmentOperator.
+    def enterAssignmentOperator(self, ctx:JackParser.AssignmentOperatorContext):
+        pass
+
+    # Exit a parse tree produced by JackParser#assignmentOperator.
+    def exitAssignmentOperator(self, ctx:JackParser.AssignmentOperatorContext):
+        pass
+
+
     # Enter a parse tree produced by JackParser#ifStatement.
     def enterIfStatement(self, ctx:JackParser.IfStatementContext):
         pass
@@ -122,6 +185,42 @@ class JackListener(ParseTreeListener):
 
     # Exit a parse tree produced by JackParser#whileStatement.
     def exitWhileStatement(self, ctx:JackParser.WhileStatementContext):
+        pass
+
+
+    # Enter a parse tree produced by JackParser#forStatement.
+    def enterForStatement(self, ctx:JackParser.ForStatementContext):
+        pass
+
+    # Exit a parse tree produced by JackParser#forStatement.
+    def exitForStatement(self, ctx:JackParser.ForStatementContext):
+        pass
+
+
+    # Enter a parse tree produced by JackParser#forAssignment.
+    def enterForAssignment(self, ctx:JackParser.ForAssignmentContext):
+        pass
+
+    # Exit a parse tree produced by JackParser#forAssignment.
+    def exitForAssignment(self, ctx:JackParser.ForAssignmentContext):
+        pass
+
+
+    # Enter a parse tree produced by JackParser#breakStatement.
+    def enterBreakStatement(self, ctx:JackParser.BreakStatementContext):
+        pass
+
+    # Exit a parse tree produced by JackParser#breakStatement.
+    def exitBreakStatement(self, ctx:JackParser.BreakStatementContext):
+        pass
+
+
+    # Enter a parse tree produced by JackParser#continueStatement.
+    def enterContinueStatement(self, ctx:JackParser.ContinueStatementContext):
+        pass
+
+    # Exit a parse tree produced by JackParser#continueStatement.
+    def exitContinueStatement(self, ctx:JackParser.ContinueStatementContext):
         pass
 
 
@@ -248,6 +347,15 @@ class JackListener(ParseTreeListener):
 
     # Exit a parse tree produced by JackParser#stringConstant.
     def exitStringConstant(self, ctx:JackParser.StringConstantContext):
+        pass
+
+
+    # Enter a parse tree produced by JackParser#characterConstant.
+    def enterCharacterConstant(self, ctx:JackParser.CharacterConstantContext):
+        pass
+
+    # Exit a parse tree produced by JackParser#characterConstant.
+    def exitCharacterConstant(self, ctx:JackParser.CharacterConstantContext):
         pass
 
 

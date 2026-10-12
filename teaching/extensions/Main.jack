@@ -1,0 +1,96 @@
+// Compile from the repository root:
+// jackc --extensions teaching/extensions/Main.jack -o build/extensions/Main.vm
+// This is extended Jack, not standard nand2tetris Jack.
+class Main {
+    // Group 4: compile-time values consume no VM storage.
+    const int CAPACITY = 8, STOP_AT = 6, SKIP_AT = 2;
+    const int MASK = 0x0F;
+    const char BADGE = 'A';
+    const boolean RUNNING = true;
+    enum State { READY, ACTIVE = 5, DONE }
+
+    // Observable results, also used by the companion-VM regression test.
+    static int total, processed, indexCalls, flags, finalState;
+
+    function void main() {
+        // Group 2: initialisers execute once, in source order.
+        const int BONUS = 1;
+        var Array scores = Array.new(CAPACITY);
+        var int i = 0, countdown = 3;
+        var int state = State.READY;
+
+        // Array.new allocates storage; do not assume its elements are zeroed.
+        for (let i = 0; i < CAPACITY; let i += 1) {
+            let scores[i] = 0;
+        }
+        let total = 0;
+        let processed = 0;
+        let indexCalls = 0;
+        let flags = 0;
+        let state = State.ACTIVE;
+
+        // Group 3: continue runs the update; break skips it.
+        for (let i = 0; i <= (CAPACITY - 1); let i += 1) {
+            if (i = SKIP_AT) { continue; }
+            if (i >= STOP_AT) { break; }
+
+            // The index call runs exactly once per compound update.
+            // Group 1: parentheses retain the intended Jack expression order.
+            let scores[Main.countIndex(i)] += (i * 2) + BONUS;
+            let total += scores[i];
+            let processed += 1;
+            let flags |= 0b0010;
+        }
+
+        // Exercise the remaining compound operators without changing total.
+        let total *= 2;
+        let total /= 2;
+        let total -= BONUS;
+        let total += BONUS;
+        let flags |= 0b0001;
+        let flags &= MASK;
+
+        // In a while loop, continue jumps directly to the condition.
+        // Decrement first, or continue could accidentally make it endless.
+        while (RUNNING) {
+            let countdown -= 1;
+            if (countdown = 2) { continue; }
+            if (countdown = 0) { break; }
+        }
+        let state = State.DONE;
+        let finalState = state;
+
+        // Group 1: escaped quotes/backslash and a character constant.
+        do Output.printString("Extensions \"lab\" \\ ");
+        do Output.printChar(BADGE);
+        do Output.println();
+        do Output.printString("total = ");
+        do Output.printInt(total);
+        do Output.println();
+        do Output.printString("processed = ");
+        do Output.printInt(processed);
+        do Output.println();
+        do Output.printString("index calls = ");
+        do Output.printInt(indexCalls);
+        do Output.println();
+        do Output.printString("flags = ");
+        do Output.printInt(flags);
+        do Output.println();
+        do Output.printString("state = ");
+        do Output.printInt(state);
+        do Output.println();
+        if (state != State.READY) {
+            do Output.printString("finished");
+            do Output.println();
+        }
+
+        // Extended syntax still uses the ordinary OS allocation/disposal API.
+        do scores.dispose();
+        return;
+    }
+
+    function int countIndex(int index) {
+        let indexCalls += 1;
+        return index;
+    }
+}

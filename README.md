@@ -518,6 +518,106 @@ can change its internals without breaking the other.
 - `method` - Instance method (implicit 'this')
 - `constructor` - Constructor (returns 'this')
 
+## Opt-in language extensions
+
+**Learn by doing:** [combined four-group teaching lab](teaching/extensions/README.md)
+with [runnable source](teaching/extensions/Main.jack), an execution trace, VM
+explanations, and exercises. The [HTML walkthrough](docs/language-extensions.html)
+is also available in the documentation site. This lesson lives outside the
+standard-mode `examples/` directory.
+
+Standard nand2tetris Jack remains the default. Enable the additional syntax for a
+file or an entire batch with:
+
+```bash
+jackc --extensions Main.jack
+jackc --extensions -r project/ -o output/
+```
+
+The Python API accepts the same mode: `JackCompiler(extensions=True)`.
+
+Supported additions:
+
+- Comparisons: `<=`, `>=`, and `!=` (Boolean results, like existing comparisons).
+- Hexadecimal and binary integers: `0xFF`, `0X7FFF`, `0b1010`, `0B1010`.
+  All integer literals still have a range of **0–32767**; use unary minus for
+  negative values. Leading-zero decimal integers remain decimal.
+- Character literals: `'A'`, `' '`, `'\n'` (a single character's numeric code).
+- Escapes in strings and characters: `\n`, `\r`, `\t`, `\b`, `\f`, `\0`,
+  `\\`, `\"`, and `\'`. Unknown escapes are errors. Character codes and decoded
+  string lengths must fit in 0–32767. Control-character display depends on the OS;
+  escapes create character values, not special Output commands.
+- Local declaration initialisers: `var int x = 1, y, z = x + 2;`. Initialisers
+  run once, in source order, right after a method's `this` pointer or a
+  constructor's `Memory.alloc` is set up. An initialiser may read a
+  previously-listed local in the same `var` statement, but — as in most
+  languages with this feature — reading one listed *later* sees its
+  not-yet-run initial value of 0, not its eventual initialiser.
+- Compound assignment: `+=`, `-=`, `*=`, `/=`, `&=`, `|=`, for both plain
+  variables and array elements, e.g. `let total += 1;` or `let grid[row] |= mask;`.
+  For an array element, the index expression is evaluated exactly **once**,
+  even if it has side effects (such as a function call).
+
+- `break;` exits the innermost loop; `continue;` skips to its next iteration.
+  Both are errors outside a loop. In a `for` loop, `continue` runs the update
+  before testing the condition again; `break` skips the update.
+- `for (let i = 0; i < 10; let i += 1) { ... }`. The `let` keyword in each
+  assignment clause is optional. Any clause can be omitted; `for (;;) { ... }`
+  is endless unless it breaks or returns. Headers accept one assignment each
+  (including array targets), not declarations, `do` calls, or comma lists.
+  Declare locals at subroutine start as usual. Conditions use the same Boolean
+  convention as Jack's `while`. In extension mode, `for`, `break`, `continue`,
+  `const`, and `enum` are reserved words; in standard mode they remain valid
+  identifiers.
+
+- Compile-time constants at class scope or in the subroutine declaration section:
+  `const int LIMIT = 10, DOUBLE = LIMIT * 2;`. Supported types are `int`, `char`,
+  and `boolean`. Constants cannot be assigned or indexed and consume no VM
+  storage. Local constants may shadow class constants; `Main.LIMIT` explicitly
+  refers to the current class's constant. Local variables/parameters may also
+  shadow class constants.
+- Class-level integer enums: `enum Direction { NORTH, EAST, SOUTH, WEST }`.
+  Use `Direction.NORTH` in expressions. Values start at 0 and increment by 1;
+  an explicit value resets numbering: `enum State { IDLE, RUNNING = 5, DONE }`
+  gives 0, 5, 6. A trailing comma and semicolon are optional. Enum names may not
+  collide with variables or constants. Members are integers, not distinct types.
+
+Constant expressions allow integers, characters, booleans, other constants and
+members, grouping, unary `-`/`~`, and existing binary operators. Forward
+references are allowed; cycles, unknown names, runtime variables/calls, strings,
+`null`/`this`, and division by zero are errors. Evaluation follows Jack's
+left-to-right order, wraps to signed 16 bits after each operation, and division
+truncates toward zero. Boolean constants must evaluate to 0 or -1; char constants
+must be 0–32767. An implicit enum increment past 32767 is an error. Constants
+and enums are **limited to the current source class**; cross-file exports and
+enum type declarations are not supported.
+
+For example:
+
+```jack
+class Main {
+    function void main() {
+        var int mask = 0xFF;
+        var char letter = 'A';
+        var Array grid;
+        let grid = Array.new(4);
+        if (mask >= 0b1000) {
+            do Output.printChar(letter);
+        }
+        let grid[0] += 1;
+        return;
+    }
+}
+```
+
+Binary expressions retain Jack's **left-to-right evaluation**; these additions do
+not introduce conventional operator precedence. Without `--extensions`, extra
+operators, numeric bases, character literals, declaration initialisers, and
+compound assignment are all rejected. Extended loops, constants, and enums are
+also unavailable.
+Backslashes inside strings retain their original literal meaning. The GUI
+currently uses standard mode. No VM instruction-set changes are required.
+
 ## VM Output Format
 
 Generated code follows the Hack VM specification:

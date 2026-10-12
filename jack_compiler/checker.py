@@ -41,6 +41,9 @@ are trusted.
 from __future__ import annotations
 
 import difflib
+
+from .literals import integer_value, quoted_value
+from .constants import collect_constants, lookup_constant, evaluate, ConstantError
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Set
@@ -146,7 +149,10 @@ def _plural(count: int, word: str) -> str:
 class SemanticChecker:
     """Run with `check(tree)`; returns every Diagnostic found, sorted by position."""
 
-    def __init__(self, file: str, known_classes: Optional[Iterable[str]] = None) -> None:
+    def __init__(self, file: str, known_classes: Optional[Iterable[str]] = None,
+                 extensions: bool = False) -> None:
+        self.extensions = extensions
+        self.loop_depth = 0
         self.file = file
         # Class names that exist: the Jack OS, plus the program's own classes
         # (by default, the .jack files next to this one). This class is added
@@ -155,6 +161,8 @@ class SemanticChecker:
         self.known_classes: Set[str] = OS_CLASSES | self.program
         self.diagnostics: List[Diagnostic] = []
         self.class_name = ""
+        self.class_constants = {}
+        self.constants = {}
         self.class_scope: Dict[str, Declared] = {}
         self.subroutines: Dict[str, Declared] = {}
         self.current: Optional[_Subroutine] = None
@@ -206,6 +214,19 @@ class SemanticChecker:
             type_name = self._check_type(var_decl.type_())
             for name_ctx in var_decl.varName():
                 self._declare(self.class_scope, name_ctx, kind, type_name, "in this class")
+
+        self.class_constants = collect_constants(
+            cls, self.class_name, blocked=self.class_scope, report=self.error)
+        self.constants = self.class_constants
+        for declaration in cls.constDeclaration():
+            self._require_extensions(declaration)
+            for entry in declaration.constEntry():
+                name = entry.varName().getText()
+                if name in self.class_constants:
+                    self._declare(self.class_scope, entry.varName(), "constant",
+                                  declaration.type_().getText(), "in this class")
+        for declaration in cls.enumDeclaration():
+            self._require_extensions(declaration)
 
         # Collect every subroutine first, so calls to ones defined further down are fine.
         for sub in cls.subroutineDeclaration():
@@ -278,8 +299,24 @@ class SemanticChecker:
         body = sub.subroutineBody()
         for var_decl in body.varDeclaration():
             type_name = self._check_type(var_decl.type_())
-            for name_ctx in var_decl.varName():
-                self._declare(scope, name_ctx, "local", type_name, "in this subroutine")
+            for local in var_decl.localVariable():
+                self._declare(scope, local.varName(), "local", type_name, "in this subroutine")
+
+        self.constants = collect_constants(
+            body, self.class_name, parent=self.class_constants,
+            blocked=scope, report=self.error)
+        for declaration in body.constDeclaration():
+            self._require_extensions(declaration)
+            for entry in declaration.constEntry():
+                self._declare(scope, entry.varName(), "constant",
+                              declaration.type_().getText(), "in this subroutine")
+
+        # All locals have subroutine scope and are zeroed before initialisers run.
+        for var_decl in body.varDeclaration():
+            for local in var_decl.localVariable():
+                if local.expression() is not None:
+                    self._require_extensions(local.EQUAL())
+                    self._check_expression(local.expression())
 
         statements = body.statements()
         self._check_statements(statements)
@@ -299,40 +336,71 @@ class SemanticChecker:
         self.current = None
 
     def _always_returns(self, statements_ctx) -> bool:
-        """Does every path through these statements end in a 'return'?"""
-        # Any statement that always returns makes the end unreachable - even if
-        # (unreachable) statements follow it; those get their own warning.
-        return any(self._statement_always_returns(item) for item in statements_ctx.statement())
+        """Can control reach the end? Endless loops also satisfy this check."""
+        return "next" not in self._flow(statements_ctx)
 
-    def _statement_always_returns(self, statement) -> bool:
+    def _flow(self, statements_ctx) -> Set[str]:
+        """Possible exits: next, return, break, continue (empty means endless)."""
+        exits = {"next"}
+        for statement in statements_ctx.statement():
+            if "next" not in exits:
+                break
+            exits = (exits - {"next"}) | self._statement_flow(statement)
+        return exits
+
+    def _statement_flow(self, statement) -> Set[str]:
         if statement.returnStatement():
-            return True
+            return {"return"}
+        if statement.breakStatement():
+            return {"break"}
+        if statement.continueStatement():
+            return {"continue"}
         node = statement.ifStatement()
-        if node is not None and node.ELSE():
-            then_branch, else_branch = node.statements()
-            return self._always_returns(then_branch) and self._always_returns(else_branch)
-        node = statement.whileStatement()
         if node is not None:
-            # Jack has no 'break', so a loop whose condition is always true only
-            # ends by returning: the code after it can't be reached.
-            # (Brackets can't change these, so '(~(false))' counts too.)
-            condition = node.expression().getText().replace("(", "").replace(")", "")
-            return condition in ALWAYS_TRUE
-        return False
+            blocks = node.statements()
+            return self._flow(blocks[0]) | (self._flow(blocks[1]) if node.ELSE() else {"next"})
+        node = statement.whileStatement() or statement.forStatement()
+        if node is not None:
+            expression = node.expression() if statement.whileStatement() else node.condition
+            condition = expression.getText().replace("(", "").replace(")", "") if expression else "true"
+            body = self._flow(node.statements())
+            exits = body & {"return"}
+            always_true = condition in ALWAYS_TRUE
+            if self.extensions and expression is not None:
+                def resolve(name):
+                    constant = self._constant(name)
+                    if constant is None:
+                        raise ConstantError("not a constant")
+                    return constant
+                try:
+                    always_true = evaluate(expression, resolve) == -1
+                except ValueError:
+                    pass
+            # Nested loop breaks are consumed by their own _statement_flow.
+            if not always_true or "break" in body:
+                exits.add("next")
+            return exits
+        return {"next"}
 
     def _check_statements(self, statements_ctx) -> None:
-        items = statements_ctx.statement()
-        for index, statement in enumerate(items):
-            if index > 0 and items[index - 1].returnStatement():
-                self.warning(statement, "this code will never run: it comes after 'return'")
+        reachable = True
+        previous = None
+        for statement in statements_ctx.statement():
+            if (not reachable and self.extensions) or (previous is not None and previous.returnStatement()):
+                reason = "control flow leaves this block"
+                if previous is not None:
+                    for keyword in ("return", "break", "continue"):
+                        if getattr(previous, keyword + "Statement")():
+                            reason = f"it comes after '{keyword}'"
+                            break
+                self.warning(statement, f"this code will never run: {reason}")
             self._check_statement(statement)
+            reachable = reachable and "next" in self._statement_flow(statement)
+            previous = statement
 
     def _check_statement(self, statement) -> None:
         if statement.letStatement():
-            let = statement.letStatement()
-            self._use_variable(let.varName())
-            for expression in let.expression():
-                self._check_expression(expression)
+            self._check_assignment(statement.letStatement())
         elif statement.ifStatement():
             node = statement.ifStatement()
             self._check_expression(node.expression())
@@ -341,11 +409,42 @@ class SemanticChecker:
         elif statement.whileStatement():
             node = statement.whileStatement()
             self._check_expression(node.expression())
-            self._check_statements(node.statements())
+            self._check_loop_body(node.statements())
+        elif statement.forStatement():
+            node = statement.forStatement()
+            self._require_extensions(node)
+            for assignment in (node.init, node.update):
+                if assignment is not None:
+                    self._check_assignment(assignment)
+            if node.condition is not None:
+                self._check_expression(node.condition)
+            self._check_loop_body(node.statements())
+        elif statement.breakStatement() or statement.continueStatement():
+            node = statement.breakStatement() or statement.continueStatement()
+            self._require_extensions(node)
+            if self.loop_depth == 0:
+                keyword = "break" if statement.breakStatement() else "continue"
+                self.error(node, f"'{keyword}' is only valid inside a loop")
         elif statement.doStatement():
             self._check_call(statement.doStatement().subroutineCall())
         elif statement.returnStatement():
             self._check_return(statement.returnStatement())
+
+    def _check_assignment(self, node) -> None:
+        if node.assignmentOperator().getText() != "=":
+            self._require_extensions(node.assignmentOperator())
+        declared = self._use_variable(node.varName())
+        if declared is not None and declared.kind == "constant":
+            self.error(node.varName(), "cannot assign to a compile-time constant")
+        for expression in node.expression():
+            self._check_expression(expression)
+
+    def _check_loop_body(self, statements) -> None:
+        self.loop_depth += 1
+        try:
+            self._check_statements(statements)
+        finally:
+            self.loop_depth -= 1
 
     def _check_return(self, node) -> None:
         sub = self.current
@@ -365,29 +464,67 @@ class SemanticChecker:
 
     # --- expressions ------------------------------------------------------------
     def _check_expression(self, expression) -> None:
+        for op in expression.op():
+            if op.getText() in {"<=", ">=", "!="}:
+                self._require_extensions(op)
         for term in expression.term():
             self._check_term(term)
 
+    def _require_extensions(self, ctx) -> bool:
+        if self.extensions:
+            return True
+        self.error(ctx, "this syntax requires extension mode",
+                   help="use --extensions or JackCompiler(extensions=True)")
+        return False
+
     def _check_term(self, term) -> None:
         if term.integerConstant():
-            value = int(term.integerConstant().getText())
+            text = term.integerConstant().getText()
+            if text.lower().startswith(("0x", "0b")):
+                self._require_extensions(term.integerConstant())
+            value = integer_value(text)
             if value > MAX_INT:
                 self.error(term.integerConstant(), f"integer constant {value} is too large",
                            help=f"the largest Jack integer is {MAX_INT}")  # fmt: skip
+        elif term.characterConstant() or term.stringConstant():
+            char_ctx = term.characterConstant()
+            ctx = char_ctx or term.stringConstant()
+            if char_ctx and not self._require_extensions(ctx):
+                return
+            if self.extensions:
+                try:
+                    value = quoted_value(ctx.getText(), extensions=True)
+                    if char_ctx and len(value) != 1:
+                        self.error(ctx, "a character literal must contain exactly one character")
+                except ValueError as problem:
+                    self.error(ctx, str(problem))
         elif term.keywordConstant():
             if term.keywordConstant().getText() == "this" and self.current.kind == "function":
                 self.error(term.keywordConstant(), f"'this' can't be used in function '{self.current.name}'",
                            help="only methods and constructors have a 'this' object")  # fmt: skip
+        elif term.qualifiedConstant():
+            ctx = term.qualifiedConstant()
+            self._require_extensions(ctx)
+            if self._constant(ctx.getText()) is None:
+                self.error(ctx, f"unknown compile-time constant '{ctx.getText()}'")
         elif term.subroutineCall():
             self._check_call(term.subroutineCall())
         elif term.varName():
-            self._use_variable(term.varName())
+            declared = self._use_variable(term.varName())
+            if term.expression() and declared is not None and declared.kind == "constant":
+                self.error(term.varName(), "a compile-time constant cannot be indexed as an array")
             if term.expression():
                 self._check_expression(term.expression())
         elif term.expression():  # ( expression )
             self._check_expression(term.expression())
         elif term.term():  # unary op
             self._check_term(term.term())
+
+    def _constant(self, name):
+        blocked = {name for name, symbol in self.current.scope.items()
+                   if symbol.kind != "constant"} if self.current else set()
+        return lookup_constant(name, self.constants, self.class_constants,
+                               self.class_name, blocked)
 
     def _lookup(self, name: str) -> Optional[Declared]:
         if self.current and name in self.current.scope:
@@ -436,6 +573,9 @@ class SemanticChecker:
 
         receiver_ctx = call.getChild(0)
         receiver = receiver_ctx.getText()
+        if any(name.startswith(receiver + ".") for name in self.class_constants):
+            self.error(receiver_ctx, f"enum '{receiver}' has no callable methods")
+            return
         variable = self._lookup(receiver)
         if variable is not None:
             # object.subroutine(...)
@@ -503,9 +643,10 @@ class SemanticChecker:
                        notes=[Note(target.line, target.column, f"'{target.name}' is declared here", len(target.name))])  # fmt: skip
 
 
-def check(tree, file: str, known_classes: Optional[Iterable[str]] = None) -> List[Diagnostic]:
+def check(tree, file: str, known_classes: Optional[Iterable[str]] = None,
+          extensions: bool = False) -> List[Diagnostic]:
     """
     Run every semantic check on a parsed program. `known_classes` are the
     program's classes; by default, the .jack files in `file`'s folder.
     """
-    return SemanticChecker(file, known_classes).check(tree)
+    return SemanticChecker(file, known_classes, extensions=extensions).check(tree)

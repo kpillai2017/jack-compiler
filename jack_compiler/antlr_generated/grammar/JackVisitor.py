@@ -49,6 +49,36 @@ class JackVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by JackParser#localVariable.
+    def visitLocalVariable(self, ctx:JackParser.LocalVariableContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by JackParser#constDeclaration.
+    def visitConstDeclaration(self, ctx:JackParser.ConstDeclarationContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by JackParser#constEntry.
+    def visitConstEntry(self, ctx:JackParser.ConstEntryContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by JackParser#enumDeclaration.
+    def visitEnumDeclaration(self, ctx:JackParser.EnumDeclarationContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by JackParser#enumMember.
+    def visitEnumMember(self, ctx:JackParser.EnumMemberContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by JackParser#qualifiedConstant.
+    def visitQualifiedConstant(self, ctx:JackParser.QualifiedConstantContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by JackParser#statements.
     def visitStatements(self, ctx:JackParser.StatementsContext):
         return self.visitChildren(ctx)
@@ -64,6 +94,11 @@ class JackVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by JackParser#assignmentOperator.
+    def visitAssignmentOperator(self, ctx:JackParser.AssignmentOperatorContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by JackParser#ifStatement.
     def visitIfStatement(self, ctx:JackParser.IfStatementContext):
         return self.visitChildren(ctx)
@@ -71,6 +106,26 @@ class JackVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by JackParser#whileStatement.
     def visitWhileStatement(self, ctx:JackParser.WhileStatementContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by JackParser#forStatement.
+    def visitForStatement(self, ctx:JackParser.ForStatementContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by JackParser#forAssignment.
+    def visitForAssignment(self, ctx:JackParser.ForAssignmentContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by JackParser#breakStatement.
+    def visitBreakStatement(self, ctx:JackParser.BreakStatementContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by JackParser#continueStatement.
+    def visitContinueStatement(self, ctx:JackParser.ContinueStatementContext):
         return self.visitChildren(ctx)
 
 
@@ -141,6 +196,11 @@ class JackVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by JackParser#stringConstant.
     def visitStringConstant(self, ctx:JackParser.StringConstantContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by JackParser#characterConstant.
+    def visitCharacterConstant(self, ctx:JackParser.CharacterConstantContext):
         return self.visitChildren(ctx)
 
 

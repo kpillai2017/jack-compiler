@@ -191,8 +191,18 @@ def describe_expected(items: Sequence[str]) -> str:
                 remaining.remove(item)
 
     take(_EXPRESSION_START, "an expression")
+    if "an expression" in phrases and "CHAR_LITERAL" in remaining:
+        remaining.remove("CHAR_LITERAL")
     take(_STATEMENT_START, "a statement")
+    if "a statement" in phrases:
+        for item in {"'for'", "'break'", "'continue'"}:
+            if item in remaining:
+                remaining.remove(item)
     take(_OPERATOR, "an operator")
+    if "an operator" in phrases:
+        for item in {"'<='", "'>='", "'!='"}:
+            if item in remaining:
+                remaining.remove(item)
     take(_SUBROUTINE_KIND, "a subroutine declaration")
     take(_CLASS_VAR_KIND, "a 'static' or 'field' declaration")
     take(_TYPE, "a type")

@@ -46,11 +46,44 @@ jackc-gui src_dir/
 any errors and warnings marked under the line. See
 [The Compiler Window](docs/gui.html).
 
+## Optional language extensions
+
+For a guided, runnable demonstration of all four extension groups, follow the
+[teaching lab](teaching/extensions/README.md) or its
+[HTML walkthrough](docs/language-extensions.html). From the repository root:
+
+```bash
+jackc --extensions teaching/extensions/Main.jack -o build/extensions/Main.vm
+# Optional companion runtime; run compiled VM, not automatic source compilation:
+jackvm build/extensions/Main.vm
+```
+
+Use `jackc --extensions program.jack` (or add `--extensions` to a directory or
+recursive batch command) to enable `<=`, `>=`, `!=`, hexadecimal/binary integer
+literals, character literals, string escapes, local declaration initialisers
+(`var int x = 1, y;`), and compound assignment (`+=`, `-=`, `*=`, `/=`, `&=`,
+`|=`), `break`/`continue`, and `for` loops, e.g.
+`for (let i = 0; i < 10; let i += 1) { ... }`. For-header `let` keywords and
+all three clauses are optional; locals still belong at subroutine start.
+`continue` runs a for-loop's update; `break` skips it. Both target the innermost
+loop and are invalid outside loops.
+Constants (`const int LIMIT = 10;`) and class-level integer enums
+(`enum Direction { NORTH, EAST, SOUTH, WEST }`, used as `Direction.NORTH`) are
+also enabled. They are evaluated at compile time and consume no VM storage;
+references are limited to the current source class. See the README for evaluation
+rules and scope restrictions.
+The Python API is `JackCompiler(extensions=True)`. Standard Jack remains
+the default; in particular, backslashes in standard-mode strings remain literal
+and binary operators still evaluate left to right in both modes.
+
+See [Opt-in language extensions](README.md#opt-in-language-extensions) for syntax,
+escape sequences, and numeric limits. The GUI currently compiles in standard mode.
+
 ## Command Line Options
 
 ```
 usage: jackc [-h] [-o OUTPUT] [-r] [--clean] [-n] [-v] [-w] [--werror]
-             [--version]
+             [--extensions] [--version]
              input
 
 positional arguments:
