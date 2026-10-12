@@ -24,7 +24,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e ".[dev,gui]"
 
-      - name: Fetch jackvm-py (to check the shared integrations.py matches)
+      - name: Fetch jackvm-py for integration and runtime validation
         shell: bash
         run: |
           # The branch with the same name as this one, if jackvm-py has it; else main.
@@ -34,6 +34,14 @@ jobs:
             || git clone --quiet --depth 1 https://github.com/kpillai2017/jackvm-py.git "$dest"
           echo "JACK_TOOLS_COMPANION=$dest" >> "$GITHUB_ENV"
           echo "Comparing with jackvm-py @ $(git -C "$dest" rev-parse --abbrev-ref HEAD) $(git -C "$dest" rev-parse --short HEAD)"
+
+      - name: Enable companion runtime imports
+        shell: bash
+        run: |
+          # PYTHONPATH avoids requiring a companion package installation and
+          # preserves the checkout selected above for source consistency tests.
+          echo "PYTHONPATH=$JACK_TOOLS_COMPANION" >> "$GITHUB_ENV"
+          PYTHONPATH="$JACK_TOOLS_COMPANION" python -c "import jackvm.vm; print('Companion VM import verified:', jackvm.vm.__file__)"
 
       - name: Run tests
         run: pytest -v

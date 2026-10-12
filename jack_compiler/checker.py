@@ -17,8 +17,8 @@ Errors (the file is not compiled)
     * calling a method on a class, or a function/constructor on an object
     * calling a method on an int / char / boolean variable
     * an integer constant bigger than 32767
-    * a subroutine that can reach its end without 'return' (a 'while (true)'
-      loop doesn't reach the code after it: Jack has no 'break')
+    * a subroutine that can reach its end without 'return' (an endless loop
+      has no fallthrough unless extension mode introduces a reachable 'break')
 
 Warnings (the file still compiles)
     * a local variable that is never used (parameters aren't reported: like

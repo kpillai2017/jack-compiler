@@ -132,15 +132,36 @@ def collect_constants(container, class_name, parent=None, blocked=(), report=Non
         if name in values:
             return values[name]
         if name in definitions:
-            if name in active:
-                raise ConstantError(f"cyclic constant definition involving '{name}'")
             if name in failed:
                 raise ConstantError(f"constant '{name}' has an invalid definition")
+            if name in active:
+                raise ConstantError(f"cyclic constant definition involving '{name}'")
+            raise PendingConstant(name)
+        if name in blocked:
+            raise ConstantError(f"'{name}' is a variable, not a compile-time constant")
+        if name in parent:
+            return parent[name]
+        raise ConstantError(f"unknown compile-time constant '{name}'")
+
+    class PendingConstant(Exception):
+        """Suspend evaluation until an unresolved dependency has a value."""
+        def __init__(self, name):
+            self.name = name
+
+    # Explicit DFS stack: dependency depth must not consume Python call frames.
+    # Expression evaluation is pure, so suspended expressions can safely resume
+    # by re-evaluating with their newly cached dependency values.
+    for root in definitions:
+        if root in values or root in failed:
+            continue
+        stack = [root]
+        active.add(root)
+        while stack:
+            name = stack[-1]
             ctx, type_name, expression, previous = definitions[name]
-            if type_name not in {"int", "char", "boolean"}:
-                raise ConstantError("constants must have type int, char, or boolean")
-            active.add(name)
             try:
+                if type_name not in {"int", "char", "boolean"}:
+                    raise ConstantError("constants must have type int, char, or boolean")
                 value = evaluate(expression, resolve) if expression is not None else (resolve(previous).value + 1 if previous else 0)
                 if not -32768 <= value <= 32767:
                     raise ConstantError("enum value is outside the signed 16-bit range")
@@ -149,21 +170,15 @@ def collect_constants(container, class_name, parent=None, blocked=(), report=Non
                 if type_name == "boolean" and value not in {-1, 0}:
                     raise ConstantError("boolean constants must evaluate to true (-1) or false (0)")
                 values[name] = Constant(value, type_name)
-                return values[name]
-            finally:
-                active.remove(name)
-        if name in blocked:
-            raise ConstantError(f"'{name}' is a variable, not a compile-time constant")
-        if name in parent:
-            return parent[name]
-        raise ConstantError(f"unknown compile-time constant '{name}'")
-
-    for name, definition in definitions.items():
-        try:
-            resolve(name)
-        except ValueError as problem:
-            failed.add(name)
-            error(definition[0], str(problem))
+            except PendingConstant as dependency:
+                stack.append(dependency.name)
+                active.add(dependency.name)
+                continue
+            except ValueError as problem:
+                failed.add(name)
+                error(ctx, str(problem))
+            stack.pop()
+            active.remove(name)
     return {**parent, **values}
 
 
